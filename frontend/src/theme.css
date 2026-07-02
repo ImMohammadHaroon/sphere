@@ -1,0 +1,32 @@
+/* ProjectSphere — Theme Stylesheet (from theme.css) */
+
+:root {
+  --background: 0 0% 100%;
+  --surface: 45 20% 96%;
+  --surface-raised: 0 0% 100%;
+  --border: 44 16% 87%;
+  --border-strong: 44 14% 78%;
+  --text-primary: 108 7% 13%;
+  --text-secondary: 97 4% 38%;
+  --text-muted: 87 4% 54%;
+  --primary: 160 56% 28%;
+  --primary-hover: 161 59% 22%;
+  --primary-subtle: 150 26% 93%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 33 57% 51%;
+  --accent-subtle: 37 74% 92%;
+  --accent-foreground: 108 7% 13%;
+  --success: 142 39% 40%;
+  --warning: 38 70% 51%;
+  --danger: 9 53% 51%;
+  --info: 93 4% 46%;
+  --kanban-todo: 51 7% 58%;
+  --kanban-progress: 38 70% 51%;
+  --kanban-review: 23 53% 51%;
+  --kanban-done: 160 56% 28%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* intentionally left empty */
+}

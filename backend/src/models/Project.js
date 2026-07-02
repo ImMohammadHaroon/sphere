@@ -1,0 +1,37 @@
+import mongoose from "mongoose";
+
+const projectSchema = new mongoose.Schema(
+  {
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
+      required: true,
+      index: true,
+    },
+    name: { type: String, required: true, trim: true },
+    description: { type: String, trim: true, default: "" },
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    status: {
+      type: String,
+      enum: ["active", "archived"],
+      default: "active",
+    },
+    startDate: { type: Date, default: null },
+    dueDate: { type: Date, default: null },
+  },
+  { timestamps: true }
+);
+
+projectSchema.index({ organizationId: 1 });
+
+export const Project = mongoose.model("Project", projectSchema);

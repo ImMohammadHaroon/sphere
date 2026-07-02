@@ -1,0 +1,67 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import morgan from "morgan";
+import authRoutes from "./routes/auth.routes.js";
+import projectRoutes from "./routes/project.routes.js";
+import taskRoutes, { projectTaskRouter } from "./routes/task.routes.js";
+import platformRoutes from "./routes/platform.routes.js";
+import { authenticate, requireRole } from "./middleware/auth.middleware.js";
+import { tenantScope } from "./middleware/tenantScope.js";
+import { globalRateLimiter } from "./middleware/rateLimit.middleware.js";
+import { errorHandler } from "./middleware/error.middleware.js";
+import { swaggerServe, swaggerSetup } from "./config/swagger.js";
+import { env } from "./config/env.js";
+
+const app = express();
+
+app.use(
+  helmet({
+    contentSecurityPolicy: env.isProduction,
+    hsts: env.isProduction,
+  })
+);
+
+app.use(
+  cors({
+    origin: env.CLIENT_URL,
+    credentials: true,
+  })
+);
+
+app.use(globalRateLimiter);
+app.use(morgan(env.isProduction ? "combined" : "dev"));
+app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", service: "projectsphere-api" });
+});
+
+app.use("/api-docs", swaggerServe, swaggerSetup);
+app.use("/api/v1/auth", authRoutes);
+
+app.use("/api/v1/projects", authenticate, tenantScope, projectRoutes);
+app.use(
+  "/api/v1/projects/:projectId/tasks",
+  authenticate,
+  tenantScope,
+  projectTaskRouter
+);
+app.use("/api/v1/tasks", authenticate, tenantScope, taskRoutes);
+
+app.use(
+  "/api/v1/platform",
+  authenticate,
+  requireRole(["super_admin"]),
+  platformRoutes
+);
+
+app.use((req, res) => {
+  res.status(404).json({ message: "Not found" });
+});
+
+app.use(errorHandler);
+
+export default app;

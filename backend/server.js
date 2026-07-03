@@ -9,7 +9,7 @@ async function start() {
 
   const server = http.createServer(app);
 
-  server.listen(env.PORT, () => {
+  server.listen(env.PORT, "0.0.0.0", () => {
     logger.info(`ProjectSphere API listening on port ${env.PORT}`);
     logger.info(`Swagger UI: http://localhost:${env.PORT}/api-docs`);
   });

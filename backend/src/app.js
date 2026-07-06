@@ -16,6 +16,7 @@ import { tenantScope } from "./middleware/tenantScope.js";
 import { globalRateLimiter } from "./middleware/rateLimit.middleware.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { swaggerServe, swaggerSetup } from "./config/swagger.js";
+import { connectDB } from "./config/db.js";
 import { env } from "./config/env.js";
 
 const app = express();
@@ -47,6 +48,21 @@ app.use(cookieParser());
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok", service: "projectsphere-api" });
+});
+
+let dbReady = false;
+app.use(async (req, res, next) => {
+  if (dbReady || req.path === "/health") {
+    next();
+    return;
+  }
+  try {
+    await connectDB();
+    dbReady = true;
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.use("/api-docs", swaggerServe, swaggerSetup);

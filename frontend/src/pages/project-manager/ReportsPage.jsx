@@ -1,8 +1,8 @@
-import { ProjectManagerPlaceholder } from "@/components/layout/ProjectManagerLayout";
+import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
 
 export function ProjectManagerReportsPage() {
   return (
-    <ProjectManagerPlaceholder
+    <ProjectManagerLayout
       title="Reports"
       description="Progress, velocity, and workload across your projects."
     />

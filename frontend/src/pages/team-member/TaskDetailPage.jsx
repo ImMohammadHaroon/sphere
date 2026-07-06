@@ -1,11 +1,11 @@
 import { useParams } from "react-router-dom";
-import { TeamMemberPlaceholder } from "@/components/layout/TeamMemberLayout";
+import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
 
 export function TeamMemberTaskDetailPage() {
   const { taskId = "" } = useParams();
 
   return (
-    <TeamMemberPlaceholder
+    <TeamMemberLayout
       title="Task detail"
       description={
         taskId

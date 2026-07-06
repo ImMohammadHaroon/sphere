@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
+import { COLLECTIONS } from "../config/collections.js";
 
 const inviteTokenSchema = new mongoose.Schema(
   {
@@ -31,4 +32,4 @@ inviteTokenSchema.statics.hashToken = function (token) {
   return crypto.createHash("sha256").update(token).digest("hex");
 };
 
-export const InviteToken = mongoose.model("InviteToken", inviteTokenSchema);
+export const InviteToken = mongoose.model("InviteToken", inviteTokenSchema, COLLECTIONS.INVITE_TOKENS);

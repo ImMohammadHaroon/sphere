@@ -1,5 +1,6 @@
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
+import { logAction, getClientIp } from "../services/auditLog.service.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -46,6 +47,16 @@ export async function createTask(req, res, next) {
       position: req.body.position ?? 0,
     });
 
+    await logAction({
+      organizationId: req.user.organizationId,
+      actorId: req.user.userId,
+      action: "task.created",
+      targetType: "Task",
+      targetId: task._id,
+      metadata: { title: task.title, projectId: req.params.projectId },
+      ip: getClientIp(req),
+    });
+
     res.status(201).json({ task });
   } catch (err) {
     next(err);
@@ -68,6 +79,14 @@ export async function getTask(req, res, next) {
 
 export async function updateTask(req, res, next) {
   try {
+    const existing = await req
+      .scopedFindOne(Task, { _id: req.params.id })
+      .lean();
+
+    if (!existing) {
+      throw notFound();
+    }
+
     const updates = {};
     for (const field of [
       "title",
@@ -87,9 +106,24 @@ export async function updateTask(req, res, next) {
       .scopedFindOneAndUpdate(Task, { _id: req.params.id }, updates)
       .lean();
 
-    if (!task) {
-      throw notFound();
+    const metadata = { changes: updates };
+    if (
+      updates.status !== undefined &&
+      updates.status !== existing.status
+    ) {
+      metadata.from = existing.status;
+      metadata.to = updates.status;
     }
+
+    await logAction({
+      organizationId: req.user.organizationId,
+      actorId: req.user.userId,
+      action: "task.updated",
+      targetType: "Task",
+      targetId: task._id,
+      metadata,
+      ip: getClientIp(req),
+    });
 
     res.json({ task });
   } catch (err) {
@@ -106,6 +140,16 @@ export async function deleteTask(req, res, next) {
     if (!task) {
       throw notFound();
     }
+
+    await logAction({
+      organizationId: req.user.organizationId,
+      actorId: req.user.userId,
+      action: "task.deleted",
+      targetType: "Task",
+      targetId: task._id,
+      metadata: { title: task.title, projectId: task.projectId?.toString() },
+      ip: getClientIp(req),
+    });
 
     res.json({ message: "Task deleted", task });
   } catch (err) {

@@ -28,22 +28,22 @@ export function ClientPortalSidebar() {
   const { pathname } = useLocation();
 
   return (
-    <aside className="w-full shrink-0 border-b border-border bg-surface-raised lg:w-64 lg:border-b-0 lg:border-r">
-      <div className="p-4 lg:p-6">
+    <aside className="flex h-full w-full flex-col overflow-y-auto border-r border-border bg-surface-raised p-5 lg:p-8">
+      <div className="pb-6">
         <Link
           to="/portal"
           className="font-display text-lg font-semibold text-text-primary hover:text-primary"
         >
           ProjectSphere
         </Link>
-        <p className="mt-1 text-xs text-text-muted">Client portal</p>
+        <p className="mt-1 text-xs text-text-muted">Client Portal</p>
       </div>
 
-      <nav className="px-4 pb-6 lg:px-6">
-        <p className="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-text-muted">
+      <nav>
+        <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wide text-text-muted">
           Workspace
         </p>
-        <ul className="space-y-1">
+        <ul className="space-y-2">
           {clientPortalNav.map((item) => {
             const isActive = item.match ? item.match(pathname) : pathname === item.to;
 
@@ -52,7 +52,7 @@ export function ClientPortalSidebar() {
                 <Link
                   to={item.to}
                   className={cn(
-                    "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "block rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary-subtle text-primary"
                       : "text-text-secondary hover:bg-surface hover:text-text-primary"

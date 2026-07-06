@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { COLLECTIONS } from "../config/collections.js";
 
 export const INVITE_ROLES = [
   "org_admin",
@@ -41,4 +42,4 @@ const inviteSchema = new mongoose.Schema(
 
 inviteSchema.index({ organizationId: 1, email: 1, status: 1 });
 
-export const Invite = mongoose.model("Invite", inviteSchema);
+export const Invite = mongoose.model("Invite", inviteSchema, COLLECTIONS.INVITES);

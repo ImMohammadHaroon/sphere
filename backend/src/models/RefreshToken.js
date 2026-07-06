@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { COLLECTIONS } from "../config/collections.js";
 
 const refreshTokenSchema = new mongoose.Schema(
   {
@@ -19,4 +20,4 @@ const refreshTokenSchema = new mongoose.Schema(
 
 refreshTokenSchema.index({ userId: 1, deviceId: 1 });
 
-export const RefreshToken = mongoose.model("RefreshToken", refreshTokenSchema);
+export const RefreshToken = mongoose.model("RefreshToken", refreshTokenSchema, COLLECTIONS.REFRESH_TOKENS);

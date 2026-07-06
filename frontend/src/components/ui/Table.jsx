@@ -1,9 +1,17 @@
 import { cn } from "@/lib/utils";
 
+export function TableScrollArea({ className, children }) {
+  return (
+    <div className={cn("overflow-x-auto", className)}>
+      {children}
+    </div>
+  );
+}
+
 export function Table({ className, ...props }) {
   return (
     <table
-      className={cn("w-full caption-bottom text-sm", className)}
+      className={cn("w-full min-w-[36rem] caption-bottom text-sm", className)}
       {...props}
     />
   );

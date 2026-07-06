@@ -1,3 +1,5 @@
+import { logAction, getClientIp } from "../services/auditLog.service.js";
+
 export function requireOwnershipOrRole(resourceLoader, allowedRoles, ownerField) {
   return async (req, res, next) => {
     try {
@@ -16,6 +18,17 @@ export function requireOwnershipOrRole(resourceLoader, allowedRoles, ownerField)
       if (roleAllowed || isOwner) {
         return next();
       }
+
+      logAction({
+        organizationId: req.user.organizationId,
+        actorId: req.user.userId,
+        action: "rbac.access_denied",
+        metadata: {
+          attemptedAction: `${req.method} ${req.originalUrl}`,
+          reason: "insufficient permissions",
+        },
+        ip: getClientIp(req),
+      });
 
       return res.status(403).json({ message: "Forbidden: insufficient permissions" });
     } catch (err) {

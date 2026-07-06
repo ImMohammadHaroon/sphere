@@ -1,4 +1,5 @@
 import { Project } from "../models/Project.js";
+import { logAction, getClientIp } from "../services/auditLog.service.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -29,6 +30,16 @@ export async function createProject(req, res, next) {
       description: req.body.description ?? "",
       startDate: req.body.startDate ?? null,
       dueDate: req.body.dueDate ?? null,
+    });
+
+    await logAction({
+      organizationId: req.user.organizationId,
+      actorId: req.user.userId,
+      action: "project.created",
+      targetType: "Project",
+      targetId: project._id,
+      metadata: { name: project.name },
+      ip: getClientIp(req),
     });
 
     res.status(201).json({ project });
@@ -70,6 +81,16 @@ export async function updateProject(req, res, next) {
       throw notFound();
     }
 
+    await logAction({
+      organizationId: req.user.organizationId,
+      actorId: req.user.userId,
+      action: "project.updated",
+      targetType: "Project",
+      targetId: project._id,
+      metadata: { changes: updates },
+      ip: getClientIp(req),
+    });
+
     res.json({ project });
   } catch (err) {
     next(err);
@@ -87,6 +108,16 @@ export async function archiveProject(req, res, next) {
     if (!project) {
       throw notFound();
     }
+
+    await logAction({
+      organizationId: req.user.organizationId,
+      actorId: req.user.userId,
+      action: "project.deleted",
+      targetType: "Project",
+      targetId: project._id,
+      metadata: { name: project.name },
+      ip: getClientIp(req),
+    });
 
     res.json({ project, message: "Project archived" });
   } catch (err) {

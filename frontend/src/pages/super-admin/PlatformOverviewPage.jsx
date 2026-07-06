@@ -22,6 +22,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableScrollArea,
 } from "@/components/ui/Table";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +63,7 @@ function MetricCard({ label, value }) {
   return (
     <Card className="bg-primary-subtle/60 p-5">
       <p className="text-sm font-medium text-text-secondary">{label}</p>
-      <p className="mt-2 font-display text-3xl font-semibold text-primary">
+      <p className="mt-2 font-display text-2xl font-semibold text-primary sm:text-3xl">
         {value.toLocaleString()}
       </p>
     </Card>
@@ -95,7 +96,7 @@ function TasksByStatusChart({ tasksByStatus }) {
   }));
 
   return (
-    <Card className="h-full">
+    <Card className="h-full p-4 sm:p-6">
       <h2 className="font-display text-lg font-semibold">Tasks by status</h2>
       <p className="mt-1 text-sm text-text-secondary">
         Platform-wide task distribution across Kanban columns.
@@ -143,7 +144,7 @@ export function PlatformOverviewPage() {
 
   return (
     <SuperAdminLayout>
-      <h1 className="font-display text-2xl font-semibold">Platform overview</h1>
+      <h1 className="font-display text-xl font-semibold sm:text-2xl">Platform overview</h1>
 
       {isLoading ? <OverviewSkeleton /> : null}
 
@@ -199,7 +200,7 @@ export function PlatformOverviewPage() {
                 <p className="text-sm font-medium text-text-secondary">
                   New organizations (30 days)
                 </p>
-                <p className="mt-4 font-display text-5xl font-semibold text-primary">
+                <p className="mt-4 font-display text-3xl font-semibold text-primary sm:text-4xl lg:text-5xl">
                   {data.newOrganizationsLast30Days.toLocaleString()}
                 </p>
                 <p className="mt-3 text-sm text-text-secondary">
@@ -210,7 +211,7 @@ export function PlatformOverviewPage() {
             </div>
 
             <Card className="overflow-hidden p-0">
-              <div className="border-b border-border px-6 py-4">
+              <div className="border-b border-border px-4 py-4 sm:px-6">
                 <h2 className="font-display text-lg font-semibold">
                   Recent organizations
                 </h2>
@@ -220,11 +221,12 @@ export function PlatformOverviewPage() {
               </div>
 
               {data.recentOrganizations.length === 0 ? (
-                <p className="px-6 py-8 text-sm text-text-secondary">
+                <p className="px-4 py-8 text-sm text-text-secondary sm:px-6">
                   No recent organizations to display.
                 </p>
               ) : (
-                <Table>
+                <TableScrollArea>
+                  <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
@@ -266,7 +268,8 @@ export function PlatformOverviewPage() {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                  </Table>
+                </TableScrollArea>
               )}
             </Card>
           </div>

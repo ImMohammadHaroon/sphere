@@ -1,8 +1,8 @@
-import { ClientPortalPlaceholder } from "@/components/layout/ClientPortalLayout";
+import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
 
 export function ClientMyProjectsPage() {
   return (
-    <ClientPortalPlaceholder
+    <ClientPortalLayout
       title="My projects"
       description="Projects shared with your client account."
     />

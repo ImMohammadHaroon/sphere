@@ -13,10 +13,24 @@ import { ForgotPasswordPage } from "@/pages/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/pages/auth/ResetPasswordPage";
 import { InvitePage } from "@/pages/auth/InvitePage";
 import {
-  ClientPortalPage,
-  DashboardPage,
-  ProfilePage,
-} from "@/pages/DashboardPages";
+  ClientMyProjectsPage,
+} from "@/pages/client-portal/MyProjectsPage";
+import { ProjectProgressPage } from "@/pages/client-portal/ProjectProgressPage";
+import { ClientMilestonesPage } from "@/pages/client-portal/MilestonesPage";
+import { ClientReportsPage } from "@/pages/client-portal/ReportsPage";
+import { MyProjectsOverviewPage } from "@/pages/project-manager/MyProjectsOverviewPage";
+import { CreateProjectPage } from "@/pages/project-manager/CreateProjectPage";
+import { KanbanBoardPage as PmKanbanBoardPage } from "@/pages/project-manager/KanbanBoardPage";
+import { TaskDetailPage as PmTaskDetailPage } from "@/pages/project-manager/TaskDetailPage";
+import { CalendarViewPage } from "@/pages/project-manager/CalendarViewPage";
+import { ProjectManagerReportsPage } from "@/pages/project-manager/ReportsPage";
+import { ProjectTeamPage } from "@/pages/project-manager/ProjectTeamPage";
+import { MilestonesPage as PmMilestonesPage } from "@/pages/project-manager/MilestonesPage";
+import { MyTasksPage } from "@/pages/team-member/MyTasksPage";
+import { TeamMemberKanbanBoardPage } from "@/pages/team-member/KanbanBoardPage";
+import { TeamMemberTaskDetailPage } from "@/pages/team-member/TaskDetailPage";
+import { NotificationsPage } from "@/pages/team-member/NotificationsPage";
+import { ProfilePage } from "@/pages/DashboardPages";
 import { PlatformOverviewPage } from "@/pages/super-admin/PlatformOverviewPage";
 import { OrganizationsPage } from "@/pages/super-admin/OrganizationsPage";
 import { OrganizationDetailPage } from "@/pages/super-admin/OrganizationDetailPage";
@@ -49,10 +63,96 @@ function AppRoutes() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute
-            allowedRoles={["project_manager", "team_member"]}
-          >
-            <DashboardPage />
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <MyProjectsOverviewPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/projects/new"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <CreateProjectPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/kanban"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <PmKanbanBoardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/tasks/:taskId"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <PmTaskDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/calendar"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <CalendarViewPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/reports"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <ProjectManagerReportsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/team"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <ProjectTeamPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/milestones"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <PmMilestonesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/member"
+        element={
+          <ProtectedRoute allowedRoles={["team_member"]}>
+            <MyTasksPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/member/kanban"
+        element={
+          <ProtectedRoute allowedRoles={["team_member"]}>
+            <TeamMemberKanbanBoardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/member/tasks/:taskId"
+        element={
+          <ProtectedRoute allowedRoles={["team_member"]}>
+            <TeamMemberTaskDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/member/notifications"
+        element={
+          <ProtectedRoute allowedRoles={["team_member"]}>
+            <NotificationsPage />
           </ProtectedRoute>
         }
       />
@@ -172,7 +272,31 @@ function AppRoutes() {
         path="/portal"
         element={
           <ProtectedRoute allowedRoles={["client"]}>
-            <ClientPortalPage />
+            <ClientMyProjectsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/portal/progress"
+        element={
+          <ProtectedRoute allowedRoles={["client"]}>
+            <ProjectProgressPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/portal/milestones"
+        element={
+          <ProtectedRoute allowedRoles={["client"]}>
+            <ClientMilestonesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/portal/reports"
+        element={
+          <ProtectedRoute allowedRoles={["client"]}>
+            <ClientReportsPage />
           </ProtectedRoute>
         }
       />

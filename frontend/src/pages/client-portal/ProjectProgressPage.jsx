@@ -1,8 +1,8 @@
-import { ClientPortalPlaceholder } from "@/components/layout/ClientPortalLayout";
+import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
 
 export function ProjectProgressPage() {
   return (
-    <ClientPortalPlaceholder
+    <ClientPortalLayout
       title="Project progress"
       description="Read-only view of status, completion, and timeline for your projects."
     />

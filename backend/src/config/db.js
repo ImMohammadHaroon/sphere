@@ -9,7 +9,7 @@ export async function connectDB() {
     serverSelectionTimeoutMS: 10000,
   });
 
-  logger.info("MongoDB connected");
+  logger.info(`MongoDB connected (${mongoose.connection.name})`);
 }
 
 mongoose.connection.on("error", (err) => {

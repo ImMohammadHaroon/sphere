@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { COLLECTIONS } from "../config/collections.js";
 
 const projectSchema = new mongoose.Schema(
   {
@@ -34,4 +35,4 @@ const projectSchema = new mongoose.Schema(
 
 projectSchema.index({ organizationId: 1 });
 
-export const Project = mongoose.model("Project", projectSchema);
+export const Project = mongoose.model("Project", projectSchema, COLLECTIONS.PROJECTS);

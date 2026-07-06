@@ -1,8 +1,8 @@
-import { ProjectManagerPlaceholder } from "@/components/layout/ProjectManagerLayout";
+import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
 
 export function MilestonesPage() {
   return (
-    <ProjectManagerPlaceholder
+    <ProjectManagerLayout
       title="Milestones"
       description="Track key deliverables and project phases."
     />

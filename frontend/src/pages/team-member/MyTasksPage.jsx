@@ -1,9 +1,9 @@
-import { TeamMemberPlaceholder } from "@/components/layout/TeamMemberLayout";
+import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
 
 export function MyTasksPage() {
   return (
-    <TeamMemberPlaceholder
-      title="My tasks"
+    <TeamMemberLayout
+      title="My tasks (dashboard)"
       description="Tasks assigned to you across projects."
     />
   );

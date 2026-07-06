@@ -11,6 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableScrollArea,
 } from "@/components/ui/Table";
 
 function formatDate(value) {
@@ -56,7 +57,8 @@ export function AllProjectsPage() {
           </Card>
         ) : (
           <Card className="overflow-hidden p-0">
-            <Table>
+            <TableScrollArea>
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
@@ -83,7 +85,8 @@ export function AllProjectsPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
+            </TableScrollArea>
           </Card>
         )
       ) : null}

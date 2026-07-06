@@ -1,4 +1,5 @@
 import * as inviteService from "../services/invite.service.js";
+import { logAction, getClientIp } from "../services/auditLog.service.js";
 
 export async function createInvite(req, res, next) {
   try {
@@ -7,6 +8,16 @@ export async function createInvite(req, res, next) {
       email: req.body.email,
       role: req.body.role,
       invitedBy: req.user.userId,
+    });
+
+    await logAction({
+      organizationId: req.user.organizationId,
+      actorId: req.user.userId,
+      action: "user.invited",
+      targetType: "Invite",
+      targetId: result.invite.id,
+      metadata: { email: req.body.email, role: req.body.role },
+      ip: getClientIp(req),
     });
 
     res.status(201).json({
@@ -36,6 +47,7 @@ export async function acceptInvite(req, res, next) {
       name: req.body.name,
       password: req.body.password,
       deviceId: req.body.deviceId,
+      ip: getClientIp(req),
     });
     res.status(201).json(result);
   } catch (err) {
@@ -58,6 +70,17 @@ export async function revokeInvite(req, res, next) {
       organizationId: req.user.organizationId,
       inviteId: req.params.id,
     });
+
+    await logAction({
+      organizationId: req.user.organizationId,
+      actorId: req.user.userId,
+      action: "invite.revoked",
+      targetType: "Invite",
+      targetId: req.params.id,
+      metadata: { email: result.email },
+      ip: getClientIp(req),
+    });
+
     res.json(result);
   } catch (err) {
     next(err);

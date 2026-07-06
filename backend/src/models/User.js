@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { COLLECTIONS } from "../config/collections.js";
 
 export const ROLES = [
   "super_admin",
@@ -43,4 +44,4 @@ const userSchema = new mongoose.Schema(
 
 userSchema.index({ organizationId: 1, email: 1 });
 
-export const User = mongoose.model("User", userSchema);
+export const User = mongoose.model("User", userSchema, COLLECTIONS.USERS);

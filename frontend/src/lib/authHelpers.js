@@ -18,6 +18,10 @@ export function getDashboardPath(role) {
       return "/admin";
     case "client":
       return "/portal";
+    case "team_member":
+      return "/member";
+    case "project_manager":
+      return "/dashboard";
     default:
       return "/dashboard";
   }

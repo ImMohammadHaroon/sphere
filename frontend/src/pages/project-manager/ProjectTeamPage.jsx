@@ -1,8 +1,8 @@
-import { ProjectManagerPlaceholder } from "@/components/layout/ProjectManagerLayout";
+import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
 
 export function ProjectTeamPage() {
   return (
-    <ProjectManagerPlaceholder
+    <ProjectManagerLayout
       title="Project team"
       description="Manage members assigned to this project."
     />

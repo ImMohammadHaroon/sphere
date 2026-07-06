@@ -1,0 +1,10 @@
+export const COLLECTIONS = {
+  AUDIT_LOGS: "auditlogs",
+  INVITES: "invites",
+  INVITE_TOKENS: "invitetokens",
+  ORGANIZATIONS: "organizations",
+  PROJECTS: "projects",
+  REFRESH_TOKENS: "refreshtokens",
+  TASKS: "tasks",
+  USERS: "users",
+};

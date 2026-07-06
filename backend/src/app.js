@@ -4,9 +4,13 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import authRoutes from "./routes/auth.routes.js";
+import inviteRoutes from "./routes/invite.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import taskRoutes, { projectTaskRouter } from "./routes/task.routes.js";
 import platformRoutes from "./routes/platform.routes.js";
+import orgRoutes from "./routes/org.routes.js";
+import auditLogRoutes from "./routes/auditLog.routes.js";
+import orgSettingsRoutes from "./routes/orgSettings.routes.js";
 import { authenticate, requireRole } from "./middleware/auth.middleware.js";
 import { tenantScope } from "./middleware/tenantScope.js";
 import { globalRateLimiter } from "./middleware/rateLimit.middleware.js";
@@ -41,6 +45,7 @@ app.get("/health", (req, res) => {
 
 app.use("/api-docs", swaggerServe, swaggerSetup);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/invites", inviteRoutes);
 
 app.use("/api/v1/projects", authenticate, tenantScope, projectRoutes);
 app.use(
@@ -56,6 +61,30 @@ app.use(
   authenticate,
   requireRole(["super_admin"]),
   platformRoutes
+);
+
+app.use(
+  "/api/v1/org",
+  authenticate,
+  tenantScope,
+  requireRole(["org_admin"]),
+  orgRoutes
+);
+
+app.use(
+  "/api/v1/org/audit-logs",
+  authenticate,
+  tenantScope,
+  requireRole(["org_admin"]),
+  auditLogRoutes
+);
+
+app.use(
+  "/api/v1/org/settings",
+  authenticate,
+  tenantScope,
+  requireRole(["org_admin"]),
+  orgSettingsRoutes
 );
 
 app.use((req, res) => {

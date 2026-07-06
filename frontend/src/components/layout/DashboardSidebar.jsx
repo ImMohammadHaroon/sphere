@@ -5,11 +5,11 @@ import { getDashboardPath } from "@/lib/authHelpers";
 const dashboardNav = [
   { label: "Org Admin", to: "/admin", roles: ["org_admin"] },
   {
-    label: "Project Manager",
+    label: "Project Manager dashboard",
     to: "/dashboard",
     roles: ["project_manager"],
   },
-  { label: "Team Member", to: "/dashboard", roles: ["team_member"] },
+  { label: "Team Member dashboard", to: "/member", roles: ["team_member"] },
   { label: "Client Portal", to: "/portal", roles: ["client"] },
 ];
 
@@ -29,8 +29,8 @@ export function DashboardSidebar({ userRole }) {
   ];
 
   return (
-    <aside className="w-full shrink-0 border-b border-border bg-surface-raised lg:w-64 lg:border-b-0 lg:border-r">
-      <div className="p-4 lg:p-6">
+    <aside className="flex h-full w-full flex-col overflow-y-auto border-r border-border bg-surface-raised p-5 lg:p-8">
+      <div className="pb-6">
         <Link
           to="/"
           className="font-display text-lg font-semibold text-text-primary hover:text-primary"
@@ -40,12 +40,12 @@ export function DashboardSidebar({ userRole }) {
         <p className="mt-1 text-xs text-text-muted">Role-based workspace</p>
       </div>
 
-      <nav className="space-y-6 px-4 pb-6 lg:px-6">
+      <nav className="space-y-8">
         <div>
-          <p className="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-text-muted">
+          <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wide text-text-muted">
             Workspace
           </p>
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {mainLinks.map((item) => (
               <li key={item.to}>
                 <SidebarLink
@@ -60,10 +60,10 @@ export function DashboardSidebar({ userRole }) {
 
         {roleNav.length > 0 ? (
           <div>
-            <p className="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-text-muted">
+            <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wide text-text-muted">
               Your dashboard
             </p>
-            <ul className="space-y-1">
+            <ul className="space-y-2">
               {roleNav.map((item) => (
                 <li key={`${item.to}-${item.label}`}>
                   <SidebarLink
@@ -78,10 +78,10 @@ export function DashboardSidebar({ userRole }) {
         ) : null}
 
         <div>
-          <p className="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-text-muted">
+          <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wide text-text-muted">
             Account
           </p>
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             <SidebarLink to="/login" label="Sign in" active={false} />
             <SidebarLink to="/register" label="Register org" active={false} />
           </ul>
@@ -96,7 +96,7 @@ function SidebarLink({ to, label, active }) {
     <Link
       to={to}
       className={cn(
-        "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+        "block rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
         active
           ? "bg-primary-subtle text-primary"
           : "text-text-secondary hover:bg-surface hover:text-text-primary"

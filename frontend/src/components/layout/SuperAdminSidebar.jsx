@@ -10,12 +10,8 @@ const superAdminNav = [
   {
     label: "Organizations",
     to: "/super-admin/organizations",
-    match: (p) => p === "/super-admin/organizations",
-  },
-  {
-    label: "Organization detail",
-    to: "/super-admin/organizations",
     match: (p) =>
+      p === "/super-admin/organizations" ||
       /^\/super-admin\/organizations\/[^/]+$/.test(p),
   },
   {
@@ -39,8 +35,8 @@ export function SuperAdminSidebar() {
   const { pathname } = useLocation();
 
   return (
-    <aside className="w-full shrink-0 border-b border-border bg-surface-raised lg:w-64 lg:border-b-0 lg:border-r">
-      <div className="p-4 lg:p-6">
+    <aside className="flex h-full w-full flex-col overflow-y-auto border-r border-border bg-surface-raised p-5 lg:p-8">
+      <div className="pb-6">
         <Link
           to="/super-admin"
           className="font-display text-lg font-semibold text-text-primary hover:text-primary"
@@ -50,11 +46,8 @@ export function SuperAdminSidebar() {
         <p className="mt-1 text-xs text-text-muted">Super Admin</p>
       </div>
 
-      <nav className="px-4 pb-6 lg:px-6">
-        <p className="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-text-muted">
-          Platform
-        </p>
-        <ul className="space-y-1">
+      <nav>
+        <ul className="space-y-2">
           {superAdminNav.map((item) => {
             const isActive = item.match
               ? item.match(pathname)
@@ -65,7 +58,7 @@ export function SuperAdminSidebar() {
                 <Link
                   to={item.to}
                   className={cn(
-                    "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "block rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary-subtle text-primary"
                       : "text-text-secondary hover:bg-surface hover:text-text-primary"

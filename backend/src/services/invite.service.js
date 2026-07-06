@@ -13,6 +13,7 @@ import {
 import { sendMail } from "./email/transporter.js";
 import { buildInviteEmail } from "./email/inviteEmail.js";
 import { env } from "../config/env.js";
+import { logAction } from "./auditLog.service.js";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -182,7 +183,7 @@ export async function getInviteByToken(token) {
   };
 }
 
-export async function acceptInvite({ res, token, name, password, deviceId }) {
+export async function acceptInvite({ res, token, name, password, deviceId, ip }) {
   const invite = await Invite.findOne({ token });
 
   if (!invite) {
@@ -215,6 +216,16 @@ export async function acceptInvite({ res, token, name, password, deviceId }) {
 
   invite.status = "accepted";
   await invite.save();
+
+  await logAction({
+    organizationId: invite.organizationId,
+    actorId: user._id,
+    action: "invite.accepted",
+    targetType: "Invite",
+    targetId: invite._id,
+    metadata: { email: invite.email, role: invite.role },
+    ip: ip ?? null,
+  });
 
   return issueSession(res, user, deviceId || generateDeviceId());
 }
@@ -256,7 +267,8 @@ export async function revokeInvite({ organizationId, inviteId }) {
     throw httpError("Pending invite not found", 404);
   }
 
+  const email = invite.email;
   await invite.deleteOne();
 
-  return { message: "Invite revoked" };
+  return { message: "Invite revoked", email };
 }

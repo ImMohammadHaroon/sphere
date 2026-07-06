@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +20,9 @@ const schema = z.object({
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const deactivated = searchParams.get("deactivated") === "1";
+  const deleted = searchParams.get("deleted") === "1";
   const [error, setError] = useState("");
   const {
     register,
@@ -53,6 +56,20 @@ export function LoginPage() {
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {deleted ? (
+          <Alert variant="info">
+            Your organization has been permanently deleted. You can create a
+            new organization if you want to use ProjectSphere again.
+          </Alert>
+        ) : null}
+
+        {deactivated ? (
+          <Alert variant="info">
+            Your organization has been deactivated. Contact your platform
+            administrator if you need access restored.
+          </Alert>
+        ) : null}
+
         {error ? <Alert variant="error">{error}</Alert> : null}
 
         <div className="space-y-2">

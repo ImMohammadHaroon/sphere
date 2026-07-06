@@ -1,5 +1,6 @@
 import { verifyAccessToken } from "../services/token.service.js";
 import { User } from "../models/User.js";
+import { logAction, getClientIp } from "../services/auditLog.service.js";
 
 export async function authenticate(req, res, next) {
   const header = req.headers.authorization;
@@ -38,6 +39,19 @@ export function requireRole(allowedRoles) {
     }
 
     if (!allowedRoles.includes(req.user.role)) {
+      logAction({
+        organizationId: req.user.organizationId,
+        actorId: req.user.userId,
+        action: "rbac.access_denied",
+        metadata: {
+          attemptedAction: `${req.method} ${req.originalUrl}`,
+          reason: "insufficient role",
+          requiredRoles: allowedRoles,
+          userRole: req.user.role,
+        },
+        ip: getClientIp(req),
+      });
+
       return res.status(403).json({ message: "Forbidden" });
     }
 

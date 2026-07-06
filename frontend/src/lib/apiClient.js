@@ -1,4 +1,21 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+const API_VERSION_PREFIX = "/api/v1";
+
+function resolveApiBaseUrl() {
+  const configured = import.meta.env.VITE_API_URL?.trim();
+  const fallback = import.meta.env.PROD
+    ? "https://ml-sphere.onrender.com"
+    : "http://localhost:5000";
+
+  const base = (configured || fallback).replace(/\/+$/, "");
+
+  if (base.endsWith(API_VERSION_PREFIX)) {
+    return base;
+  }
+
+  return `${base}${API_VERSION_PREFIX}`;
+}
+
+const API_URL = resolveApiBaseUrl();
 
 let accessToken = null;
 

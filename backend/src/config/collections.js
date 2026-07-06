@@ -7,4 +7,5 @@ export const COLLECTIONS = {
   REFRESH_TOKENS: "refreshtokens",
   TASKS: "tasks",
   USERS: "users",
+  ORG_REGISTRATION_PENDING: "orgregistrationpendings",
 };

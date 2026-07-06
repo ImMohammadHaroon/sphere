@@ -5,6 +5,8 @@ import { validate } from "../middleware/validate.middleware.js";
 import { authRateLimiter } from "../middleware/rateLimit.middleware.js";
 import {
   registerOrgSchema,
+  verifyOrgRegistrationSchema,
+  resendOrgVerificationSchema,
   loginSchema,
   inviteSchema,
   acceptInviteSchema,
@@ -59,6 +61,20 @@ router.post(
   authRateLimiter,
   validate(registerOrgSchema),
   authController.registerOrg
+);
+
+router.post(
+  "/verify-org-registration",
+  authRateLimiter,
+  validate(verifyOrgRegistrationSchema),
+  authController.verifyOrgRegistration
+);
+
+router.post(
+  "/resend-org-verification",
+  authRateLimiter,
+  validate(resendOrgVerificationSchema),
+  authController.resendOrgVerification
 );
 
 /**

@@ -2,14 +2,34 @@ import mongoose from "mongoose";
 import { env } from "./env.js";
 import { logger } from "../utils/logger.js";
 
+const globalCache = globalThis;
+
+if (!globalCache.__mongoose) {
+  globalCache.__mongoose = { conn: null, promise: null };
+}
+
+const cached = globalCache.__mongoose;
+
 export async function connectDB() {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
   mongoose.set("strictQuery", true);
 
-  await mongoose.connect(env.MONGO_URI, {
-    serverSelectionTimeoutMS: 10000,
-  });
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(env.MONGO_URI, {
+        serverSelectionTimeoutMS: 10000,
+      })
+      .then((mongooseInstance) => {
+        logger.info(`MongoDB connected (${mongooseInstance.connection.name})`);
+        return mongooseInstance;
+      });
+  }
 
-  logger.info(`MongoDB connected (${mongoose.connection.name})`);
+  cached.conn = await cached.promise;
+  return cached.conn;
 }
 
 mongoose.connection.on("error", (err) => {

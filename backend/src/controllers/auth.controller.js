@@ -4,7 +4,16 @@ import { logAction, getClientIp } from "../services/auditLog.service.js";
 
 export async function registerOrg(req, res, next) {
   try {
-    const result = await authService.registerOrganization({
+    const result = await authService.requestOrganizationRegistration(req.body);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function verifyOrgRegistration(req, res, next) {
+  try {
+    const result = await authService.verifyOrganizationRegistration({
       res,
       ...req.body,
     });
@@ -20,6 +29,17 @@ export async function registerOrg(req, res, next) {
     });
 
     res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resendOrgVerification(req, res, next) {
+  try {
+    const result = await authService.resendOrganizationVerification(
+      req.body.email
+    );
+    res.json(result);
   } catch (err) {
     next(err);
   }

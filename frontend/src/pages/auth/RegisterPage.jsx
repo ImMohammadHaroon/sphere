@@ -9,9 +9,6 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Alert } from "@/components/ui/Alert";
 import { authApi } from "@/lib/authApi";
-import { setAccessToken } from "@/lib/apiClient";
-import { syncLogin } from "@/lib/authSync";
-import { getDashboardPath } from "@/lib/authHelpers";
 
 const passwordSchema = z
   .string()
@@ -38,11 +35,12 @@ export function RegisterPage() {
 
   async function onSubmit(data) {
     setError("");
+
     try {
-      const result = await authApi.registerOrg(data);
-      setAccessToken(result.accessToken);
-      syncLogin(result.accessToken, result.user);
-      navigate(getDashboardPath(result.user.role));
+      await authApi.registerOrg(data);
+      navigate("/register/verify", {
+        state: { email: data.email.trim().toLowerCase() },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     }
@@ -101,7 +99,7 @@ export function RegisterPage() {
         </div>
 
         <Button type="submit" className="w-full" isLoading={isSubmitting}>
-          Create organization
+          Continue
         </Button>
       </form>
     </AuthSplitLayout>

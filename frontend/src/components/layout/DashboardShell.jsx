@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";import { Menu, X } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { authApi } from "@/lib/authApi";
@@ -44,14 +45,15 @@ export function DashboardShell({
         />
       ) : null}
 
-      <div className="lg:flex lg:min-h-screen">
+      <div className="lg:flex">
         <div
           className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-200 ease-in-out lg:static lg:z-auto lg:shrink-0 lg:translate-x-0",
+            "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-200 ease-in-out",
+            "lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:shrink-0 lg:self-start lg:translate-x-0",
             sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           )}
         >
-          <div className="relative h-full">
+          <div className="relative h-full lg:h-screen">
             <Button
               type="button"
               variant="ghost"
@@ -93,7 +95,8 @@ export function DashboardShell({
                 <Button variant="outline" size="sm" onClick={handleLogout}>
                   Sign out
                 </Button>
-              </div>            </div>
+              </div>
+            </div>
           </header>
 
           <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10">

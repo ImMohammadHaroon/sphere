@@ -8,6 +8,14 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Alert } from "@/components/ui/Alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/Dialog";
 import { authApi } from "@/lib/authApi";
 
 const passwordSchema = z
@@ -31,7 +39,7 @@ export function ResetPasswordPage() {
   const { token = "" } = useParams();
   const navigate = useNavigate();
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [success, setSuccess] = useState(false);
   const {
     register,
     handleSubmit,
@@ -41,12 +49,11 @@ export function ResetPasswordPage() {
   async function onSubmit(data) {
     setError("");
     try {
-      const result = await authApi.resetPassword({
+      await authApi.resetPassword({
         token,
         password: data.password,
       });
-      setSuccess(result.message);
-      setTimeout(() => navigate("/login"), 1500);
+      setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Reset failed");
     }
@@ -64,7 +71,6 @@ export function ResetPasswordPage() {
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {error ? <Alert variant="error">{error}</Alert> : null}
-        {success ? <Alert variant="success">{success}</Alert> : null}
 
         <div className="space-y-2">
           <Label htmlFor="password">New password</Label>
@@ -92,6 +98,42 @@ export function ResetPasswordPage() {
           Update password
         </Button>
       </form>
+
+      <Dialog
+        open={success}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSuccess(false);
+            navigate("/login");
+          }
+        }}
+      >
+        <DialogContent
+          onClose={() => {
+            setSuccess(false);
+            navigate("/login");
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Password updated</DialogTitle>
+            <DialogDescription>
+              Your password has been reset successfully. You can now sign in with
+              your new password.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => {
+                setSuccess(false);
+                navigate("/login");
+              }}
+            >
+              Sign in
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AuthLayout>
   );
 }

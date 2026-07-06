@@ -5,10 +5,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
 import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/Dialog";
 import { invitesApi } from "@/lib/invitesApi";
 import { cn } from "@/lib/utils";
 
@@ -44,13 +52,9 @@ export function InviteUserPage() {
     setSuccess(null);
 
     try {
-      const result = await invitesApi.createInvite(data);
+      await invitesApi.createInvite(data);
       queryClient.invalidateQueries({ queryKey: ["invites"] });
-      setSuccess({
-        message: result.message || "Invite sent",
-        email: data.email,
-        token: result.token,
-      });
+      setSuccess({ email: data.email });
       reset({ email: "", role: "team_member" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send invite");
@@ -65,25 +69,6 @@ export function InviteUserPage() {
       <Card className="max-w-lg">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {error ? <Alert variant="error">{error}</Alert> : null}
-
-          {success ? (
-            <Alert variant="success">
-              <p>
-                {success.message} to <strong>{success.email}</strong>.
-              </p>
-              {success.token ? (
-                <p className="mt-2 break-all text-xs">
-                  Dev invite link:{" "}
-                  <a
-                    href={`/invite/${success.token}`}
-                    className="font-medium underline"
-                  >
-                    {window.location.origin}/invite/{success.token}
-                  </a>
-                </p>
-              ) : null}
-            </Alert>
-          ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="email">Email address</Label>
@@ -123,6 +108,30 @@ export function InviteUserPage() {
           </Button>
         </form>
       </Card>
+
+      <Dialog
+        open={Boolean(success)}
+        onOpenChange={(open) => !open && setSuccess(null)}
+      >
+        <DialogContent onClose={() => setSuccess(null)}>
+          <DialogHeader>
+            <DialogTitle>Invitation sent</DialogTitle>
+            <DialogDescription>
+              An invitation has been sent to{" "}
+              <span className="font-medium text-text-primary">
+                {success?.email}
+              </span>
+              . They will receive an email with a link to join your
+              organization.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" onClick={() => setSuccess(null)}>
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </OrgAdminLayout>
   );
 }

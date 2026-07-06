@@ -8,6 +8,14 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Alert } from "@/components/ui/Alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/Dialog";
 import { authApi } from "@/lib/authApi";
 
 const schema = z.object({
@@ -16,24 +24,22 @@ const schema = z.object({
 
 export function ForgotPasswordPage() {
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [devToken, setDevToken] = useState("");
+  const [successEmail, setSuccessEmail] = useState("");
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(schema) });
 
   async function onSubmit(data) {
     setError("");
-    setSuccess("");
-    setDevToken("");
+    setSuccessEmail("");
+
     try {
-      const result = await authApi.forgotPassword(data.email);
-      setSuccess(result.message);
-      if (result.resetToken) {
-        setDevToken(result.resetToken);
-      }
+      await authApi.forgotPassword(data.email);
+      setSuccessEmail(data.email);
+      reset({ email: "" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Request failed");
     }
@@ -51,18 +57,6 @@ export function ForgotPasswordPage() {
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {error ? <Alert variant="error">{error}</Alert> : null}
-        {success ? <Alert variant="success">{success}</Alert> : null}
-        {devToken ? (
-          <Alert variant="info">
-            Development reset token:{" "}
-            <Link
-              to={`/reset-password/${devToken}`}
-              className="font-mono underline"
-            >
-              use this link
-            </Link>
-          </Alert>
-        ) : null}
 
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
@@ -79,6 +73,30 @@ export function ForgotPasswordPage() {
           Send reset link
         </Button>
       </form>
+
+      <Dialog
+        open={Boolean(successEmail)}
+        onOpenChange={(open) => !open && setSuccessEmail("")}
+      >
+        <DialogContent onClose={() => setSuccessEmail("")}>
+          <DialogHeader>
+            <DialogTitle>Check your email</DialogTitle>
+            <DialogDescription>
+              If an account exists for{" "}
+              <span className="font-medium text-text-primary">
+                {successEmail}
+              </span>
+              , we&apos;ve sent a password reset link. Please check your inbox
+              and follow the instructions.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" onClick={() => setSuccessEmail("")}>
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AuthLayout>
   );
 }

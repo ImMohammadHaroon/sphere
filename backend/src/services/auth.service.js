@@ -3,6 +3,7 @@ import { User } from "../models/User.js";
 import { Organization } from "../models/Organization.js";
 import { InviteToken } from "../models/InviteToken.js";
 import { RefreshToken } from "../models/RefreshToken.js";
+import { OrgRegistrationPending } from "../models/OrgRegistrationPending.js";
 import { hashPassword, verifyPassword } from "./password.service.js";
 import {
   signAccessToken,
@@ -18,6 +19,17 @@ import {
   hashToken,
 } from "./token.service.js";
 import { uniqueOrgSlug } from "../utils/slug.js";
+import { env } from "../config/env.js";
+import { sendMail } from "./email/transporter.js";
+import { buildPasswordResetEmail } from "./email/passwordResetEmail.js";
+import { buildOrgVerificationEmail } from "./email/orgVerificationEmail.js";
+
+const ORG_VERIFICATION_TTL_MS = 15 * 60 * 1000;
+const MAX_VERIFICATION_ATTEMPTS = 5;
+
+function generateVerificationCode() {
+  return String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
+}
 
 function sanitizeUser(user) {
   return {
@@ -51,34 +63,164 @@ async function issueSession(res, user, deviceId) {
   return { accessToken, user: sanitizeUser(user) };
 }
 
-export async function registerOrganization({
-  res,
+export async function requestOrganizationRegistration({
   orgName,
   name,
   email,
   password,
-  deviceId,
 }) {
-  const existing = await User.findOne({ email });
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const existing = await User.findOne({ email: normalizedEmail });
   if (existing) {
     const err = new Error("Email already registered");
     err.status = 409;
     throw err;
   }
 
-  const slug = await uniqueOrgSlug(Organization, orgName);
-  const organization = await Organization.create({ name: orgName, slug });
+  const verificationCode = generateVerificationCode();
   const passwordHash = await hashPassword(password);
+
+  await OrgRegistrationPending.findOneAndUpdate(
+    { email: normalizedEmail },
+    {
+      orgName: orgName.trim(),
+      name: name.trim(),
+      passwordHash,
+      verificationCodeHash: hashToken(verificationCode),
+      verificationExpires: new Date(Date.now() + ORG_VERIFICATION_TTL_MS),
+      verificationAttempts: 0,
+    },
+    { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
+  );
+
+  const { subject, html, text } = buildOrgVerificationEmail({
+    name: name.trim(),
+    orgName: orgName.trim(),
+    code: verificationCode,
+  });
+
+  await sendMail({
+    to: normalizedEmail,
+    subject,
+    html,
+    text,
+  });
+
+  return {
+    message: "Verification code sent to your email.",
+    email: normalizedEmail,
+    expiresInMinutes: ORG_VERIFICATION_TTL_MS / 60_000,
+  };
+}
+
+export async function verifyOrganizationRegistration({
+  res,
+  email,
+  code,
+  deviceId,
+}) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedCode = code.trim();
+
+  const pending = await OrgRegistrationPending.findOne({
+    email: normalizedEmail,
+  }).select("+passwordHash +verificationCodeHash");
+
+  if (!pending) {
+    const err = new Error("No pending registration found for this email");
+    err.status = 404;
+    throw err;
+  }
+
+  if (pending.verificationExpires < new Date()) {
+    await OrgRegistrationPending.deleteOne({ _id: pending._id });
+    const err = new Error("Verification code has expired. Please register again.");
+    err.status = 400;
+    throw err;
+  }
+
+  if (pending.verificationAttempts >= MAX_VERIFICATION_ATTEMPTS) {
+    await OrgRegistrationPending.deleteOne({ _id: pending._id });
+    const err = new Error(
+      "Too many failed attempts. Please register again."
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  if (hashToken(normalizedCode) !== pending.verificationCodeHash) {
+    pending.verificationAttempts += 1;
+    await pending.save();
+    const err = new Error("Invalid verification code");
+    err.status = 400;
+    throw err;
+  }
+
+  const existing = await User.findOne({ email: normalizedEmail });
+  if (existing) {
+    await OrgRegistrationPending.deleteOne({ _id: pending._id });
+    const err = new Error("Email already registered");
+    err.status = 409;
+    throw err;
+  }
+
+  const slug = await uniqueOrgSlug(Organization, pending.orgName);
+  const organization = await Organization.create({
+    name: pending.orgName,
+    slug,
+  });
 
   const user = await User.create({
     organizationId: organization._id,
-    name,
-    email,
-    passwordHash,
+    name: pending.name,
+    email: normalizedEmail,
+    passwordHash: pending.passwordHash,
     role: "org_admin",
   });
 
+  await OrgRegistrationPending.deleteOne({ _id: pending._id });
+
   return issueSession(res, user, deviceId || generateDeviceId());
+}
+
+export async function resendOrganizationVerification(email) {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const pending = await OrgRegistrationPending.findOne({
+    email: normalizedEmail,
+  });
+
+  if (!pending) {
+    const err = new Error("No pending registration found for this email");
+    err.status = 404;
+    throw err;
+  }
+
+  const verificationCode = generateVerificationCode();
+  pending.verificationCodeHash = hashToken(verificationCode);
+  pending.verificationExpires = new Date(Date.now() + ORG_VERIFICATION_TTL_MS);
+  pending.verificationAttempts = 0;
+  await pending.save();
+
+  const { subject, html, text } = buildOrgVerificationEmail({
+    name: pending.name,
+    orgName: pending.orgName,
+    code: verificationCode,
+  });
+
+  await sendMail({
+    to: normalizedEmail,
+    subject,
+    html,
+    text,
+  });
+
+  return {
+    message: "Verification code resent.",
+    email: normalizedEmail,
+    expiresInMinutes: ORG_VERIFICATION_TTL_MS / 60_000,
+  };
 }
 
 export async function login({ res, email, password, deviceId }) {
@@ -240,7 +382,8 @@ export async function acceptInvite({
 }
 
 export async function forgotPassword(email) {
-  const user = await User.findOne({ email });
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
   if (!user) {
     return { message: "If that email exists, a reset link has been sent." };
   }
@@ -249,6 +392,19 @@ export async function forgotPassword(email) {
   user.passwordResetToken = hashToken(resetToken);
   user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
   await user.save();
+
+  const resetUrl = `${env.CLIENT_URL}/reset-password/${resetToken}`;
+  const { subject, html, text } = buildPasswordResetEmail({
+    name: user.name,
+    resetUrl,
+  });
+
+  await sendMail({
+    to: normalizedEmail,
+    subject,
+    html,
+    text,
+  });
 
   return {
     message: "If that email exists, a reset link has been sent.",

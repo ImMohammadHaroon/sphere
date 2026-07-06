@@ -28,7 +28,7 @@ export function ClientPortalSidebar() {
   const { pathname } = useLocation();
 
   return (
-    <aside className="flex h-full w-full flex-col overflow-y-auto border-r border-border bg-surface-raised p-5 lg:p-8">
+    <aside className="flex h-full w-full flex-col border-r border-border bg-surface-raised p-5 lg:h-screen lg:p-8">
       <div className="pb-6">
         <Link
           to="/portal"

@@ -11,7 +11,23 @@ export const registerOrgSchema = z.object({
       .regex(/[A-Z]/, "Must contain uppercase")
       .regex(/[a-z]/, "Must contain lowercase")
       .regex(/[0-9]/, "Must contain number"),
+  }),
+});
+
+export const verifyOrgRegistrationSchema = z.object({
+  body: z.object({
+    email: z.string().email(),
+    code: z
+      .string()
+      .length(6, "Code must be 6 digits")
+      .regex(/^\d{6}$/, "Code must be 6 digits"),
     deviceId: z.string().uuid().optional(),
+  }),
+});
+
+export const resendOrgVerificationSchema = z.object({
+  body: z.object({
+    email: z.string().email(),
   }),
 });
 

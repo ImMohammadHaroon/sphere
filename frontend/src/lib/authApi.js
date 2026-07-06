@@ -7,7 +7,21 @@ export const authApi = {
       method: "POST",
       body: data,
       skipAuth: true,
+    }),
+
+  verifyOrgRegistration: (data) =>
+    apiClient("/auth/verify-org-registration", {
+      method: "POST",
+      body: { ...data, deviceId: getDeviceId() },
+      skipAuth: true,
       headers: { "X-Device-Id": getDeviceId() },
+    }),
+
+  resendOrgVerification: (email) =>
+    apiClient("/auth/resend-org-verification", {
+      method: "POST",
+      body: { email },
+      skipAuth: true,
     }),
 
   login: (data) =>

@@ -79,10 +79,7 @@ export function SettingsPage() {
             className="flex flex-col lg:flex-row lg:min-h-[32rem]"
           >
             <nav className="bg-surface lg:bg-transparent">
-              <p className="hidden px-4 pt-4 text-xs font-medium uppercase tracking-wide text-text-muted lg:block">
-                Settings
-              </p>
-              <TabsList className="lg:pt-2">
+              <TabsList className="lg:pt-4">
                 {SETTINGS_NAV.map((item) => (
                   <TabsTrigger key={item.value} value={item.value}>
                     {item.label}

@@ -32,3 +32,25 @@ export const projectIdParamSchema = z.object({
     id: objectId,
   }),
 });
+
+export const addMemberSchema = z.object({
+  params: z.object({
+    id: objectId,
+  }),
+  body: z
+    .object({
+      userId: objectId,
+    })
+    .strict(),
+});
+
+export const removeMemberSchema = z.object({
+  params: z.object({
+    id: objectId,
+  }),
+  body: z
+    .object({
+      userId: objectId,
+    })
+    .strict(),
+});

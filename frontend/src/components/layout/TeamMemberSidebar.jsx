@@ -36,13 +36,9 @@ export function TeamMemberSidebar() {
         >
           ProjectSphere
         </Link>
-        <p className="mt-1 text-xs text-text-muted">Team Member dashboard</p>
       </div>
 
       <nav>
-        <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wide text-text-muted">
-          Workspace
-        </p>
         <ul className="space-y-2">
           {teamMemberNav.map((item) => {
             const isActive = item.match ? item.match(pathname) : pathname === item.to;

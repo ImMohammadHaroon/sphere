@@ -89,7 +89,6 @@ app.use(
   "/api/v1/org",
   authenticate,
   tenantScope,
-  requireRole(["org_admin"]),
   orgRoutes
 );
 

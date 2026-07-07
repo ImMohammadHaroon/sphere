@@ -1,20 +1,12 @@
 import { Link } from "react-router-dom";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
+import { OverviewSkeleton } from "@/components/overview/OverviewSkeleton";
+import { TasksByStatusChart } from "@/components/overview/TasksByStatusChart";
 import { usePlatformOverview } from "@/features/platform/hooks/usePlatformOverview";
+import { MetricCard } from "@/components/ui/MetricCard";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Skeleton } from "@/components/ui/Skeleton";
 import {
   Table,
   TableBody,
@@ -25,20 +17,6 @@ import {
   TableScrollArea,
 } from "@/components/ui/Table";
 import { cn } from "@/lib/utils";
-
-const TASK_STATUS_LABELS = {
-  todo: "To Do",
-  "in-progress": "In Progress",
-  review: "Review",
-  done: "Done",
-};
-
-const TASK_STATUS_COLORS = {
-  todo: "hsl(var(--kanban-todo))",
-  "in-progress": "hsl(var(--kanban-progress))",
-  review: "hsl(var(--kanban-review))",
-  done: "hsl(var(--kanban-done))",
-};
 
 function planBadgeVariant(plan) {
   switch (plan) {
@@ -57,85 +35,6 @@ function formatDate(value) {
     month: "short",
     day: "numeric",
   });
-}
-
-function MetricCard({ label, value }) {
-  return (
-    <Card className="bg-primary-subtle/60 p-5">
-      <p className="text-sm font-medium text-text-secondary">{label}</p>
-      <p className="mt-2 font-display text-2xl font-semibold text-primary sm:text-3xl">
-        {value.toLocaleString()}
-      </p>
-    </Card>
-  );
-}
-
-function OverviewSkeleton() {
-  return (
-    <div className="space-y-8">
-      <Skeleton className="h-8 w-56" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-28" />
-        ))}
-      </div>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Skeleton className="h-72" />
-        <Skeleton className="h-72" />
-      </div>
-      <Skeleton className="h-64" />
-    </div>
-  );
-}
-
-function TasksByStatusChart({ tasksByStatus }) {
-  const data = Object.keys(TASK_STATUS_LABELS).map((key) => ({
-    status: TASK_STATUS_LABELS[key],
-    key,
-    count: tasksByStatus[key],
-  }));
-
-  return (
-    <Card className="h-full p-4 sm:p-6">
-      <h2 className="font-display text-lg font-semibold">Tasks by status</h2>
-      <p className="mt-1 text-sm text-text-secondary">
-        Platform-wide task distribution across Kanban columns.
-      </p>
-      <div className="mt-6 h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="status"
-              tick={{ fill: "hsl(var(--text-secondary))", fontSize: 12 }}
-              axisLine={{ stroke: "hsl(var(--border))" }}
-              tickLine={false}
-            />
-            <YAxis
-              allowDecimals={false}
-              tick={{ fill: "hsl(var(--text-muted))", fontSize: 12 }}
-              axisLine={{ stroke: "hsl(var(--border))" }}
-              tickLine={false}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--surface-raised))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "0.5rem",
-                color: "hsl(var(--text-primary))",
-              }}
-              cursor={{ fill: "hsl(var(--primary-subtle))" }}
-            />
-            <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-              {data.map((entry) => (
-                <Cell key={entry.key} fill={TASK_STATUS_COLORS[entry.key]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
-  );
 }
 
 export function PlatformOverviewPage() {
@@ -187,7 +86,10 @@ export function PlatformOverviewPage() {
 
             <div className="grid gap-4 lg:grid-cols-2">
               {data.totalTasks > 0 ? (
-                <TasksByStatusChart tasksByStatus={data.tasksByStatus} />
+                <TasksByStatusChart
+                  tasksByStatus={data.tasksByStatus}
+                  description="Platform-wide task distribution across Kanban columns."
+                />
               ) : (
                 <Card className="flex h-full min-h-72 items-center justify-center p-6">
                   <p className="text-sm text-text-secondary">
@@ -227,47 +129,47 @@ export function PlatformOverviewPage() {
               ) : (
                 <TableScrollArea>
                   <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Plan</TableHead>
-                      <TableHead>Users</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data.recentOrganizations.map((org) => (
-                      <TableRow key={org._id}>
-                        <TableCell>
-                          <Link
-                            to={`/super-admin/organizations/${org._id}`}
-                            className={cn(
-                              "font-medium text-primary hover:underline"
-                            )}
-                          >
-                            {org.name}
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={planBadgeVariant(org.plan)}>
-                            {org.plan}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-text-secondary">
-                          {org.userCount}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={org.isActive ? "success" : "danger"}>
-                            {org.isActive ? "Active" : "Suspended"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-text-secondary">
-                          {formatDate(org.createdAt)}
-                        </TableCell>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Plan</TableHead>
+                        <TableHead>Users</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Created</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
+                    </TableHeader>
+                    <TableBody>
+                      {data.recentOrganizations.map((org) => (
+                        <TableRow key={org._id}>
+                          <TableCell>
+                            <Link
+                              to={`/super-admin/organizations/${org._id}`}
+                              className={cn(
+                                "font-medium text-primary hover:underline"
+                              )}
+                            >
+                              {org.name}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={planBadgeVariant(org.plan)}>
+                              {org.plan}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-text-secondary">
+                            {org.userCount}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={org.isActive ? "success" : "danger"}>
+                              {org.isActive ? "Active" : "Suspended"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-text-secondary">
+                            {formatDate(org.createdAt)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
                   </Table>
                 </TableScrollArea>
               )}

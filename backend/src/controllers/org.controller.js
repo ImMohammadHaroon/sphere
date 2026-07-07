@@ -1,6 +1,32 @@
 import { User } from "../models/User.js";
+import { Project } from "../models/Project.js";
+import { Task } from "../models/Task.js";
 import { logAction, getClientIp } from "../services/auditLog.service.js";
 import { revokeAllRefreshTokens } from "../services/token.service.js";
+
+const TASK_STATUSES = ["todo", "in-progress", "review", "done"];
+
+const TEAM_ROLES = ["org_admin", "project_manager", "team_member"];
+
+function emptyTasksByStatus() {
+  return {
+    todo: 0,
+    "in-progress": 0,
+    review: 0,
+    done: 0,
+  };
+}
+
+function mapTasksByStatus(countsByStatus) {
+  const result = emptyTasksByStatus();
+  for (const [status, count] of Object.entries(countsByStatus)) {
+    if (result[status] !== undefined) {
+      result[status] = count;
+    }
+  }
+  return result;
+}
+
 function formatUser(user) {
   return {
     id: user._id.toString(),
@@ -10,6 +36,59 @@ function formatUser(user) {
     isActive: user.isActive,
     createdAt: user.createdAt,
   };
+}
+
+export async function getOrgOverview(req, res, next) {
+  try {
+    const [
+      projectTotal,
+      projectActive,
+      projectArchived,
+      teamSize,
+      ...taskStatusCounts
+    ] = await Promise.all([
+      req.scopedQuery(Project).countDocuments(),
+      req.scopedQuery(Project, { status: "active" }).countDocuments(),
+      req.scopedQuery(Project, { status: "archived" }).countDocuments(),
+      req
+        .scopedQuery(User, { role: { $in: TEAM_ROLES } })
+        .countDocuments(),
+      ...TASK_STATUSES.map((status) =>
+        req.scopedQuery(Task, { status }).countDocuments()
+      ),
+    ]);
+
+    const tasksByStatus = mapTasksByStatus(
+      Object.fromEntries(
+        TASK_STATUSES.map((status, index) => [status, taskStatusCounts[index]])
+      )
+    );
+
+    const recentProjects = await req
+      .scopedQuery(Project)
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .select("name status updatedAt")
+      .lean();
+
+    res.json({
+      projects: {
+        total: projectTotal,
+        active: projectActive,
+        archived: projectArchived,
+      },
+      teamSize,
+      tasksByStatus,
+      recentProjects: recentProjects.map((project) => ({
+        id: project._id.toString(),
+        name: project.name,
+        status: project.status,
+        updatedAt: project.updatedAt,
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
 }
 
 export async function listUsers(req, res, next) {

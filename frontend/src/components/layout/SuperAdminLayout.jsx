@@ -5,7 +5,6 @@ export function SuperAdminLayout({ title, description, children }) {
   return (
     <DashboardShell
       sidebar={<SuperAdminSidebar />}
-      workspaceLabel="Super Admin"
       title={title}
       description={description}
       showPageHeader={Boolean(title)}

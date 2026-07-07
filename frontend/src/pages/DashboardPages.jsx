@@ -13,14 +13,6 @@ import { setAccessToken } from "@/lib/apiClient";
 import { syncLogout } from "@/lib/authSync";
 import { getDashboardPath } from "@/lib/authHelpers";
 
-const workspaceLabels = {
-  super_admin: "Super admin",
-  org_admin: "Organization admin",
-  project_manager: "Project Manager dashboard",
-  team_member: "Team Member dashboard",
-  client: "Client Portal",
-};
-
 function getProfileSidebar(role) {
   switch (role) {
     case "super_admin":
@@ -52,7 +44,6 @@ export function ProfilePage() {
   return (
     <DashboardShell
       sidebar={getProfileSidebar(user?.role)}
-      workspaceLabel={user?.role ? workspaceLabels[user.role] : undefined}
       title="Account settings"
       description="Manage your profile and security preferences."
     >

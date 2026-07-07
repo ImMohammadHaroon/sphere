@@ -11,7 +11,7 @@ import { Alert } from "@/components/ui/Alert";
 import { authApi } from "@/lib/authApi";
 import { setAccessToken } from "@/lib/apiClient";
 import { syncLogin } from "@/lib/authSync";
-import { getDashboardPath } from "@/lib/authHelpers";
+import { getPostAuthPath } from "@/lib/authHelpers";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -36,7 +36,7 @@ export function LoginPage() {
       const result = await authApi.login(data);
       setAccessToken(result.accessToken);
       syncLogin(result.accessToken, result.user);
-      navigate(getDashboardPath(result.user.role));
+      navigate(getPostAuthPath(result.user));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     }

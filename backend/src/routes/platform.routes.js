@@ -5,8 +5,14 @@ import {
   deleteOrganizationSchema,
   listAllUsersQuerySchema,
   listOrganizationsQuerySchema,
+  listPendingOrganizationsQuerySchema,
   listPlatformAuditLogsQuerySchema,
   organizationIdParamSchema,
+  rejectOrganizationSchema,
+  updateGeneralSettingsSchema,
+  updateRegistrationSettingsSchema,
+  updateSecuritySettingsSchema,
+  updateMaintenanceSettingsSchema,
 } from "../validators/platform.validator.js";
 
 const router = Router();
@@ -206,6 +212,184 @@ router.get(
   "/organizations",
   validate(listOrganizationsQuerySchema),
   platformController.listOrganizations
+);
+
+/**
+ * @openapi
+ * /platform/organizations/pending:
+ *   get:
+ *     summary: List organizations pending approval (Super Admin)
+ *     description: Paginated list of self-registered organizations awaiting Super Admin approval, sorted oldest first.
+ *     tags: [Platform]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Items per page
+ *     responses:
+ *       200:
+ *         description: Paginated pending organizations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 organizations:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: 507f1f77bcf86cd799439011
+ *                       name:
+ *                         type: string
+ *                         example: Acme Corp
+ *                       plan:
+ *                         type: string
+ *                         enum: [free, pro, enterprise]
+ *                         example: free
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       admin:
+ *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                             example: Jane Admin
+ *                           email:
+ *                             type: string
+ *                             format: email
+ *                             example: jane@acme.com
+ *                 total:
+ *                   type: integer
+ *                   example: 3
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 1
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Super Admin role required
+ */
+router.get(
+  "/organizations/pending",
+  validate(listPendingOrganizationsQuerySchema),
+  platformController.listPendingOrganizations
+);
+
+/**
+ * @openapi
+ * /platform/organizations/{id}/approve:
+ *   patch:
+ *     summary: Approve a pending organization (Super Admin)
+ *     description: Sets verificationStatus to approved and emails the org admin.
+ *     tags: [Platform]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 507f1f77bcf86cd799439011
+ *     responses:
+ *       200:
+ *         description: Organization approved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Organization approved
+ *                 organization:
+ *                   type: object
+ *       400:
+ *         description: Organization is not pending approval
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Super Admin role required
+ *       404:
+ *         description: Organization not found
+ */
+router.patch(
+  "/organizations/:id/approve",
+  validate(organizationIdParamSchema),
+  platformController.approveOrganization
+);
+
+/**
+ * @openapi
+ * /platform/organizations/{id}/reject:
+ *   patch:
+ *     summary: Reject a pending organization (Super Admin)
+ *     description: Sets verificationStatus to rejected, optionally records a reason, and emails the org admin.
+ *     tags: [Platform]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 507f1f77bcf86cd799439011
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 maxLength: 500
+ *                 example: Duplicate registration
+ *     responses:
+ *       200:
+ *         description: Organization rejected
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Organization rejected
+ *                 organization:
+ *                   type: object
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Super Admin role required
+ *       404:
+ *         description: Organization not found
+ */
+router.patch(
+  "/organizations/:id/reject",
+  validate(rejectOrganizationSchema),
+  platformController.rejectOrganization
 );
 
 /**
@@ -793,6 +977,247 @@ router.get(
   "/audit-logs",
   validate(listPlatformAuditLogsQuerySchema),
   platformController.listPlatformAuditLogs
+);
+
+/**
+ * @openapi
+ * /platform/settings:
+ *   get:
+ *     summary: Get platform settings (Super Admin)
+ *     description: Returns the singleton platform-wide configuration document. Creates defaults on first access.
+ *     tags: [Platform]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Platform settings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 settings:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: 000000000000000000000001
+ *                     general:
+ *                       type: object
+ *                       properties:
+ *                         platformName:
+ *                           type: string
+ *                           example: ProjectSphere
+ *                         supportEmail:
+ *                           type: string
+ *                           example: support@sphere.com
+ *                     registration:
+ *                       type: object
+ *                       properties:
+ *                         allowSelfServeSignup:
+ *                           type: boolean
+ *                           example: true
+ *                         defaultPlan:
+ *                           type: string
+ *                           enum: [free, pro, enterprise]
+ *                           example: free
+ *                     security:
+ *                       type: object
+ *                       properties:
+ *                         globalPasswordMinLength:
+ *                           type: integer
+ *                           example: 8
+ *                         enforceGlobal2FA:
+ *                           type: boolean
+ *                           example: false
+ *                     maintenance:
+ *                       type: object
+ *                       properties:
+ *                         enabled:
+ *                           type: boolean
+ *                           example: false
+ *                         message:
+ *                           type: string
+ *                           example: ""
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Super Admin role required
+ */
+router.get("/settings", platformController.getPlatformSettings);
+
+/**
+ * @openapi
+ * /platform/settings/general:
+ *   patch:
+ *     summary: Update platform general settings (Super Admin)
+ *     tags: [Platform]
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [general]
+ *             properties:
+ *               general:
+ *                 type: object
+ *                 required: [platformName, supportEmail]
+ *                 properties:
+ *                   platformName:
+ *                     type: string
+ *                     example: ProjectSphere
+ *                   supportEmail:
+ *                     type: string
+ *                     example: support@sphere.com
+ *     responses:
+ *       200:
+ *         description: General settings updated
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Super Admin role required
+ */
+router.patch(
+  "/settings/general",
+  validate(updateGeneralSettingsSchema),
+  platformController.updateGeneralSettings
+);
+
+/**
+ * @openapi
+ * /platform/settings/registration:
+ *   patch:
+ *     summary: Update platform registration settings (Super Admin)
+ *     tags: [Platform]
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [registration]
+ *             properties:
+ *               registration:
+ *                 type: object
+ *                 required: [allowSelfServeSignup, defaultPlan]
+ *                 properties:
+ *                   allowSelfServeSignup:
+ *                     type: boolean
+ *                     example: true
+ *                   defaultPlan:
+ *                     type: string
+ *                     enum: [free, pro, enterprise]
+ *                     example: free
+ *     responses:
+ *       200:
+ *         description: Registration settings updated
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Super Admin role required
+ */
+router.patch(
+  "/settings/registration",
+  validate(updateRegistrationSettingsSchema),
+  platformController.updateRegistrationSettings
+);
+
+/**
+ * @openapi
+ * /platform/settings/security:
+ *   patch:
+ *     summary: Update platform security settings (Super Admin)
+ *     description: Stored preferences only — globalPasswordMinLength and enforceGlobal2FA are not enforced yet.
+ *     tags: [Platform]
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [security]
+ *             properties:
+ *               security:
+ *                 type: object
+ *                 required: [globalPasswordMinLength, enforceGlobal2FA]
+ *                 properties:
+ *                   globalPasswordMinLength:
+ *                     type: integer
+ *                     minimum: 6
+ *                     maximum: 32
+ *                     example: 8
+ *                   enforceGlobal2FA:
+ *                     type: boolean
+ *                     example: false
+ *     responses:
+ *       200:
+ *         description: Security settings updated
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Super Admin role required
+ */
+router.patch(
+  "/settings/security",
+  validate(updateSecuritySettingsSchema),
+  platformController.updateSecuritySettings
+);
+
+/**
+ * @openapi
+ * /platform/settings/maintenance:
+ *   patch:
+ *     summary: Update platform maintenance settings (Super Admin)
+ *     description: When enabled, blocks login for all roles except super_admin.
+ *     tags: [Platform]
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [maintenance]
+ *             properties:
+ *               maintenance:
+ *                 type: object
+ *                 required: [enabled, message]
+ *                 properties:
+ *                   enabled:
+ *                     type: boolean
+ *                     example: false
+ *                   message:
+ *                     type: string
+ *                     example: Scheduled maintenance in progress. Please try again later.
+ *     responses:
+ *       200:
+ *         description: Maintenance settings updated
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Super Admin role required
+ */
+router.patch(
+  "/settings/maintenance",
+  validate(updateMaintenanceSettingsSchema),
+  platformController.updateMaintenanceSettings
 );
 
 export default router;

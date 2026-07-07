@@ -20,16 +20,14 @@ import { ProjectProgressPage } from "@/pages/client-portal/ProjectProgressPage";
 import { ClientMilestonesPage } from "@/pages/client-portal/MilestonesPage";
 import { ClientReportsPage } from "@/pages/client-portal/ReportsPage";
 import { MyProjectsOverviewPage } from "@/pages/project-manager/MyProjectsOverviewPage";
-import { CreateProjectPage } from "@/pages/project-manager/CreateProjectPage";
+import { ProjectDetailPage } from "@/pages/project-manager/ProjectDetailPage";
 import { KanbanBoardPage as PmKanbanBoardPage } from "@/pages/project-manager/KanbanBoardPage";
-import { TaskDetailPage as PmTaskDetailPage } from "@/pages/project-manager/TaskDetailPage";
+import { TaskDetailPage } from "@/pages/tasks/TaskDetailPage";
 import { CalendarViewPage } from "@/pages/project-manager/CalendarViewPage";
 import { ProjectManagerReportsPage } from "@/pages/project-manager/ReportsPage";
-import { ProjectTeamPage } from "@/pages/project-manager/ProjectTeamPage";
 import { MilestonesPage as PmMilestonesPage } from "@/pages/project-manager/MilestonesPage";
 import { MyTasksPage } from "@/pages/team-member/MyTasksPage";
 import { TeamMemberKanbanBoardPage } from "@/pages/team-member/KanbanBoardPage";
-import { TeamMemberTaskDetailPage } from "@/pages/team-member/TaskDetailPage";
 import { NotificationsPage } from "@/pages/team-member/NotificationsPage";
 import { ProfilePage } from "@/pages/DashboardPages";
 import { PlatformOverviewPage } from "@/pages/super-admin/PlatformOverviewPage";
@@ -37,10 +35,9 @@ import { OrganizationsPage } from "@/pages/super-admin/OrganizationsPage";
 import { OrganizationDetailPage } from "@/pages/super-admin/OrganizationDetailPage";
 import { UsersPage } from "@/pages/super-admin/UsersPage";
 import { SuperAdminAuditLogsPage } from "@/pages/super-admin/AuditLogsPage";
-import { SuperAdminSettingsPage } from "@/pages/super-admin/SettingsPage";
 import { OrgOverviewPage } from "@/pages/admin/OrgOverviewPage";
+import { AwaitingApprovalPage } from "@/pages/admin/AwaitingApprovalPage";
 import { TeamMembersPage } from "@/pages/admin/TeamMembersPage";
-import { InviteUserPage } from "@/pages/admin/InviteUserPage";
 import { UserDetailPage } from "@/pages/admin/UserDetailPage";
 import { AllProjectsPage } from "@/pages/admin/AllProjectsPage";
 import { ReportsPage } from "@/pages/admin/ReportsPage";
@@ -63,6 +60,15 @@ function AppRoutes() {
       <Route path="/invite/:token" element={<InvitePage />} />
 
       <Route
+        path="/awaiting-approval"
+        element={
+          <ProtectedRoute>
+            <AwaitingApprovalPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/dashboard"
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
@@ -71,10 +77,18 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/dashboard/projects/new"
+        path="/dashboard/projects/:id"
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
-            <CreateProjectPage />
+            <ProjectDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/projects/:id/board"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <PmKanbanBoardPage />
           </ProtectedRoute>
         }
       />
@@ -87,10 +101,10 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/dashboard/tasks/:taskId"
+        path="/dashboard/projects/:projectId/tasks/:taskId"
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
-            <PmTaskDetailPage />
+            <TaskDetailPage />
           </ProtectedRoute>
         }
       />
@@ -107,14 +121,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
             <ProjectManagerReportsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/team"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <ProjectTeamPage />
           </ProtectedRoute>
         }
       />
@@ -143,10 +149,10 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/member/tasks/:taskId"
+        path="/member/projects/:projectId/tasks/:taskId"
         element={
           <ProtectedRoute allowedRoles={["team_member"]}>
-            <TeamMemberTaskDetailPage />
+            <TaskDetailPage />
           </ProtectedRoute>
         }
       />
@@ -175,6 +181,10 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/super-admin/organizations/pending"
+        element={<Navigate to="/super-admin/organizations" replace />}
+      />
+      <Route
         path="/super-admin/organizations/:id"
         element={
           <ProtectedRoute allowedRoles={["super_admin"]}>
@@ -199,14 +209,6 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/super-admin/settings"
-        element={
-          <ProtectedRoute allowedRoles={["super_admin"]}>
-            <SuperAdminSettingsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/admin"
         element={
           <ProtectedRoute allowedRoles={["org_admin"]}>
@@ -224,11 +226,7 @@ function AppRoutes() {
       />
       <Route
         path="/admin/users/invite"
-        element={
-          <ProtectedRoute allowedRoles={["org_admin"]}>
-            <InviteUserPage />
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/admin/users" replace />}
       />
       <Route
         path="/admin/users/:id"
@@ -243,6 +241,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["org_admin"]}>
             <AllProjectsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/projects/:id"
+        element={
+          <ProtectedRoute allowedRoles={["org_admin"]}>
+            <ProjectDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/projects/:projectId/tasks/:taskId"
+        element={
+          <ProtectedRoute allowedRoles={["org_admin"]}>
+            <TaskDetailPage />
           </ProtectedRoute>
         }
       />

@@ -10,7 +10,7 @@ import {
   storeRefreshToken,
   setRefreshCookie,
 } from "./token.service.js";
-import { sendMail } from "./email/transporter.js";
+import { sendMailInBackground } from "./email/transporter.js";
 import { buildInviteEmail } from "./email/inviteEmail.js";
 import { env } from "../config/env.js";
 import { logAction } from "./auditLog.service.js";
@@ -143,7 +143,7 @@ export async function createInvite({
     acceptUrl,
   });
 
-  await sendMail({
+  sendMailInBackground({
     to: normalizedEmail,
     subject,
     html,

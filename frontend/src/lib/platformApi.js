@@ -35,6 +35,38 @@ export function listOrganizations(params = {}) {
   return apiClient(`/platform/organizations${buildOrganizationsQuery(params)}`);
 }
 
+function buildPendingOrganizationsQuery(params = {}) {
+  const searchParams = new URLSearchParams();
+
+  if (params.page) {
+    searchParams.set("page", String(params.page));
+  }
+
+  if (params.limit) {
+    searchParams.set("limit", String(params.limit));
+  }
+
+  const query = searchParams.toString();
+  return query ? `?${query}` : "";
+}
+
+export function listPendingOrganizations(params = {}) {
+  return apiClient(
+    `/platform/organizations/pending${buildPendingOrganizationsQuery(params)}`
+  );
+}
+
+export function approveOrganization(id) {
+  return apiClient(`/platform/organizations/${id}/approve`, { method: "PATCH" });
+}
+
+export function rejectOrganization(id, reason) {
+  return apiClient(`/platform/organizations/${id}/reject`, {
+    method: "PATCH",
+    body: reason ? { reason } : {},
+  });
+}
+
 export function getOrganizationDetail(id) {
   return apiClient(`/platform/organizations/${id}`);
 }

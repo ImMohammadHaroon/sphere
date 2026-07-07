@@ -1,16 +1,39 @@
+import { Link, useNavigate } from "react-router-dom";
 import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
-import { useProjects } from "@/features/projects/hooks/useProjects";
+import { OverviewSkeleton } from "@/components/overview/OverviewSkeleton";
+import { TasksByStatusChart } from "@/components/overview/TasksByStatusChart";
+import { useOrgOverview } from "@/features/org/hooks/useOrgOverview";
+import { MetricCard } from "@/components/ui/MetricCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Skeleton } from "@/components/ui/Skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableScrollArea,
+} from "@/components/ui/Table";
+import { totalTaskCount } from "@/lib/taskStatusConfig";
+import { cn } from "@/lib/utils";
+
+function formatDate(value) {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export function OrgOverviewPage() {
-  const { data: projects, isLoading, isError, error, refetch, isFetching } =
-    useProjects();
+  const navigate = useNavigate();
+  const { data, isLoading, isError, error, refetch, isFetching } =
+    useOrgOverview();
 
-  const activeCount = projects?.filter((p) => p.status === "active").length ?? 0;
-  const archivedCount = projects?.filter((p) => p.status === "archived").length ?? 0;
+  const totalTasks = data ? totalTaskCount(data.tasksByStatus) : 0;
 
   return (
     <OrgAdminLayout
@@ -18,11 +41,7 @@ export function OrgOverviewPage() {
       description="Active projects, team size, and organization KPIs."
     >
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24" />
-          ))}
-        </div>
+        <OverviewSkeleton metricCount={3} showSecondaryPanel={false} />
       ) : null}
 
       {isError ? (
@@ -36,27 +55,99 @@ export function OrgOverviewPage() {
         </Card>
       ) : null}
 
-      {!isLoading && !isError && projects ? (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="p-4 sm:p-6">
-            <p className="text-sm text-text-muted">Total projects</p>
-            <p className="mt-1 text-2xl font-semibold sm:text-3xl">{projects.length}</p>
+      {!isLoading && !isError && data ? (
+        data.projects.total === 0 ? (
+          <Card className="p-8 text-center">
+            <p className="font-medium text-text-primary">No projects yet</p>
+            <p className="mt-2 text-sm text-text-secondary">
+              When projects are created in your organization, their metrics will
+              appear here.
+            </p>
           </Card>
-          <Card className="p-4 sm:p-6">
-            <p className="text-sm text-text-muted">Active</p>
-            <p className="mt-1 text-2xl font-semibold sm:text-3xl">{activeCount}</p>
-            <Badge className="mt-2" variant="success">
-              active
-            </Badge>
-          </Card>
-          <Card className="p-4 sm:p-6">
-            <p className="text-sm text-text-muted">Archived</p>
-            <p className="mt-1 text-2xl font-semibold sm:text-3xl">{archivedCount}</p>
-            <Badge className="mt-2" variant="muted">
-              archived
-            </Badge>
-          </Card>
-        </div>
+        ) : (
+          <div className="space-y-8">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <MetricCard label="Total projects" value={data.projects.total} />
+              <MetricCard label="Active projects" value={data.projects.active} />
+              <MetricCard label="Team size" value={data.teamSize} />
+            </div>
+
+            {totalTasks > 0 ? (
+              <TasksByStatusChart
+                tasksByStatus={data.tasksByStatus}
+                description="Organization task distribution across Kanban columns."
+              />
+            ) : (
+              <Card className="flex min-h-72 items-center justify-center p-6">
+                <p className="text-sm text-text-secondary">
+                  No tasks in your organization yet.
+                </p>
+              </Card>
+            )}
+
+            <Card className="overflow-hidden p-0">
+              <div className="border-b border-border px-4 py-4 sm:px-6">
+                <h2 className="font-display text-lg font-semibold">
+                  Recent projects
+                </h2>
+                <p className="mt-1 text-sm text-text-secondary">
+                  Latest five projects by last update.
+                </p>
+              </div>
+
+              {data.recentProjects.length === 0 ? (
+                <p className="px-4 py-8 text-sm text-text-secondary sm:px-6">
+                  No recent projects to display.
+                </p>
+              ) : (
+                <TableScrollArea>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Last updated</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.recentProjects.map((project) => (
+                        <TableRow
+                          key={project.id}
+                          className="cursor-pointer"
+                          onClick={() => navigate(`/admin/projects/${project.id}`)}
+                        >
+                          <TableCell>
+                            <Link
+                              to={`/admin/projects/${project.id}`}
+                              className={cn(
+                                "font-medium text-primary hover:underline"
+                              )}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {project.name}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                project.status === "active" ? "success" : "muted"
+                              }
+                            >
+                              {project.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-text-secondary">
+                            {formatDate(project.updatedAt)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableScrollArea>
+              )}
+            </Card>
+          </div>
+        )
       ) : null}
     </OrgAdminLayout>
   );

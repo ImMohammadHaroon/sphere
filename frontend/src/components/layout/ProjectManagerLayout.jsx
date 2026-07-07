@@ -8,7 +8,6 @@ export function ProjectManagerLayout({ title, description, children }) {
   return (
     <DashboardShell
       sidebar={<ProjectManagerSidebar userRole={user?.role} />}
-      workspaceLabel="Project Manager dashboard"
       title={title}
       description={description}
     >

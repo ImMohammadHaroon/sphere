@@ -11,18 +11,12 @@ const orgAdminNav = [
     label: "Team members",
     to: "/admin/users",
     match: (p) =>
-      p === "/admin/users" ||
-      (/^\/admin\/users\/[^/]+$/.test(p) && p !== "/admin/users/invite"),
-  },
-  {
-    label: "Invite user",
-    to: "/admin/users/invite",
-    match: (p) => p === "/admin/users/invite",
+      p === "/admin/users" || /^\/admin\/users\/[^/]+$/.test(p),
   },
   {
     label: "All projects",
     to: "/admin/projects",
-    match: (p) => p === "/admin/projects",
+    match: (p) => p === "/admin/projects" || /^\/admin\/projects\/[^/]+$/.test(p),
   },
   {
     label: "Reports",
@@ -53,13 +47,9 @@ export function OrgAdminSidebar() {
         >
           ProjectSphere
         </Link>
-        <p className="mt-1 text-xs text-text-muted">Org Admin</p>
       </div>
 
       <nav>
-        <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wide text-text-muted">
-          Organization
-        </p>
         <ul className="space-y-2">
           {orgAdminNav.map((item) => {
             const isActive = item.match

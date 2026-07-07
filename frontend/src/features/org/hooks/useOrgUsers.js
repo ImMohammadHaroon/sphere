@@ -12,7 +12,9 @@ export function useOrgUsers() {
       return result.users;
     },
     staleTime: 30_000,
-    enabled: isAuthenticated && user?.role === "org_admin",
+    enabled:
+      isAuthenticated &&
+      (user?.role === "org_admin" || user?.role === "project_manager"),
   });
 }
 

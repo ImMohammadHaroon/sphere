@@ -1,13 +1,18 @@
 import { Router } from "express";
 import * as projectController from "../controllers/project.controller.js";
+import { requireRole } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 import {
   createProjectSchema,
   updateProjectSchema,
   projectIdParamSchema,
+  addMemberSchema,
+  removeMemberSchema,
 } from "../validators/project.validator.js";
 
 const router = Router();
+
+const projectWriteRoles = requireRole(["org_admin", "project_manager"]);
 
 /**
  * @openapi
@@ -18,7 +23,7 @@ const router = Router();
  *     security: [{ bearerAuth: [] }]
  *     responses:
  *       200:
- *         description: List of projects
+ *         description: List of projects (org_admin sees all; others see owned or member projects)
  */
 router.get("/", projectController.listProjects);
 
@@ -44,8 +49,15 @@ router.get("/", projectController.listProjects);
  *     responses:
  *       201:
  *         description: Project created
+ *       403:
+ *         description: Forbidden — requires org_admin or project_manager role
  */
-router.post("/", validate(createProjectSchema), projectController.createProject);
+router.post(
+  "/",
+  projectWriteRoles,
+  validate(createProjectSchema),
+  projectController.createProject
+);
 
 /**
  * @openapi
@@ -61,11 +73,49 @@ router.post("/", validate(createProjectSchema), projectController.createProject)
  *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Project details
+ *         description: Project details with populated members
  *       404:
  *         description: Not found
  */
 router.get("/:id", validate(projectIdParamSchema), projectController.getProject);
+
+/**
+ * @openapi
+ * /projects/{id}/members:
+ *   get:
+ *     summary: List assignable project members
+ *     tags: [Projects]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Project members who can be assigned tasks
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 members:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id: { type: string }
+ *                       name: { type: string }
+ *                       email: { type: string }
+ *                       role: { type: string }
+ *       404:
+ *         description: Not found
+ */
+router.get(
+  "/:id/members",
+  validate(projectIdParamSchema),
+  projectController.listProjectMembers
+);
 
 /**
  * @openapi
@@ -92,13 +142,90 @@ router.get("/:id", validate(projectIdParamSchema), projectController.getProject)
  *     responses:
  *       200:
  *         description: Project updated
+ *       403:
+ *         description: Forbidden — requires org_admin or project_manager role
  *       404:
  *         description: Not found
  */
 router.patch(
   "/:id",
+  projectWriteRoles,
   validate(updateProjectSchema),
   projectController.updateProject
+);
+
+/**
+ * @openapi
+ * /projects/{id}/members:
+ *   patch:
+ *     summary: Add a member to a project
+ *     tags: [Projects]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [userId]
+ *             properties:
+ *               userId: { type: string }
+ *     responses:
+ *       200:
+ *         description: Member added
+ *       403:
+ *         description: Forbidden — requires org_admin or project_manager role
+ *       404:
+ *         description: Project or user not found
+ */
+router.patch(
+  "/:id/members",
+  projectWriteRoles,
+  validate(addMemberSchema),
+  projectController.addProjectMember
+);
+
+/**
+ * @openapi
+ * /projects/{id}/members/remove:
+ *   patch:
+ *     summary: Remove a member from a project
+ *     tags: [Projects]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [userId]
+ *             properties:
+ *               userId: { type: string }
+ *     responses:
+ *       200:
+ *         description: Member removed
+ *       400:
+ *         description: Cannot remove project owner
+ *       403:
+ *         description: Forbidden — requires org_admin or project_manager role
+ *       404:
+ *         description: Project not found
+ */
+router.patch(
+  "/:id/members/remove",
+  projectWriteRoles,
+  validate(removeMemberSchema),
+  projectController.removeProjectMember
 );
 
 /**
@@ -116,11 +243,14 @@ router.patch(
  *     responses:
  *       200:
  *         description: Project archived
+ *       403:
+ *         description: Forbidden — requires org_admin or project_manager role
  *       404:
  *         description: Not found
  */
 router.delete(
   "/:id",
+  projectWriteRoles,
   validate(projectIdParamSchema),
   projectController.archiveProject
 );

@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
 import { useOrgUsers, useRemoveOrgUser } from "@/features/org/hooks/useOrgUsers";
 import { useInvites, useRevokeInvite } from "@/features/invites/hooks/useInvites";
+import { InviteMemberDialog } from "@/features/invites/components/InviteMemberDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Alert } from "@/components/ui/Alert";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -48,6 +48,7 @@ function roleBadgeVariant(role) {
 
 export function TeamMembersPage() {
   const { user: currentUser } = useAuth();
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [removeError, setRemoveError] = useState("");
   const {
     data: users,
@@ -108,8 +109,10 @@ export function TeamMembersPage() {
             ? ` · ${invites.length} pending invite${invites.length === 1 ? "" : "s"}`
             : null}
         </p>
-        <ButtonLink to="/admin/users/invite">Invite member</ButtonLink>
+        <Button onClick={() => setInviteOpen(true)}>Invite member</Button>
       </div>
+
+      <InviteMemberDialog open={inviteOpen} onOpenChange={setInviteOpen} />
 
       {removeError ? (
         <Alert variant="error" className="mb-6">
@@ -144,9 +147,9 @@ export function TeamMembersPage() {
         users.length === 0 ? (
           <Card className="p-8 text-center">
             <p className="text-text-secondary">No team members yet.</p>
-            <ButtonLink to="/admin/users/invite" className="mt-4">
+            <Button className="mt-4" onClick={() => setInviteOpen(true)}>
               Invite your first member
-            </ButtonLink>
+            </Button>
           </Card>
         ) : (
           <Card className="overflow-hidden p-0">

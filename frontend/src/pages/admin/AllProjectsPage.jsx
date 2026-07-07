@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { Badge } from "@/components/ui/Badge";
@@ -24,6 +25,7 @@ function formatDate(value) {
 }
 
 export function AllProjectsPage() {
+  const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch, isFetching } = useProjects();
 
   return (
@@ -69,7 +71,11 @@ export function AllProjectsPage() {
               </TableHeader>
               <TableBody>
                 {data.map((project) => (
-                  <TableRow key={project._id}>
+                  <TableRow
+                    key={project._id}
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/admin/projects/${project._id}`)}
+                  >
                     <TableCell className="font-medium">{project.name}</TableCell>
                     <TableCell>
                       <Badge variant={project.status === "active" ? "success" : "muted"}>

@@ -4,7 +4,11 @@ import { User } from "../models/User.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { AuditLog } from "../models/AuditLog.js";
+import { PlatformSettings } from "../models/PlatformSettings.js";
 import { getClientIp, logAction } from "../services/auditLog.service.js";
+import { sendMail } from "../services/email/transporter.js";
+import { buildOrgApprovalEmail } from "../services/email/orgApprovalEmail.js";
+import { buildOrgRejectionEmail } from "../services/email/orgRejectionEmail.js";
 
 function httpError(message, status) {
   const err = new Error(message);
@@ -43,7 +47,13 @@ function parsePagination(query = {}) {
 }
 
 function buildListMatch(query = {}) {
-  const match = { ...notDeletedFilter() };
+  const match = {
+    ...notDeletedFilter(),
+    $or: [
+      { verificationStatus: "approved" },
+      { verificationStatus: { $exists: false } },
+    ],
+  };
 
   if (query.search) {
     match.name = { $regex: query.search, $options: "i" };
@@ -294,6 +304,204 @@ export async function listOrganizations(req, res, next) {
       total,
       page,
       totalPages: total > 0 ? Math.ceil(total / limit) : 1,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+function mapPendingOrganization(org) {
+  const admin = org.adminUsers?.[0] ?? null;
+
+  return {
+    id: org._id.toString(),
+    name: org.name,
+    plan: org.plan,
+    createdAt: org.createdAt,
+    admin: admin
+      ? { name: admin.name, email: admin.email }
+      : { name: null, email: null },
+  };
+}
+
+async function findPendingOrganizationById(id) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return null;
+  }
+
+  return Organization.findOne({
+    _id: id,
+    verificationStatus: "pending",
+    ...notDeletedFilter(),
+  });
+}
+
+async function findOrgAdminUser(organizationId) {
+  return User.findOne({ organizationId, role: "org_admin" })
+    .select("name email")
+    .lean();
+}
+
+export async function listPendingOrganizations(req, res, next) {
+  try {
+    const query = req.validatedQuery ?? req.query;
+    const { page, limit, skip } = parsePagination(query);
+
+    const [result] = await Organization.aggregate([
+      { $match: { verificationStatus: "pending", ...notDeletedFilter() } },
+      { $sort: { createdAt: 1 } },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $lookup: {
+                from: "users",
+                let: { orgId: "$_id" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ["$organizationId", "$$orgId"] },
+                          { $eq: ["$role", "org_admin"] },
+                        ],
+                      },
+                    },
+                  },
+                  { $project: { name: 1, email: 1 } },
+                  { $limit: 1 },
+                ],
+                as: "adminUsers",
+              },
+            },
+            {
+              $project: {
+                name: 1,
+                plan: 1,
+                createdAt: 1,
+                adminUsers: 1,
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    const total = result.metadata[0]?.total ?? 0;
+
+    res.json({
+      organizations: result.data.map(mapPendingOrganization),
+      total,
+      page,
+      totalPages: total > 0 ? Math.ceil(total / limit) : 1,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function approveOrganization(req, res, next) {
+  try {
+    const org = await findActiveOrganizationById(req.params.id);
+
+    if (!org) {
+      throw httpError("Not found", 404);
+    }
+
+    if (org.verificationStatus === "approved") {
+      return res.json({
+        message: "Organization is already approved",
+        organization: mapOrganizationDetail(org),
+      });
+    }
+
+    if (org.verificationStatus !== "pending") {
+      throw httpError("Organization is not pending approval", 400);
+    }
+
+    org.verificationStatus = "approved";
+    org.verificationReviewedAt = new Date();
+    org.verificationReviewedBy = req.user.userId;
+    org.verificationRejectionReason = null;
+    await org.save();
+
+    const admin = await findOrgAdminUser(org._id);
+    if (admin) {
+      const { subject, html, text } = buildOrgApprovalEmail({
+        name: admin.name,
+        orgName: org.name,
+      });
+      await sendMail({ to: admin.email, subject, html, text });
+    }
+
+    await logAction({
+      organizationId: org._id,
+      actorId: req.user.userId,
+      action: "organization.approved",
+      targetType: "Organization",
+      targetId: org._id,
+      metadata: { slug: org.slug, name: org.name },
+      ip: getClientIp(req),
+    });
+
+    res.json({
+      message: "Organization approved",
+      organization: mapOrganizationDetail(org),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function rejectOrganization(req, res, next) {
+  try {
+    const org = await findPendingOrganizationById(req.params.id);
+
+    if (!org) {
+      const existing = await findActiveOrganizationById(req.params.id);
+      if (existing?.verificationStatus === "rejected") {
+        return res.json({
+          message: "Organization is already rejected",
+          organization: mapOrganizationDetail(existing),
+        });
+      }
+      throw httpError("Not found", 404);
+    }
+
+    const reason = req.body?.reason?.trim() || null;
+
+    org.verificationStatus = "rejected";
+    org.verificationReviewedAt = new Date();
+    org.verificationReviewedBy = req.user.userId;
+    org.verificationRejectionReason = reason;
+    await org.save();
+
+    const admin = await findOrgAdminUser(org._id);
+    if (admin) {
+      const { subject, html, text } = buildOrgRejectionEmail({
+        name: admin.name,
+        orgName: org.name,
+        reason,
+      });
+      await sendMail({ to: admin.email, subject, html, text });
+    }
+
+    await logAction({
+      organizationId: org._id,
+      actorId: req.user.userId,
+      action: "organization.rejected",
+      targetType: "Organization",
+      targetId: org._id,
+      metadata: { slug: org.slug, name: org.name, reason },
+      ip: getClientIp(req),
+    });
+
+    res.json({
+      message: "Organization rejected",
+      organization: mapOrganizationDetail(org),
     });
   } catch (err) {
     next(err);
@@ -608,6 +816,131 @@ function formatPlatformAuditLog(log) {
           }
         : null,
   };
+}
+
+function formatPlatformSettings(doc) {
+  return {
+    id: doc._id.toString(),
+    general: {
+      platformName: doc.general?.platformName ?? "ProjectSphere",
+      supportEmail: doc.general?.supportEmail ?? "",
+    },
+    registration: {
+      allowSelfServeSignup: doc.registration?.allowSelfServeSignup ?? true,
+      defaultPlan: doc.registration?.defaultPlan ?? "free",
+    },
+    security: {
+      globalPasswordMinLength: doc.security?.globalPasswordMinLength ?? 8,
+      enforceGlobal2FA: doc.security?.enforceGlobal2FA ?? false,
+    },
+    maintenance: {
+      enabled: doc.maintenance?.enabled ?? false,
+      message: doc.maintenance?.message ?? "",
+    },
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
+  };
+}
+
+async function logPlatformSettingsUpdate(req, settings, section) {
+  await logAction({
+    organizationId: null,
+    actorId: req.user.userId,
+    action: "platform_settings.updated",
+    targetType: "PlatformSettings",
+    targetId: settings._id,
+    metadata: { section },
+    ip: getClientIp(req),
+  });
+}
+
+export async function getPlatformSettings(req, res, next) {
+  try {
+    const settings = await PlatformSettings.getOrCreate();
+    res.json({ settings: formatPlatformSettings(settings) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateGeneralSettings(req, res, next) {
+  try {
+    const settings = await PlatformSettings.getOrCreate();
+    const { general } = req.body;
+
+    settings.general = {
+      platformName: general.platformName,
+      supportEmail: general.supportEmail,
+    };
+
+    settings.markModified("general");
+    await settings.save();
+    await logPlatformSettingsUpdate(req, settings, "general");
+
+    res.json({ settings: formatPlatformSettings(settings) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateRegistrationSettings(req, res, next) {
+  try {
+    const settings = await PlatformSettings.getOrCreate();
+    const { registration } = req.body;
+
+    settings.registration = {
+      allowSelfServeSignup: registration.allowSelfServeSignup,
+      defaultPlan: registration.defaultPlan,
+    };
+
+    settings.markModified("registration");
+    await settings.save();
+    await logPlatformSettingsUpdate(req, settings, "registration");
+
+    res.json({ settings: formatPlatformSettings(settings) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateSecuritySettings(req, res, next) {
+  try {
+    const settings = await PlatformSettings.getOrCreate();
+    const { security } = req.body;
+
+    settings.security = {
+      globalPasswordMinLength: security.globalPasswordMinLength,
+      enforceGlobal2FA: security.enforceGlobal2FA,
+    };
+
+    settings.markModified("security");
+    await settings.save();
+    await logPlatformSettingsUpdate(req, settings, "security");
+
+    res.json({ settings: formatPlatformSettings(settings) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateMaintenanceSettings(req, res, next) {
+  try {
+    const settings = await PlatformSettings.getOrCreate();
+    const { maintenance } = req.body;
+
+    settings.maintenance = {
+      enabled: maintenance.enabled,
+      message: maintenance.message,
+    };
+
+    settings.markModified("maintenance");
+    await settings.save();
+    await logPlatformSettingsUpdate(req, settings, "maintenance");
+
+    res.json({ settings: formatPlatformSettings(settings) });
+  } catch (err) {
+    next(err);
+  }
 }
 
 export async function listPlatformAuditLogs(req, res, next) {

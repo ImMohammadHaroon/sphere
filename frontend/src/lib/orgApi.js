@@ -11,3 +11,7 @@ export function getOrgUser(id) {
 export function removeOrgUser(id) {
   return apiClient(`/org/users/${id}`, { method: "DELETE" });
 }
+
+export function getOrgOverview() {
+  return apiClient("/org/reports/overview");
+}

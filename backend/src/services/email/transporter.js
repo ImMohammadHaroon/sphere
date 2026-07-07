@@ -21,6 +21,9 @@ export function getTransporter() {
         user: env.SMTP_USER,
         pass: env.SMTP_PASS,
       },
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
     });
   }
 
@@ -35,5 +38,12 @@ export async function sendMail({ to, subject, html, text }) {
     subject,
     html,
     text,
+  });
+}
+
+/** Fire-and-forget email; logs failures without blocking the HTTP response. */
+export function sendMailInBackground({ to, subject, html, text }) {
+  sendMail({ to, subject, html, text }).catch((err) => {
+    console.error(`[email] Failed to send to ${to}:`, err.message);
   });
 }

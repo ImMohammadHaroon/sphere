@@ -26,3 +26,22 @@ export function getDashboardPath(role) {
       return "/dashboard";
   }
 }
+
+/** @param {{ organizationId?: string | null, organizationVerificationStatus?: string | null, role?: string }} user */
+export function isOrgVerificationBlocking(user) {
+  if (!user?.organizationId) {
+    return false;
+  }
+
+  const status = user.organizationVerificationStatus ?? "approved";
+  return status !== "approved";
+}
+
+/** @param {{ organizationId?: string | null, organizationVerificationStatus?: string | null, role?: string }} user */
+export function getPostAuthPath(user) {
+  if (isOrgVerificationBlocking(user)) {
+    return "/awaiting-approval";
+  }
+
+  return getDashboardPath(user.role);
+}

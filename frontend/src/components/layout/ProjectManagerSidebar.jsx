@@ -9,12 +9,6 @@ const projectManagerNav = [
     roles: ["project_manager"],
   },
   {
-    label: "Create project",
-    to: "/dashboard/projects/new",
-    match: (p) => p === "/dashboard/projects/new",
-    roles: ["project_manager"],
-  },
-  {
     label: "Kanban board",
     to: "/dashboard/kanban",
     match: (p) => p === "/dashboard/kanban",
@@ -36,12 +30,6 @@ const projectManagerNav = [
     label: "Reports",
     to: "/dashboard/reports",
     match: (p) => p === "/dashboard/reports",
-    roles: ["project_manager"],
-  },
-  {
-    label: "Project team",
-    to: "/dashboard/team",
-    match: (p) => p === "/dashboard/team",
     roles: ["project_manager"],
   },
   {
@@ -70,13 +58,9 @@ export function ProjectManagerSidebar({ userRole }) {
         >
           ProjectSphere
         </Link>
-        <p className="mt-1 text-xs text-text-muted">Project Manager dashboard</p>
       </div>
 
       <nav>
-        <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wide text-text-muted">
-          Workspace
-        </p>
         <ul className="space-y-2">
           {navItems.map((item) => {
             const isActive = item.match ? item.match(pathname) : pathname === item.to;

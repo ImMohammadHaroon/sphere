@@ -5,7 +5,6 @@ export function ClientPortalLayout({ title, description, children }) {
   return (
     <DashboardShell
       sidebar={<ClientPortalSidebar />}
-      workspaceLabel="Client Portal"
       title={title}
       description={description}
     >

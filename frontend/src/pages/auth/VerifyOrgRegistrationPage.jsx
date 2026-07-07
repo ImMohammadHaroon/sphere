@@ -8,7 +8,7 @@ import { Alert } from "@/components/ui/Alert";
 import { authApi } from "@/lib/authApi";
 import { setAccessToken } from "@/lib/apiClient";
 import { syncLogin } from "@/lib/authSync";
-import { getDashboardPath } from "@/lib/authHelpers";
+import { getPostAuthPath } from "@/lib/authHelpers";
 
 const RESEND_COOLDOWN_SEC = 60;
 
@@ -56,7 +56,7 @@ export function VerifyOrgRegistrationPage() {
       const result = await authApi.verifyOrgRegistration({ email, code });
       setAccessToken(result.accessToken);
       syncLogin(result.accessToken, result.user);
-      navigate(getDashboardPath(result.user.role), { replace: true });
+      navigate(getPostAuthPath(result.user), { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed");
     } finally {

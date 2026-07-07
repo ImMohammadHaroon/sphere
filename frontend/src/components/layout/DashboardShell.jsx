@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 
 export function DashboardShell({
   sidebar,
-  workspaceLabel,
   title,
   description,
   children,
@@ -83,11 +82,6 @@ export function DashboardShell({
                   <Menu className="h-5 w-5" />
                 </Button>
                 <div className="min-w-0">
-                  {workspaceLabel ? (
-                    <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
-                      {workspaceLabel}
-                    </p>
-                  ) : null}
                   <p className="truncate text-sm text-text-secondary">{user?.email}</p>
                 </div>
               </div>

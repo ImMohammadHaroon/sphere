@@ -19,6 +19,14 @@ const API_URL = resolveApiBaseUrl();
 
 let accessToken = null;
 
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 export function setAccessToken(token) {
   accessToken = token;
 }
@@ -58,7 +66,7 @@ export async function apiClient(path, options = {}) {
       typeof data.message === "string"
         ? data.message
         : "Request failed";
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
 
   return data;

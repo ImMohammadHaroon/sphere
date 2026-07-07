@@ -54,6 +54,23 @@ const organizationSchema = new mongoose.Schema(
     },
     isActive: { type: Boolean, default: true },
     deletedAt: { type: Date, default: null },
+    verificationStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "approved",
+    },
+    verificationReviewedAt: { type: Date, default: null },
+    verificationReviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    verificationRejectionReason: {
+      type: String,
+      default: null,
+      maxlength: 500,
+      trim: true,
+    },
   },
   { timestamps: true }
 );

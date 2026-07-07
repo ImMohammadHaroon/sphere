@@ -1,5 +1,8 @@
 import { Router } from "express";
 import * as taskController from "../controllers/task.controller.js";
+import { requireRole } from "../middleware/auth.middleware.js";
+import { requireOwnershipOrRole } from "../middleware/requireOwnershipOrRole.js";
+import { loadTask } from "../middleware/rbac.loaders.js";
 import { validate } from "../middleware/validate.middleware.js";
 import {
   createTaskSchema,
@@ -7,6 +10,18 @@ import {
   listTasksParamSchema,
   taskIdParamSchema,
 } from "../validators/task.validator.js";
+
+const taskCreateRoles = requireRole([
+  "org_admin",
+  "project_manager",
+  "team_member",
+]);
+const taskUpdateAccess = requireOwnershipOrRole(
+  loadTask,
+  ["org_admin", "project_manager"],
+  "assigneeId"
+);
+const taskDeleteRoles = requireRole(["org_admin", "project_manager"]);
 
 export const projectTaskRouter = Router({ mergeParams: true });
 
@@ -64,16 +79,32 @@ projectTaskRouter.get(
  *     responses:
  *       201:
  *         description: Task created
+ *       403:
+ *         description: Forbidden — client role cannot create tasks
  *       404:
  *         description: Project not found
  */
 projectTaskRouter.post(
   "/",
+  taskCreateRoles,
   validate(createTaskSchema),
   taskController.createTask
 );
 
 const taskRouter = Router();
+
+/**
+ * @openapi
+ * /tasks/mine:
+ *   get:
+ *     summary: List tasks assigned to the authenticated user across all projects
+ *     tags: [Tasks]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: List of tasks assigned to the current user
+ */
+taskRouter.get("/mine", taskController.listMyTasks);
 
 /**
  * @openapi
@@ -123,10 +154,17 @@ taskRouter.get("/:id", validate(taskIdParamSchema), taskController.getTask);
  *     responses:
  *       200:
  *         description: Task updated
+ *       403:
+ *         description: Forbidden — team members may only update tasks assigned to them
  *       404:
  *         description: Not found
  */
-taskRouter.patch("/:id", validate(updateTaskSchema), taskController.updateTask);
+taskRouter.patch(
+  "/:id",
+  validate(updateTaskSchema),
+  taskUpdateAccess,
+  taskController.updateTask
+);
 
 /**
  * @openapi
@@ -143,9 +181,16 @@ taskRouter.patch("/:id", validate(updateTaskSchema), taskController.updateTask);
  *     responses:
  *       200:
  *         description: Task deleted
+ *       403:
+ *         description: Forbidden — team members cannot delete tasks
  *       404:
  *         description: Not found
  */
-taskRouter.delete("/:id", validate(taskIdParamSchema), taskController.deleteTask);
+taskRouter.delete(
+  "/:id",
+  validate(taskIdParamSchema),
+  taskDeleteRoles,
+  taskController.deleteTask
+);
 
 export default taskRouter;

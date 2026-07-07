@@ -1,9 +1,60 @@
 import { Router } from "express";
 import * as orgController from "../controllers/org.controller.js";
+import { requireRole } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 import { orgUserIdParamSchema, updateUserRoleSchema } from "../validators/org.validator.js";
 
 const router = Router();
+
+const orgAdminOnly = requireRole(["org_admin"]);
+const orgUserListRoles = requireRole(["org_admin", "project_manager"]);
+
+/**
+ * @openapi
+ * /org/reports/overview:
+ *   get:
+ *     summary: Organization overview metrics for the authenticated org admin
+ *     tags: [Organization]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Organization-scoped overview metrics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 projects:
+ *                   type: object
+ *                   properties:
+ *                     total: { type: integer }
+ *                     active: { type: integer }
+ *                     archived: { type: integer }
+ *                 teamSize: { type: integer }
+ *                 tasksByStatus:
+ *                   type: object
+ *                   properties:
+ *                     todo: { type: integer }
+ *                     in-progress: { type: integer }
+ *                     review: { type: integer }
+ *                     done: { type: integer }
+ *                 recentProjects:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id: { type: string }
+ *                       name: { type: string }
+ *                       status: { type: string, enum: [active, archived] }
+ *                       updatedAt: { type: string, format: date-time }
+ *       403:
+ *         description: Forbidden — requires org_admin role
+ */
+router.get(
+  "/reports/overview",
+  orgAdminOnly,
+  orgController.getOrgOverview
+);
 
 /**
  * @openapi
@@ -15,8 +66,10 @@ const router = Router();
  *     responses:
  *       200:
  *         description: Organization users
+ *       403:
+ *         description: Forbidden — requires org_admin or project_manager role
  */
-router.get("/users", orgController.listUsers);
+router.get("/users", orgUserListRoles, orgController.listUsers);
 
 /**
  * @openapi
@@ -33,11 +86,14 @@ router.get("/users", orgController.listUsers);
  *     responses:
  *       200:
  *         description: User details
+ *       403:
+ *         description: Forbidden — requires org_admin role
  *       404:
  *         description: Not found
  */
 router.get(
   "/users/:id",
+  orgAdminOnly,
   validate(orgUserIdParamSchema),
   orgController.getUser
 );
@@ -70,11 +126,14 @@ router.get(
  *         description: User role updated
  *       400:
  *         description: Cannot change own role
+ *       403:
+ *         description: Forbidden — requires org_admin role
  *       404:
  *         description: Not found
  */
 router.patch(
   "/users/:id/role",
+  orgAdminOnly,
   validate(updateUserRoleSchema),
   orgController.updateUserRole
 );
@@ -96,11 +155,14 @@ router.patch(
  *         description: User removed
  *       400:
  *         description: Cannot remove self or last org admin
+ *       403:
+ *         description: Forbidden — requires org_admin role
  *       404:
  *         description: Not found
  */
 router.delete(
   "/users/:id",
+  orgAdminOnly,
   validate(orgUserIdParamSchema),
   orgController.removeUser
 );

@@ -4,6 +4,7 @@ import { Organization } from "../models/Organization.js";
 import { InviteToken } from "../models/InviteToken.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 import { OrgRegistrationPending } from "../models/OrgRegistrationPending.js";
+import { PlatformSettings } from "../models/PlatformSettings.js";
 import { hashPassword, verifyPassword } from "./password.service.js";
 import {
   signAccessToken,
@@ -42,6 +43,35 @@ function sanitizeUser(user) {
   };
 }
 
+function effectiveVerificationStatus(org) {
+  return org?.verificationStatus ?? "approved";
+}
+
+async function enrichUserWithOrgContext(user) {
+  const base = sanitizeUser(user);
+
+  if (!user.organizationId) {
+    return {
+      ...base,
+      organizationVerificationStatus: null,
+      organizationVerificationRejectionReason: null,
+    };
+  }
+
+  const org = await Organization.findById(user.organizationId)
+    .select("verificationStatus verificationRejectionReason")
+    .lean();
+
+  const status = effectiveVerificationStatus(org);
+
+  return {
+    ...base,
+    organizationVerificationStatus: status,
+    organizationVerificationRejectionReason:
+      status === "rejected" ? org?.verificationRejectionReason ?? null : null,
+  };
+}
+
 function buildAccessPayload(user) {
   return {
     userId: user._id.toString(),
@@ -60,7 +90,8 @@ async function issueSession(res, user, deviceId) {
     deviceId,
   });
   setRefreshCookie(res, refreshToken);
-  return { accessToken, user: sanitizeUser(user) };
+  const enrichedUser = await enrichUserWithOrgContext(user);
+  return { accessToken, user: enrichedUser };
 }
 
 export async function requestOrganizationRegistration({
@@ -69,6 +100,13 @@ export async function requestOrganizationRegistration({
   email,
   password,
 }) {
+  const platformSettings = await PlatformSettings.getOrCreate();
+  if (!platformSettings.registration?.allowSelfServeSignup) {
+    const err = new Error("Self-serve registration is currently disabled");
+    err.status = 403;
+    throw err;
+  }
+
   const normalizedEmail = email.trim().toLowerCase();
 
   const existing = await User.findOne({ email: normalizedEmail });
@@ -165,10 +203,16 @@ export async function verifyOrganizationRegistration({
     throw err;
   }
 
+  const platformSettings = await PlatformSettings.getOrCreate();
+  const defaultPlan =
+    platformSettings.registration?.defaultPlan ?? "free";
+
   const slug = await uniqueOrgSlug(Organization, pending.orgName);
   const organization = await Organization.create({
     name: pending.orgName,
     slug,
+    plan: defaultPlan,
+    verificationStatus: "pending",
   });
 
   const user = await User.create({
@@ -238,6 +282,16 @@ export async function login({ res, email, password, deviceId }) {
     throw err;
   }
 
+  const platformSettings = await PlatformSettings.getOrCreate();
+  if (platformSettings.maintenance?.enabled && user.role !== "super_admin") {
+    const message = platformSettings.maintenance?.message?.trim();
+    const err = new Error(
+      message || "The platform is currently under maintenance. Please try again later."
+    );
+    err.status = 503;
+    throw err;
+  }
+
   if (user.organizationId) {
     const org = await Organization.findById(user.organizationId);
     if (!org?.isActive) {
@@ -289,7 +343,8 @@ export async function refreshSession(req, res) {
 
   setRefreshCookie(res, newRaw);
   const accessToken = signAccessToken(buildAccessPayload(user));
-  return { accessToken, user: sanitizeUser(user) };
+  const enrichedUser = await enrichUserWithOrgContext(user);
+  return { accessToken, user: enrichedUser };
 }
 
 export async function logout(req, res) {
@@ -312,7 +367,7 @@ export async function getCurrentUser(userId) {
     err.status = 404;
     throw err;
   }
-  return sanitizeUser(user);
+  return enrichUserWithOrgContext(user);
 }
 
 export async function createInvite({

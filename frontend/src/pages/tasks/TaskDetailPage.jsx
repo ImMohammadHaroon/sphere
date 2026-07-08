@@ -100,7 +100,7 @@ function NotFoundCard() {
 }
 
 export function TaskDetailPage() {
-  const { projectId = "", taskId = "" } = useParams();
+  const { projectId: routeProjectId = "", taskId = "" } = useParams();
   const { user } = useAuth();
   const role = user?.role ?? "project_manager";
 
@@ -113,6 +113,14 @@ export function TaskDetailPage() {
 
   const { data: task, isLoading, isError, error, refetch, isFetching } =
     useTask(taskId);
+
+  const projectId =
+    routeProjectId ||
+    (typeof task?.projectId === "object"
+      ? task.projectId?.id
+      : task?.projectId) ||
+    "";
+
   const { data: members } = useProjectMembers(projectId);
   const updateTask = useUpdateTask(taskId, projectId);
 
@@ -154,10 +162,9 @@ export function TaskDetailPage() {
     );
   }, [task, title, description, status, assigneeId, priority, dueDate]);
 
-  const assigneeName =
-    task?.assignee?.name ??
-    members?.find((member) => member.id === task?.assigneeId)?.name ??
-    null;
+  const assigneeMember = members?.find((member) => member.id === task?.assigneeId);
+  const assigneeName = task?.assignee?.name ?? assigneeMember?.name ?? null;
+  const assigneeEmail = task?.assignee?.email ?? assigneeMember?.email ?? null;
 
   async function handleSave() {
     if (!task || !canSave) return;
@@ -338,7 +345,7 @@ export function TaskDetailPage() {
                     <option value="">Unassigned</option>
                     {(members ?? []).map((member) => (
                       <option key={member.id} value={member.id}>
-                        {member.name}
+                        {member.name} ({member.email})
                       </option>
                     ))}
                   </select>
@@ -347,9 +354,14 @@ export function TaskDetailPage() {
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-subtle text-sm font-medium text-primary">
                       {memberInitials(assigneeName)}
                     </div>
-                    <span className="text-sm text-text-primary">
-                      {assigneeName ?? "Unassigned"}
-                    </span>
+                    <div>
+                      <span className="text-sm text-text-primary">
+                        {assigneeName ?? "Unassigned"}
+                      </span>
+                      {assigneeEmail ? (
+                        <p className="text-xs text-text-muted">{assigneeEmail}</p>
+                      ) : null}
+                    </div>
                   </div>
                 )}
               </div>

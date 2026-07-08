@@ -7,6 +7,7 @@ import { validate } from "../middleware/validate.middleware.js";
 import {
   createTaskSchema,
   updateTaskSchema,
+  moveTaskSchema,
   listTasksParamSchema,
   taskIdParamSchema,
 } from "../validators/task.validator.js";
@@ -125,6 +126,42 @@ taskRouter.get("/mine", taskController.listMyTasks);
  *         description: Not found
  */
 taskRouter.get("/:id", validate(taskIdParamSchema), taskController.getTask);
+
+/**
+ * @openapi
+ * /tasks/{id}/move:
+ *   patch:
+ *     summary: Move or reorder a task on the Kanban board (tenant-scoped)
+ *     tags: [Tasks]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status: { type: string, enum: [todo, in-progress, review, done] }
+ *               position: { type: number }
+ *     responses:
+ *       200:
+ *         description: Task moved
+ *       403:
+ *         description: Forbidden — team members may only move tasks assigned to them
+ *       404:
+ *         description: Not found
+ */
+taskRouter.patch(
+  "/:id/move",
+  validate(moveTaskSchema),
+  taskUpdateAccess,
+  taskController.moveTask
+);
 
 /**
  * @openapi

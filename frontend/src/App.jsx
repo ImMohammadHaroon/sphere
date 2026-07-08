@@ -27,6 +27,7 @@ import { CalendarViewPage } from "@/pages/project-manager/CalendarViewPage";
 import { ProjectManagerReportsPage } from "@/pages/project-manager/ReportsPage";
 import { MilestonesPage as PmMilestonesPage } from "@/pages/project-manager/MilestonesPage";
 import { MyTasksPage } from "@/pages/team-member/MyTasksPage";
+import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { TeamMemberKanbanBoardPage } from "@/pages/team-member/KanbanBoardPage";
 import { NotificationsPage } from "@/pages/team-member/NotificationsPage";
 import { ProfilePage } from "@/pages/DashboardPages";
@@ -136,12 +137,20 @@ function AppRoutes() {
         path="/member"
         element={
           <ProtectedRoute allowedRoles={["team_member"]}>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/member/tasks"
+        element={
+          <ProtectedRoute allowedRoles={["team_member"]}>
             <MyTasksPage />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/member/kanban"
+        path="/member/projects/:projectId/board"
         element={
           <ProtectedRoute allowedRoles={["team_member"]}>
             <TeamMemberKanbanBoardPage />

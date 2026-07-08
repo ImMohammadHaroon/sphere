@@ -3,19 +3,14 @@ import { cn } from "@/lib/utils";
 
 const teamMemberNav = [
   {
-    label: "My tasks (dashboard)",
+    label: "Dashboard",
     to: "/member",
     match: (p) => p === "/member",
   },
   {
-    label: "Kanban board",
-    to: "/member/kanban",
-    match: (p) => p === "/member/kanban",
-  },
-  {
-    label: "Task detail",
-    to: "/member/tasks/overview",
-    match: (p) => p.startsWith("/member/tasks/"),
+    label: "My tasks",
+    to: "/member/tasks",
+    match: (p) => p === "/member/tasks",
   },
   {
     label: "Notifications",

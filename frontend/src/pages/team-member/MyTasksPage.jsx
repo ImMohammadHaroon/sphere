@@ -4,6 +4,7 @@ import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
 import { useMyTasks } from "@/features/tasks/hooks/useMyTasks";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -93,10 +94,19 @@ export function MyTasksPage() {
           <div className="space-y-6">
             {grouped.map((group) => (
               <Card key={group.projectId} className="overflow-hidden p-0">
-                <div className="border-b border-border px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
                   <h2 className="font-medium text-text-primary">
                     {group.projectName}
                   </h2>
+                  {group.projectId !== "unknown" ? (
+                    <ButtonLink
+                      to={`/member/projects/${group.projectId}/board`}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Open board
+                    </ButtonLink>
+                  ) : null}
                 </div>
                 <ul className="divide-y divide-border">
                   {group.tasks.map((task) => (

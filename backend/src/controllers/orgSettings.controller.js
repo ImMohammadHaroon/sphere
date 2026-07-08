@@ -36,7 +36,10 @@ function formatOrganization(org) {
     id: org._id.toString(),
     name: org.name,
     slug: org.slug,
+    plan: org.plan,
     isActive: org.isActive,
+    createdAt: org.createdAt,
+    updatedAt: org.updatedAt,
     ...normalizeSettings(org),
   };
 }

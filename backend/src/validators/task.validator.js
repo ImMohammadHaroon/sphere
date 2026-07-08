@@ -47,3 +47,19 @@ export const taskIdParamSchema = z.object({
     id: objectId,
   }),
 });
+
+export const moveTaskSchema = z.object({
+  params: z.object({
+    id: objectId,
+  }),
+  body: z
+    .object({
+      status: z.enum(["todo", "in-progress", "review", "done"]).optional(),
+      position: z.number().optional(),
+    })
+    .strict()
+    .refine(
+      (body) => body.status !== undefined || body.position !== undefined,
+      { message: "At least one of status or position is required" }
+    ),
+});

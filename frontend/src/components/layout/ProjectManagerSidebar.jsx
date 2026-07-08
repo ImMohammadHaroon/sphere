@@ -3,21 +3,9 @@ import { cn } from "@/lib/utils";
 
 const projectManagerNav = [
   {
-    label: "My projects overview",
+    label: "My projects",
     to: "/dashboard",
     match: (p) => p === "/dashboard",
-    roles: ["project_manager"],
-  },
-  {
-    label: "Kanban board",
-    to: "/dashboard/kanban",
-    match: (p) => p === "/dashboard/kanban",
-    roles: ["project_manager"],
-  },
-  {
-    label: "Task detail",
-    to: "/dashboard/tasks/overview",
-    match: (p) => p.startsWith("/dashboard/tasks/"),
     roles: ["project_manager"],
   },
   {

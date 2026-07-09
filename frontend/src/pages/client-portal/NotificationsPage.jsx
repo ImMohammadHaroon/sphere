@@ -1,4 +1,4 @@
-import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
+import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
 import { NotificationsPageContent } from "@/features/notifications/NotificationsPageContent";
 import { getTaskDetailPath } from "@/features/notifications/notificationPaths";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,13 +7,13 @@ export function NotificationsPage() {
   const { user } = useAuth();
 
   return (
-    <TeamMemberLayout
+    <ClientPortalLayout
       title="Notifications"
-      description="Updates on assignments, invites, and activity."
+      description="Updates on your projects and activity."
     >
       <NotificationsPageContent
         buildTaskPath={(payload) => getTaskDetailPath(user?.role, payload)}
       />
-    </TeamMemberLayout>
+    </ClientPortalLayout>
   );
 }

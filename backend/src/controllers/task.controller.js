@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { logAction, getClientIp } from "../services/auditLog.service.js";
+import { createNotification } from "../services/notification.service.js";
 import { emitToProject } from "../sockets/index.js";
 
 function notFound(message = "Not found") {
@@ -108,6 +109,24 @@ export async function createTask(req, res, next) {
 
     emitToProject(req.params.projectId, "task:created", formatTask(task));
 
+    const assigneeId = req.body.assigneeId;
+    if (assigneeId && assigneeId !== req.user.userId) {
+      try {
+        await createNotification({
+          organizationId: created.organizationId,
+          userId: assigneeId,
+          type: "task_assigned",
+          payload: {
+            taskId: created._id.toString(),
+            taskTitle: created.title,
+            projectId: created.projectId.toString(),
+          },
+        });
+      } catch (notifyErr) {
+        console.error("Failed to create task_assigned notification:", notifyErr);
+      }
+    }
+
     res.status(201).json({ task: formatTask(task) });
   } catch (err) {
     next(err);
@@ -128,6 +147,8 @@ export async function getTask(req, res, next) {
   }
 }
 
+const TEAM_MEMBER_TASK_FIELDS = new Set(["status"]);
+
 export async function updateTask(req, res, next) {
   try {
     const existing = await req
@@ -136,6 +157,21 @@ export async function updateTask(req, res, next) {
 
     if (!existing) {
       throw notFound();
+    }
+
+    if (req.user.role === "team_member") {
+      const forbiddenFields = Object.keys(req.body).filter(
+        (field) =>
+          req.body[field] !== undefined && !TEAM_MEMBER_TASK_FIELDS.has(field)
+      );
+
+      if (forbiddenFields.length > 0) {
+        const err = new Error(
+          "Forbidden: team members may only update task status"
+        );
+        err.status = 403;
+        throw err;
+      }
     }
 
     const updates = {};
@@ -181,6 +217,28 @@ export async function updateTask(req, res, next) {
       "task:updated",
       formatTask(task)
     );
+
+    if (
+      updates.assigneeId !== undefined &&
+      updates.assigneeId &&
+      updates.assigneeId.toString() !== existing.assigneeId?.toString() &&
+      updates.assigneeId.toString() !== req.user.userId
+    ) {
+      try {
+        await createNotification({
+          organizationId: task.organizationId,
+          userId: updates.assigneeId,
+          type: "task_assigned",
+          payload: {
+            taskId: task._id.toString(),
+            taskTitle: task.title,
+            projectId: task.projectId?.toString?.() ?? task.projectId,
+          },
+        });
+      } catch (notifyErr) {
+        console.error("Failed to create task_assigned notification:", notifyErr);
+      }
+    }
 
     res.json({ task: formatTask(task) });
   } catch (err) {
@@ -302,6 +360,33 @@ export async function moveTask(req, res, next) {
       status: newStatus,
       position: newPosition,
     });
+
+    const moverId = req.user.userId;
+    const assigneeId = task.assigneeId?.toString?.() ?? null;
+    if (newStatus === "done" && assigneeId && moverId !== assigneeId) {
+      try {
+        const project = await Project.findById(task.projectId).lean();
+        if (
+          project &&
+          project.organizationId.toString() === task.organizationId.toString()
+        ) {
+          await createNotification({
+            organizationId: task.organizationId,
+            userId: project.ownerId,
+            type: "task_moved",
+            payload: {
+              taskId: task._id.toString(),
+              taskTitle: task.title,
+              projectId: project._id.toString(),
+              projectName: project.name,
+              newStatus,
+            },
+          });
+        }
+      } catch (notifyErr) {
+        console.error("Failed to create task_moved notification:", notifyErr);
+      }
+    }
 
     res.json({ task: formatTask(populated) });
   } catch (err) {

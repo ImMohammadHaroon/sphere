@@ -125,10 +125,11 @@ export function TaskDetailPage() {
   const updateTask = useUpdateTask(taskId, projectId);
 
   const isElevated = role === "org_admin" || role === "project_manager";
-  const isAssignee = !!task && task.assigneeId === user?.id;
+  const taskAssigneeId = task?.assigneeId ?? task?.assignee?.id ?? null;
+  const isAssignee = !!task && !!user?.id && taskAssigneeId === user.id;
   const canEditAll = isElevated;
   const canEditStatus = isElevated || isAssignee;
-  const canEditDescription = isElevated || isAssignee;
+  const canEditDescription = isElevated;
   const canSave = canEditAll || canEditStatus;
 
   const [title, setTitle] = useState("");
@@ -186,11 +187,8 @@ export function TaskDetailPage() {
       const nextDue = dateInputToIso(dueDate);
       const prevDue = task.dueDate ?? null;
       if (nextDue !== prevDue) payload.dueDate = nextDue;
-    } else {
-      if (status !== task.status) payload.status = status;
-      if (description !== (task.description ?? "")) {
-        payload.description = description;
-      }
+    } else if (status !== task.status) {
+      payload.status = status;
     }
 
     if (Object.keys(payload).length === 0) {

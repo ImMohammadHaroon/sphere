@@ -29,7 +29,11 @@ import { MilestonesPage as PmMilestonesPage } from "@/pages/project-manager/Mile
 import { MyTasksPage } from "@/pages/team-member/MyTasksPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { TeamMemberKanbanBoardPage } from "@/pages/team-member/KanbanBoardPage";
-import { NotificationsPage } from "@/pages/team-member/NotificationsPage";
+import { NotificationsPage as TeamMemberNotificationsPage } from "@/pages/team-member/NotificationsPage";
+import { NotificationsPage as PmNotificationsPage } from "@/pages/project-manager/NotificationsPage";
+import { NotificationsPage as OrgAdminNotificationsPage } from "@/pages/admin/NotificationsPage";
+import { NotificationsPage as SuperAdminNotificationsPage } from "@/pages/super-admin/NotificationsPage";
+import { NotificationsPage as ClientNotificationsPage } from "@/pages/client-portal/NotificationsPage";
 import { ProfilePage } from "@/pages/DashboardPages";
 import { PlatformOverviewPage } from "@/pages/super-admin/PlatformOverviewPage";
 import { OrganizationsPage } from "@/pages/super-admin/OrganizationsPage";
@@ -134,6 +138,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/dashboard/notifications"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <PmNotificationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/member"
         element={
           <ProtectedRoute allowedRoles={["team_member"]}>
@@ -169,7 +181,7 @@ function AppRoutes() {
         path="/member/notifications"
         element={
           <ProtectedRoute allowedRoles={["team_member"]}>
-            <NotificationsPage />
+            <TeamMemberNotificationsPage />
           </ProtectedRoute>
         }
       />
@@ -214,6 +226,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["super_admin"]}>
             <SuperAdminAuditLogsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/super-admin/notifications"
+        element={
+          <ProtectedRoute allowedRoles={["super_admin"]}>
+            <SuperAdminNotificationsPage />
           </ProtectedRoute>
         }
       />
@@ -294,6 +314,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/admin/notifications"
+        element={
+          <ProtectedRoute allowedRoles={["org_admin"]}>
+            <OrgAdminNotificationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/portal"
         element={
           <ProtectedRoute allowedRoles={["client"]}>
@@ -322,6 +350,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["client"]}>
             <ClientReportsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/portal/notifications"
+        element={
+          <ProtectedRoute allowedRoles={["client"]}>
+            <ClientNotificationsPage />
           </ProtectedRoute>
         }
       />

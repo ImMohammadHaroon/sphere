@@ -8,4 +8,5 @@ export const COLLECTIONS = {
   TASKS: "tasks",
   USERS: "users",
   ORG_REGISTRATION_PENDING: "orgregistrationpendings",
+  NOTIFICATIONS: "notifications",
 };

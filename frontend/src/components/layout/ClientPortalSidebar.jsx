@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 
 const clientPortalNav = [
@@ -6,21 +7,31 @@ const clientPortalNav = [
     label: "My projects",
     to: "/portal",
     match: (p) => p === "/portal",
+    icon: "lucide:folder-kanban",
   },
   {
     label: "Project progress",
     to: "/portal/progress",
     match: (p) => p === "/portal/progress",
+    icon: "lucide:trending-up",
   },
   {
     label: "Milestones",
     to: "/portal/milestones",
     match: (p) => p === "/portal/milestones",
+    icon: "lucide:flag",
   },
   {
     label: "Reports",
     to: "/portal/reports",
     match: (p) => p === "/portal/reports",
+    icon: "lucide:bar-chart-3",
+  },
+  {
+    label: "Notifications",
+    to: "/portal/notifications",
+    match: (p) => p === "/portal/notifications",
+    icon: "lucide:bell",
   },
 ];
 
@@ -28,15 +39,16 @@ export function ClientPortalSidebar() {
   const { pathname } = useLocation();
 
   return (
-    <aside className="flex h-full w-full flex-col border-r border-border bg-surface-raised p-5 lg:h-screen lg:p-8">
-      <div className="pb-6">
-        <Link
-          to="/portal"
-          className="font-display text-lg font-semibold text-text-primary hover:text-primary"
-        >
+    <aside className="flex h-full w-full flex-col border-r border-border bg-surface-raised p-3 lg:p-8">
+      <Link
+        to="/portal"
+        className="mb-6 flex items-center justify-center lg:justify-start"
+      >
+        <span className="hidden font-display text-lg font-semibold text-text-primary hover:text-primary lg:inline">
           ProjectSphere
-        </Link>
-      </div>
+        </span>
+        <span className="text-lg font-bold text-primary lg:hidden">PS</span>
+      </Link>
 
       <nav>
         <ul className="space-y-2">
@@ -47,14 +59,16 @@ export function ClientPortalSidebar() {
               <li key={item.label}>
                 <Link
                   to={item.to}
+                  title={item.label}
                   className={cn(
-                    "block rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
+                    "flex items-center justify-center gap-3 rounded-lg px-2 py-2.5 text-sm font-medium transition-colors lg:justify-start lg:px-4",
                     isActive
                       ? "bg-primary-subtle text-primary"
                       : "text-text-secondary hover:bg-surface hover:text-text-primary"
                   )}
                 >
-                  {item.label}
+                  <Icon icon={item.icon} className="h-5 w-5 shrink-0" />
+                  <span className="hidden lg:inline">{item.label}</span>
                 </Link>
               </li>
             );

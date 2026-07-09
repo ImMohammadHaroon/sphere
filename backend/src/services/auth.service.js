@@ -24,6 +24,7 @@ import { env } from "../config/env.js";
 import { sendMail } from "./email/transporter.js";
 import { buildPasswordResetEmail } from "./email/passwordResetEmail.js";
 import { buildOrgVerificationEmail } from "./email/orgVerificationEmail.js";
+import { createNotification } from "./notification.service.js";
 
 const ORG_VERIFICATION_TTL_MS = 15 * 60 * 1000;
 const MAX_VERIFICATION_ATTEMPTS = 5;
@@ -224,6 +225,25 @@ export async function verifyOrganizationRegistration({
   });
 
   await OrgRegistrationPending.deleteOne({ _id: pending._id });
+
+  try {
+    const superAdmins = await User.find({ role: "super_admin" }).select("_id");
+    await Promise.all(
+      superAdmins.map((admin) =>
+        createNotification({
+          organizationId: null,
+          userId: admin._id,
+          type: "org_registered",
+          payload: {
+            organizationName: organization.name,
+            organizationId: organization._id.toString(),
+          },
+        })
+      )
+    );
+  } catch (notifyErr) {
+    console.error("Failed to create org_registered notifications:", notifyErr);
+  }
 
   return issueSession(res, user, deviceId || generateDeviceId());
 }

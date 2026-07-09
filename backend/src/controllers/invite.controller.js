@@ -1,5 +1,7 @@
 import * as inviteService from "../services/invite.service.js";
+import { Invite } from "../models/Invite.js";
 import { logAction, getClientIp } from "../services/auditLog.service.js";
+import { createNotification } from "../services/notification.service.js";
 
 export async function createInvite(req, res, next) {
   try {
@@ -49,6 +51,24 @@ export async function acceptInvite(req, res, next) {
       deviceId: req.body.deviceId,
       ip: getClientIp(req),
     });
+
+    try {
+      const invite = await Invite.findOne({ token: req.params.token });
+      if (invite?.invitedBy) {
+        await createNotification({
+          organizationId: invite.organizationId,
+          userId: invite.invitedBy,
+          type: "invite_accepted",
+          payload: {
+            invitedUserName: result.user.name,
+            invitedUserEmail: result.user.email,
+          },
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Failed to create invite_accepted notification:", notifyErr);
+    }
+
     res.status(201).json(result);
   } catch (err) {
     next(err);

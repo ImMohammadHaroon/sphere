@@ -39,8 +39,14 @@ export function emitToProject(projectId, event, payload) {
   io.to(`project:${projectId}`).emit(event, payload);
 }
 
+export function emitToUser(userId, event, payload) {
+  if (!io) {
+    return;
+  }
+  io.to(`user:${userId}`).emit(event, payload);
+}
+
 // TODO: emitToProject(projectId, "comment:new", payload) when Comment model exists
-// TODO: emitToProject(projectId, "notification:new", payload) when Notification model exists
 
 export function initSockets(httpServer) {
   io = new Server(httpServer, {
@@ -88,8 +94,12 @@ export function initSockets(httpServer) {
   io.on("connection", (socket) => {
     const user = socket.data.user;
 
+    // super_admin sockets have no organizationId and must NOT be disconnected or
+    // excluded here — they still need their personal user:{id} room for
+    // platform-level notifications.
+    socket.join(`user:${user.userId}`);
+
     if (!user.organizationId) {
-      socket.disconnect(true);
       return;
     }
 

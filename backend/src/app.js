@@ -11,6 +11,7 @@ import platformRoutes from "./routes/platform.routes.js";
 import orgRoutes from "./routes/org.routes.js";
 import auditLogRoutes from "./routes/auditLog.routes.js";
 import orgSettingsRoutes from "./routes/orgSettings.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 import { authenticate, requireRole } from "./middleware/auth.middleware.js";
 import { tenantScope } from "./middleware/tenantScope.js";
 import { globalRateLimiter } from "./middleware/rateLimit.middleware.js";
@@ -68,6 +69,7 @@ app.use(async (req, res, next) => {
 app.use("/api-docs", swaggerServe, swaggerSetup);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/invites", inviteRoutes);
+app.use("/api/v1/notifications", authenticate, notificationRoutes);
 
 app.use("/api/v1/projects", authenticate, tenantScope, projectRoutes);
 app.use(

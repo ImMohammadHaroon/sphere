@@ -192,7 +192,7 @@ taskRouter.patch(
  *       200:
  *         description: Task updated
  *       403:
- *         description: Forbidden — team members may only update tasks assigned to them
+ *         description: Forbidden — team members may only update status on tasks assigned to them
  *       404:
  *         description: Not found
  */

@@ -9,7 +9,11 @@ import {
 } from "@dnd-kit/core";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { TASK_STATUS_KEYS } from "@/lib/taskStatusConfig";
+import { useProject } from "@/features/projects/hooks/useProjects";
+import {
+  DEFAULT_BOARD_COLUMNS,
+  getSortedColumns,
+} from "@/lib/taskStatusConfig";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -52,6 +56,21 @@ export function KanbanBoard({ projectId, canMoveTask }) {
   const { toast, showToast, dismissToast } = useToast();
   const [activeId, setActiveId] = useState(null);
 
+  const {
+    data: project,
+    isLoading: projectLoading,
+    error: projectError,
+    refetch: refetchProject,
+    isFetching: projectFetching,
+  } = useProject(projectId);
+
+  const columns = useMemo(() => {
+    if (project?.columns?.length) {
+      return getSortedColumns(project.columns);
+    }
+    return DEFAULT_BOARD_COLUMNS;
+  }, [project?.columns]);
+
   const canMove = useMemo(
     () => canMoveTask ?? (() => true),
     [canMoveTask]
@@ -60,12 +79,12 @@ export function KanbanBoard({ projectId, canMoveTask }) {
   const {
     tasks,
     tasksByStatus,
-    isLoading,
-    error,
+    isLoading: tasksLoading,
+    error: tasksError,
     viewers,
-    refetch,
+    refetch: refetchTasks,
     handleDragEnd,
-  } = useKanbanTasks(projectId, {
+  } = useKanbanTasks(projectId, columns, {
     onError: (err) => showToast(err.message, "error"),
   });
 
@@ -79,11 +98,19 @@ export function KanbanBoard({ projectId, canMoveTask }) {
     ? tasks.find((task) => task._id === activeId)
     : null;
 
+  const isLoading = projectLoading || tasksLoading;
+  const error = projectError ?? tasksError;
+
   function taskDetailPathForTask(task) {
     if (user?.role === "team_member") {
       return `/member/projects/${projectId}/tasks/${task._id}`;
     }
     return `/dashboard/projects/${projectId}/tasks/${task._id}`;
+  }
+
+  function handleRetry() {
+    refetchProject();
+    refetchTasks();
   }
 
   if (!projectId) {
@@ -99,8 +126,8 @@ export function KanbanBoard({ projectId, canMoveTask }) {
   if (isLoading) {
     return (
       <div className="flex gap-4 overflow-x-auto pb-2">
-        {TASK_STATUS_KEYS.map((status) => (
-          <Skeleton key={status} className="h-[24rem] w-72 shrink-0" />
+        {columns.map((column) => (
+          <Skeleton key={column.key} className="h-[24rem] w-72 shrink-0" />
         ))}
       </div>
     );
@@ -110,7 +137,11 @@ export function KanbanBoard({ projectId, canMoveTask }) {
     return (
       <Card className="p-6">
         <p className="text-text-secondary">{error.message}</p>
-        <Button className="mt-4" onClick={() => refetch()}>
+        <Button
+          className="mt-4"
+          onClick={handleRetry}
+          isLoading={projectFetching}
+        >
           Retry
         </Button>
       </Card>
@@ -148,11 +179,12 @@ export function KanbanBoard({ projectId, canMoveTask }) {
         }}
       >
         <div className="flex gap-4 overflow-x-auto pb-2">
-          {TASK_STATUS_KEYS.map((status) => (
+          {columns.map((column) => (
             <KanbanColumn
-              key={status}
-              status={status}
-              tasks={tasksByStatus[status] ?? []}
+              key={column.key}
+              status={column.key}
+              columns={columns}
+              tasks={tasksByStatus[column.key] ?? []}
               canMoveTask={canMove}
               taskDetailPathForTask={taskDetailPathForTask}
             />
@@ -162,7 +194,7 @@ export function KanbanBoard({ projectId, canMoveTask }) {
         <DragOverlay>
           {activeTask ? (
             <div className="w-72 rotate-2 rounded-lg border border-border bg-surface-raised p-3 opacity-90 shadow-lg">
-              <KanbanTaskCardContent task={activeTask} />
+              <KanbanTaskCardContent task={activeTask} columns={columns} />
             </div>
           ) : null}
         </DragOverlay>

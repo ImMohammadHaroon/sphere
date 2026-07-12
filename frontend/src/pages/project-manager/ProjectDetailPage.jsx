@@ -18,6 +18,7 @@ import {
   dateInputToIso,
   toDateInputValue,
 } from "@/lib/dateFormHelpers";
+import { DEFAULT_BOARD_COLUMNS } from "@/lib/taskStatusConfig";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -429,7 +430,10 @@ export function ProjectDetailPage() {
                           {task.assignee?.name ?? "Unassigned"}
                         </TableCell>
                         <TableCell>
-                          <TaskStatusBadge status={task.status} />
+                          <TaskStatusBadge
+                            status={task.status}
+                            columns={project?.columns?.length ? project.columns : DEFAULT_BOARD_COLUMNS}
+                          />
                         </TableCell>
                         <TableCell>
                           <Badge variant={priorityBadgeVariant(task.priority)}>

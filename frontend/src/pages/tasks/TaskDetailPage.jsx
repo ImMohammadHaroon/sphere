@@ -13,7 +13,12 @@ import {
   dateInputToIso,
   toDateInputValue,
 } from "@/lib/dateFormHelpers";
-import { TASK_STATUS_KEYS, TASK_STATUS_LABELS } from "@/lib/taskStatusConfig";
+import { useProject } from "@/features/projects/hooks/useProjects";
+import {
+  DEFAULT_BOARD_COLUMNS,
+  getSortedColumns,
+  getStatusLabel,
+} from "@/lib/taskStatusConfig";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -121,6 +126,12 @@ export function TaskDetailPage() {
       : task?.projectId) ||
     "";
 
+  const { data: project } = useProject(projectId);
+  const columns =
+    project?.columns?.length > 0 ? project.columns : DEFAULT_BOARD_COLUMNS;
+  const sortedColumns = getSortedColumns(columns);
+  const defaultStatusKey = sortedColumns[0]?.key ?? "todo";
+
   const { data: members } = useProjectMembers(projectId);
   const updateTask = useUpdateTask(taskId, projectId);
 
@@ -134,7 +145,7 @@ export function TaskDetailPage() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState("todo");
+  const [status, setStatus] = useState(defaultStatusKey);
   const [assigneeId, setAssigneeId] = useState("");
   const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
@@ -144,7 +155,7 @@ export function TaskDetailPage() {
     if (!task) return;
     setTitle(task.title ?? "");
     setDescription(task.description ?? "");
-    setStatus(task.status ?? "todo");
+    setStatus(task.status ?? defaultStatusKey);
     setAssigneeId(task.assigneeId ?? "");
     setPriority(task.priority ?? "medium");
     setDueDate(toDateInputValue(task.dueDate));
@@ -156,12 +167,12 @@ export function TaskDetailPage() {
     return (
       title !== (task.title ?? "") ||
       description !== (task.description ?? "") ||
-      status !== (task.status ?? "todo") ||
+      status !== (task.status ?? defaultStatusKey) ||
       (assigneeId || "") !== (task.assigneeId ?? "") ||
       priority !== (task.priority ?? "medium") ||
       dueDate !== toDateInputValue(task.dueDate)
     );
-  }, [task, title, description, status, assigneeId, priority, dueDate]);
+  }, [task, title, description, status, assigneeId, priority, dueDate, defaultStatusKey]);
 
   const assigneeMember = members?.find((member) => member.id === task?.assigneeId);
   const assigneeName = task?.assignee?.name ?? assigneeMember?.name ?? null;
@@ -269,14 +280,14 @@ export function TaskDetailPage() {
                       className="h-9 rounded-lg border border-border bg-surface-raised px-3 text-sm"
                       aria-label="Status"
                     >
-                      {TASK_STATUS_KEYS.map((key) => (
-                        <option key={key} value={key}>
-                          {TASK_STATUS_LABELS[key]}
+                      {sortedColumns.map((column) => (
+                        <option key={column.key} value={column.key}>
+                          {getStatusLabel(columns, column.key)}
                         </option>
                       ))}
                     </select>
                   ) : (
-                    <TaskStatusBadge status={task.status} />
+                    <TaskStatusBadge status={task.status} columns={columns} />
                   )}
 
                   {canEditAll ? (

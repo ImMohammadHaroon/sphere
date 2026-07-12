@@ -25,14 +25,16 @@ export function Dialog({ open, onOpenChange, children }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button
-        type="button"
-        aria-label="Close dialog"
-        className="absolute inset-0 bg-black/50"
-        onClick={() => onOpenChange(false)}
-      />
-      {children}
+    <div className="fixed inset-0 z-50 overflow-y-auto p-4">
+      <div className="flex min-h-full items-center justify-center">
+        <button
+          type="button"
+          aria-label="Close dialog"
+          className="fixed inset-0 bg-black/50"
+          onClick={() => onOpenChange(false)}
+        />
+        {children}
+      </div>
     </div>
   );
 }
@@ -43,7 +45,7 @@ export function DialogContent({ className, children, onClose }) {
       role="dialog"
       aria-modal="true"
       className={cn(
-        "relative z-10 w-full max-w-lg rounded-lg border border-border bg-surface-raised p-6 shadow-lg",
+        "relative z-10 w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-lg border border-border bg-surface-raised p-6 shadow-lg",
         className
       )}
       onClick={(e) => e.stopPropagation()}

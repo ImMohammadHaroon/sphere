@@ -1,7 +1,13 @@
 import mongoose from "mongoose";
 import { Project } from "../models/Project.js";
+import { KanbanTemplate } from "../models/KanbanTemplate.js";
 import { User } from "../models/User.js";
 import { logAction, getClientIp } from "../services/auditLog.service.js";
+import {
+  createKanbanTemplate,
+  copyColumns,
+  DEFAULT_BOARD_COLUMNS,
+} from "../services/kanbanTemplate.service.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -82,8 +88,46 @@ export async function listProjects(req, res, next) {
   }
 }
 
+async function resolveProjectColumns(req) {
+  if (req.body.kanbanTemplateId) {
+    const template = await req
+      .scopedFindOne(KanbanTemplate, { _id: req.body.kanbanTemplateId })
+      .lean();
+
+    if (!template) {
+      throw notFound("Kanban template not found");
+    }
+
+    return {
+      kanbanTemplateId: template._id,
+      columns: copyColumns(template.columns),
+    };
+  }
+
+  if (req.body.newTemplate) {
+    const template = await createKanbanTemplate({
+      organizationId: req.user.organizationId,
+      createdBy: req.user.userId,
+      name: req.body.newTemplate.name,
+      columns: req.body.newTemplate.columns,
+    });
+
+    return {
+      kanbanTemplateId: template._id,
+      columns: copyColumns(template.columns),
+    };
+  }
+
+  return {
+    kanbanTemplateId: null,
+    columns: copyColumns(DEFAULT_BOARD_COLUMNS),
+  };
+}
+
 export async function createProject(req, res, next) {
   try {
+    const { kanbanTemplateId, columns } = await resolveProjectColumns(req);
+
     const project = await Project.create({
       organizationId: req.user.organizationId,
       ownerId: req.user.userId,
@@ -92,6 +136,8 @@ export async function createProject(req, res, next) {
       description: req.body.description ?? "",
       startDate: req.body.startDate ?? null,
       dueDate: req.body.dueDate ?? null,
+      kanbanTemplateId,
+      columns,
     });
 
     await logAction({

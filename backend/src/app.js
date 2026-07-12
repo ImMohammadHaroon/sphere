@@ -12,6 +12,7 @@ import orgRoutes from "./routes/org.routes.js";
 import auditLogRoutes from "./routes/auditLog.routes.js";
 import orgSettingsRoutes from "./routes/orgSettings.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import kanbanTemplateRoutes from "./routes/kanbanTemplate.routes.js";
 import { authenticate, requireRole } from "./middleware/auth.middleware.js";
 import { tenantScope } from "./middleware/tenantScope.js";
 import { globalRateLimiter } from "./middleware/rateLimit.middleware.js";
@@ -79,6 +80,13 @@ app.use(
   projectTaskRouter
 );
 app.use("/api/v1/tasks", authenticate, tenantScope, taskRoutes);
+
+app.use(
+  "/api/v1/kanban-templates",
+  authenticate,
+  tenantScope,
+  kanbanTemplateRoutes
+);
 
 app.use(
   "/api/v1/platform",

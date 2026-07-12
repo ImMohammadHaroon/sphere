@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useSocket } from "@/hooks/useSocket";
 import { getProjectTasks, moveTask as moveTaskApi } from "@/lib/tasksApi";
-import { TASK_STATUS_KEYS } from "@/lib/taskStatusConfig";
+import { getSortedColumns } from "@/lib/taskStatusConfig";
 
 function optimisticMoveTasks(tasks, taskId, newStatus, newPosition) {
   const moving = tasks.find((task) => task._id === taskId);
@@ -54,13 +54,16 @@ function mergeTaskUpdate(tasks, updatedTask) {
   return next;
 }
 
-export function useKanbanTasks(projectId, { onError } = {}) {
+export function useKanbanTasks(projectId, columns, { onError } = {}) {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewers, setViewers] = useState([]);
   const pendingMovesRef = useRef(new Set());
   const socket = useSocket(projectId);
+
+  const sortedColumns = getSortedColumns(columns);
+  const columnKeys = sortedColumns.map((col) => col.key);
 
   const fetchTasks = useCallback(async () => {
     if (!projectId) {
@@ -218,7 +221,7 @@ export function useKanbanTasks(projectId, { onError } = {}) {
     [tasks, moveTaskOptimistic]
   );
 
-  const tasksByStatus = TASK_STATUS_KEYS.reduce((groups, status) => {
+  const tasksByStatus = columnKeys.reduce((groups, status) => {
     groups[status] = tasks
       .filter((task) => task.status === status)
       .sort((a, b) => a.position - b.position);

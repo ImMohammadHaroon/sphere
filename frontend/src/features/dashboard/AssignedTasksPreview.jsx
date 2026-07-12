@@ -4,8 +4,14 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { useDashboardData, sortTasksByUrgency } from "@/features/dashboard/hooks/useDashboardData";
+import { useProjects } from "@/features/projects/hooks/useProjects";
 import { updateTaskStatus } from "@/lib/tasksApi";
-import { TASK_STATUS_KEYS, TASK_STATUS_LABELS } from "@/lib/taskStatusConfig";
+import {
+  DEFAULT_BOARD_COLUMNS,
+  getDoneKey,
+  getSortedColumns,
+  getStatusLabel,
+} from "@/lib/taskStatusConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -18,17 +24,21 @@ function formatDate(value) {
   });
 }
 
-function statusBadgeVariant(status) {
-  switch (status) {
-    case "done":
-      return "success";
-    case "in-progress":
-      return "default";
-    case "review":
-      return "accent";
-    default:
-      return "muted";
+function statusBadgeVariant(status, columns) {
+  const doneKey = getDoneKey(columns);
+  if (status === doneKey) {
+    return "success";
   }
+
+  const sorted = getSortedColumns(columns);
+  const index = sorted.findIndex((col) => col.key === status);
+  if (index === 1) {
+    return "default";
+  }
+  if (index === 2) {
+    return "accent";
+  }
+  return "muted";
 }
 
 function priorityBadgeVariant(priority) {
@@ -45,8 +55,9 @@ function priorityBadgeVariant(priority) {
 const statusSelectClassName =
   "rounded-full border-0 bg-transparent px-2.5 py-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20";
 
-function StatusSelect({ task, onStatusChange, isUpdating }) {
-  const variant = statusBadgeVariant(task.status);
+function StatusSelect({ task, columns, onStatusChange, isUpdating }) {
+  const variant = statusBadgeVariant(task.status, columns);
+  const sortedColumns = getSortedColumns(columns);
 
   return (
     <select
@@ -63,9 +74,9 @@ function StatusSelect({ task, onStatusChange, isUpdating }) {
       )}
       aria-label={`Update status for ${task.title}`}
     >
-      {TASK_STATUS_KEYS.map((key) => (
-        <option key={key} value={key}>
-          {TASK_STATUS_LABELS[key]}
+      {sortedColumns.map((column) => (
+        <option key={column.key} value={column.key}>
+          {getStatusLabel(columns, column.key)}
         </option>
       ))}
     </select>
@@ -74,9 +85,17 @@ function StatusSelect({ task, onStatusChange, isUpdating }) {
 
 export function AssignedTasksPreview() {
   const { tasks } = useDashboardData();
+  const { data: projects } = useProjects();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const queryKey = ["tasks", "mine", user?.organizationId, user?.id];
+
+  const columnsByProjectId = new Map(
+    (projects ?? []).map((project) => [
+      project._id,
+      project.columns?.length ? project.columns : DEFAULT_BOARD_COLUMNS,
+    ])
+  );
 
   const updateStatus = useMutation({
     mutationFn: ({ taskId, status }) => updateTaskStatus(taskId, status),
@@ -104,6 +123,11 @@ export function AssignedTasksPreview() {
     updateStatus.mutate({ taskId, status });
   }
 
+  function columnsForTask(task) {
+    const projectId = task.projectId?.id ?? task.projectId;
+    return columnsByProjectId.get(projectId) ?? DEFAULT_BOARD_COLUMNS;
+  }
+
   return (
     <Card className="overflow-hidden p-0">
       <div className="border-b border-border px-4 py-3">
@@ -119,6 +143,7 @@ export function AssignedTasksPreview() {
           {previewTasks.map((task) => {
             const projectId = task.projectId?.id ?? task.projectId;
             const projectName = task.projectId?.name ?? "Unknown project";
+            const columns = columnsForTask(task);
 
             return (
               <li key={task._id}>
@@ -140,6 +165,7 @@ export function AssignedTasksPreview() {
                     </Badge>
                     <StatusSelect
                       task={task}
+                      columns={columns}
                       onStatusChange={handleStatusChange}
                       isUpdating={updateStatus.isPending}
                     />

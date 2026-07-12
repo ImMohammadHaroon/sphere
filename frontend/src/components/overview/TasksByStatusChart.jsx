@@ -10,20 +10,16 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/Card";
 import {
-  TASK_STATUS_COLORS,
-  TASK_STATUS_LABELS,
+  getPaletteColor,
+  rollupTasksByColumnName,
 } from "@/lib/taskStatusConfig";
 
 export function TasksByStatusChart({
-  tasksByStatus,
+  tasksByProject,
   title = "Tasks by status",
   description = "Task distribution across Kanban columns.",
 }) {
-  const data = Object.keys(TASK_STATUS_LABELS).map((key) => ({
-    status: TASK_STATUS_LABELS[key],
-    key,
-    count: tasksByStatus[key] ?? 0,
-  }));
+  const data = rollupTasksByColumnName(tasksByProject);
 
   return (
     <Card className="h-full p-4 sm:p-6">
@@ -34,7 +30,7 @@ export function TasksByStatusChart({
           <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
-              dataKey="status"
+              dataKey="name"
               tick={{ fill: "hsl(var(--text-secondary))", fontSize: 12 }}
               axisLine={{ stroke: "hsl(var(--border))" }}
               tickLine={false}
@@ -56,7 +52,10 @@ export function TasksByStatusChart({
             />
             <Bar dataKey="count" radius={[6, 6, 0, 0]}>
               {data.map((entry) => (
-                <Cell key={entry.key} fill={TASK_STATUS_COLORS[entry.key]} />
+                <Cell
+                  key={entry.name}
+                  fill={getPaletteColor(entry.color)}
+                />
               ))}
             </Bar>
           </BarChart>

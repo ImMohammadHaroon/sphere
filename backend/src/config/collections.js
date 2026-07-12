@@ -9,4 +9,5 @@ export const COLLECTIONS = {
   USERS: "users",
   ORG_REGISTRATION_PENDING: "orgregistrationpendings",
   NOTIFICATIONS: "notifications",
+  KANBAN_TEMPLATES: "kanbantemplates",
 };

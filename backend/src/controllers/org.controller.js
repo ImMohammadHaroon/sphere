@@ -1,31 +1,12 @@
+import mongoose from "mongoose";
 import { User } from "../models/User.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { logAction, getClientIp } from "../services/auditLog.service.js";
 import { revokeAllRefreshTokens } from "../services/token.service.js";
-
-const TASK_STATUSES = ["todo", "in-progress", "review", "done"];
+import { buildTasksByProject } from "../services/taskOverviewStats.service.js";
 
 const TEAM_ROLES = ["org_admin", "project_manager", "team_member"];
-
-function emptyTasksByStatus() {
-  return {
-    todo: 0,
-    "in-progress": 0,
-    review: 0,
-    done: 0,
-  };
-}
-
-function mapTasksByStatus(countsByStatus) {
-  const result = emptyTasksByStatus();
-  for (const [status, count] of Object.entries(countsByStatus)) {
-    if (result[status] !== undefined) {
-      result[status] = count;
-    }
-  }
-  return result;
-}
 
 function formatUser(user) {
   return {
@@ -40,12 +21,15 @@ function formatUser(user) {
 
 export async function getOrgOverview(req, res, next) {
   try {
+    const organizationId = new mongoose.Types.ObjectId(req.user.organizationId);
+
     const [
       projectTotal,
       projectActive,
       projectArchived,
       teamSize,
-      ...taskStatusCounts
+      projects,
+      taskCountRows,
     ] = await Promise.all([
       req.scopedQuery(Project).countDocuments(),
       req.scopedQuery(Project, { status: "active" }).countDocuments(),
@@ -53,16 +37,19 @@ export async function getOrgOverview(req, res, next) {
       req
         .scopedQuery(User, { role: { $in: TEAM_ROLES } })
         .countDocuments(),
-      ...TASK_STATUSES.map((status) =>
-        req.scopedQuery(Task, { status }).countDocuments()
-      ),
+      req.scopedQuery(Project).select("name columns").lean(),
+      Task.aggregate([
+        { $match: { organizationId } },
+        {
+          $group: {
+            _id: { projectId: "$projectId", status: "$status" },
+            count: { $sum: 1 },
+          },
+        },
+      ]),
     ]);
 
-    const tasksByStatus = mapTasksByStatus(
-      Object.fromEntries(
-        TASK_STATUSES.map((status, index) => [status, taskStatusCounts[index]])
-      )
-    );
+    const tasksByProject = buildTasksByProject(projects, taskCountRows);
 
     const recentProjects = await req
       .scopedQuery(Project)
@@ -78,7 +65,7 @@ export async function getOrgOverview(req, res, next) {
         archived: projectArchived,
       },
       teamSize,
-      tasksByStatus,
+      tasksByProject,
       recentProjects: recentProjects.map((project) => ({
         id: project._id.toString(),
         name: project.name,

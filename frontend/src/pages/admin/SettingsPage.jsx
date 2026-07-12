@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
 import { useOrgSettings } from "@/features/settings/hooks/useOrgSettings";
 import { useToast } from "@/hooks/useToast";
@@ -5,7 +6,11 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Toast } from "@/components/ui/Toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { GeneralSettingsTab } from "@/pages/admin/settings/GeneralSettingsTab";
+import { SecuritySettingsTab } from "@/pages/admin/settings/SecuritySettingsTab";
+import { MembersRolesSettingsTab } from "@/pages/admin/settings/MembersRolesSettingsTab";
+import { KanbanTemplatesSettingsTab } from "@/pages/admin/settings/KanbanTemplatesSettingsTab";
 import { DangerZoneTab } from "@/pages/admin/settings/DangerZoneTab";
 
 function SettingsSkeleton() {
@@ -25,6 +30,7 @@ function SettingsSkeleton() {
 }
 
 export function SettingsPage() {
+  const [activeTab, setActiveTab] = useState("general");
   const { toast, showToast, dismissToast } = useToast();
   const { data: organization, isLoading, isError, error, refetch, isFetching } =
     useOrgSettings();
@@ -48,13 +54,44 @@ export function SettingsPage() {
       ) : null}
 
       {!isLoading && !isError && organization ? (
-        <div className="space-y-6">
-          <GeneralSettingsTab
-            organization={organization}
-            onSuccess={showToast}
-          />
-          <DangerZoneTab organization={organization} />
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="members">Members & roles</TabsTrigger>
+            <TabsTrigger value="kanban">Kanban templates</TabsTrigger>
+            <TabsTrigger value="danger">Danger zone</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="general">
+            <GeneralSettingsTab
+              organization={organization}
+              onSuccess={showToast}
+            />
+          </TabsContent>
+
+          <TabsContent value="security">
+            <SecuritySettingsTab
+              organization={organization}
+              onSuccess={showToast}
+            />
+          </TabsContent>
+
+          <TabsContent value="members">
+            <MembersRolesSettingsTab
+              organization={organization}
+              onSuccess={showToast}
+            />
+          </TabsContent>
+
+          <TabsContent value="kanban">
+            <KanbanTemplatesSettingsTab onSuccess={showToast} />
+          </TabsContent>
+
+          <TabsContent value="danger">
+            <DangerZoneTab organization={organization} />
+          </TabsContent>
+        </Tabs>
       ) : null}
 
       <Toast toast={toast} onDismiss={dismissToast} />

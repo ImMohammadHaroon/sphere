@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useMyTasks } from "@/features/tasks/hooks/useMyTasks";
 import { listProjects } from "@/lib/projectsApi";
+import { isTaskDone } from "@/lib/taskStatusConfig";
 import { useAuth } from "@/hooks/useAuth";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -13,7 +14,7 @@ function startOfDay(date) {
 }
 
 function isDone(task) {
-  return task.status === "done";
+  return isTaskDone(task);
 }
 
 function isOverdue(task) {
@@ -69,32 +70,18 @@ export function useDashboardData() {
   const tasks = tasksQuery.data ?? [];
 
   const taskCounts = useMemo(() => {
-    const counts = {
-      todo: 0,
-      inProgress: 0,
-      review: 0,
-      done: 0,
-      total: tasks.length,
-    };
+    let done = 0;
 
     for (const task of tasks) {
-      switch (task.status) {
-        case "in-progress":
-          counts.inProgress += 1;
-          break;
-        case "review":
-          counts.review += 1;
-          break;
-        case "done":
-          counts.done += 1;
-          break;
-        default:
-          counts.todo += 1;
-          break;
+      if (isTaskDone(task)) {
+        done += 1;
       }
     }
 
-    return counts;
+    return {
+      total: tasks.length,
+      done,
+    };
   }, [tasks]);
 
   const dueSoon = useMemo(

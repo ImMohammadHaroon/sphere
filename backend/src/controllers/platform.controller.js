@@ -9,6 +9,7 @@ import { getClientIp, logAction } from "../services/auditLog.service.js";
 import { sendMail } from "../services/email/transporter.js";
 import { buildOrgApprovalEmail } from "../services/email/orgApprovalEmail.js";
 import { buildOrgRejectionEmail } from "../services/email/orgRejectionEmail.js";
+import { buildTasksByProject, totalTasksFromProjects } from "../services/taskOverviewStats.service.js";
 
 function httpError(message, status) {
   const err = new Error(message);
@@ -18,25 +19,6 @@ function httpError(message, status) {
 
 function notDeletedFilter() {
   return { deletedAt: null };
-}
-
-function emptyTasksByStatus() {
-  return {
-    todo: 0,
-    "in-progress": 0,
-    review: 0,
-    done: 0,
-  };
-}
-
-function mapTasksByStatus(groups) {
-  const result = emptyTasksByStatus();
-  for (const row of groups) {
-    if (row._id && result[row._id] !== undefined) {
-      result[row._id] = row.count;
-    }
-  }
-  return result;
 }
 
 function parsePagination(query = {}) {
@@ -154,7 +136,7 @@ export async function getPlatformOverview(req, res, next) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [orgStats, userStats, projectStats, taskStats, recentOrganizations] =
+    const [orgStats, userStats, projectStats, taskCountRows, recentOrganizations] =
       await Promise.all([
         Organization.aggregate([
           { $match: notDeletedFilter() },
@@ -201,9 +183,9 @@ export async function getPlatformOverview(req, res, next) {
         ]),
         Task.aggregate([
           {
-            $facet: {
-              total: [{ $count: "totalTasks" }],
-              byStatus: [{ $group: { _id: "$status", count: { $sum: 1 } } }],
+            $group: {
+              _id: { projectId: "$projectId", status: "$status" },
+              count: { $sum: 1 },
             },
           },
         ]),
@@ -224,9 +206,17 @@ export async function getPlatformOverview(req, res, next) {
       activeProjects: 0,
     };
 
-    const taskFacet = taskStats[0] ?? { total: [], byStatus: [] };
-    const totalTasks = taskFacet.total[0]?.totalTasks ?? 0;
-    const tasksByStatus = mapTasksByStatus(taskFacet.byStatus);
+    const projectIds = [
+      ...new Set(taskCountRows.map((row) => row._id.projectId)),
+    ];
+    const projects = projectIds.length
+      ? await Project.find({ _id: { $in: projectIds } })
+          .select("name columns")
+          .lean()
+      : [];
+
+    const tasksByProject = buildTasksByProject(projects, taskCountRows);
+    const totalTasks = totalTasksFromProjects(tasksByProject);
 
     res.json({
       totalOrganizations: orgTotals.totalOrganizations,
@@ -235,7 +225,7 @@ export async function getPlatformOverview(req, res, next) {
       totalProjects: projectTotals.totalProjects,
       activeProjects: projectTotals.activeProjects,
       totalTasks,
-      tasksByStatus,
+      tasksByProject,
       newOrganizationsLast30Days: orgTotals.newOrganizationsLast30Days,
       recentOrganizations: recentOrganizations.map(normalizeOverviewOrganization),
     });

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { COLLECTIONS } from "../config/collections.js";
+import { kanbanColumnSchema } from "./KanbanTemplate.js";
 
 const projectSchema = new mongoose.Schema(
   {
@@ -29,10 +30,17 @@ const projectSchema = new mongoose.Schema(
     },
     startDate: { type: Date, default: null },
     dueDate: { type: Date, default: null },
+    kanbanTemplateId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "KanbanTemplate",
+      default: null,
+    },
+    columns: {
+      type: [kanbanColumnSchema],
+      default: undefined,
+    },
   },
   { timestamps: true }
 );
-
-projectSchema.index({ organizationId: 1 });
 
 export const Project = mongoose.model("Project", projectSchema, COLLECTIONS.PROJECTS);

@@ -16,7 +16,7 @@ import {
   TableRow,
   TableScrollArea,
 } from "@/components/ui/Table";
-import { totalTaskCount } from "@/lib/taskStatusConfig";
+import { totalTaskCountFromProjects } from "@/lib/taskStatusConfig";
 import { cn } from "@/lib/utils";
 
 function formatDate(value) {
@@ -33,7 +33,7 @@ export function OrgOverviewPage() {
   const { data, isLoading, isError, error, refetch, isFetching } =
     useOrgOverview();
 
-  const totalTasks = data ? totalTaskCount(data.tasksByStatus) : 0;
+  const totalTasks = data ? totalTaskCountFromProjects(data.tasksByProject) : 0;
 
   return (
     <OrgAdminLayout
@@ -74,7 +74,7 @@ export function OrgOverviewPage() {
 
             {totalTasks > 0 ? (
               <TasksByStatusChart
-                tasksByStatus={data.tasksByStatus}
+                tasksByProject={data.tasksByProject}
                 description="Organization task distribution across Kanban columns."
               />
             ) : (

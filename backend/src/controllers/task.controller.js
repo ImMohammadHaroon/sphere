@@ -11,6 +11,31 @@ function notFound(message = "Not found") {
   return err;
 }
 
+function badRequest(message) {
+  const err = new Error(message);
+  err.status = 400;
+  return err;
+}
+
+function getColumnKeys(project) {
+  return (project.columns ?? []).map((c) => c.key);
+}
+
+function assertValidTaskStatus(project, status) {
+  if (!getColumnKeys(project).includes(status)) {
+    throw badRequest("Invalid status for this project's board");
+  }
+}
+
+function getDefaultStatus(project) {
+  const sorted = [...(project.columns ?? [])].sort((a, b) => a.order - b.order);
+  return sorted[0]?.key ?? "todo";
+}
+
+function isDoneColumn(project, statusKey) {
+  return project.columns?.find((c) => c.key === statusKey)?.isDone === true;
+}
+
 function formatAssignee(assignee) {
   if (!assignee) {
     return null;
@@ -41,6 +66,7 @@ function formatTask(task) {
         ? {
             id: task.projectId._id.toString(),
             name: task.projectId.name,
+            columns: task.projectId.columns ?? [],
           }
         : task.projectId?.toString?.() ?? task.projectId,
     assigneeId: assignee?.id ?? null,
@@ -81,14 +107,16 @@ export async function listTasks(req, res, next) {
 
 export async function createTask(req, res, next) {
   try {
-    await assertProjectInOrg(req, req.params.projectId);
+    const project = await assertProjectInOrg(req, req.params.projectId);
+    const status = req.body.status ?? getDefaultStatus(project);
+    assertValidTaskStatus(project, status);
 
     const created = await Task.create({
       organizationId: req.user.organizationId,
       projectId: req.params.projectId,
       title: req.body.title,
       description: req.body.description ?? "",
-      status: req.body.status ?? "todo",
+      status,
       assigneeId: req.body.assigneeId ?? null,
       priority: req.body.priority ?? "medium",
       dueDate: req.body.dueDate ?? null,
@@ -187,6 +215,18 @@ export async function updateTask(req, res, next) {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
+    }
+
+    if (updates.status !== undefined) {
+      const project = await req
+        .scopedFindOne(Project, { _id: existing.projectId })
+        .lean();
+
+      if (!project) {
+        throw notFound("Project not found");
+      }
+
+      assertValidTaskStatus(project, updates.status);
     }
 
     await req.scopedFindOneAndUpdate(Task, { _id: req.params.id }, updates);
@@ -310,10 +350,22 @@ export async function moveTask(req, res, next) {
       throw notFound();
     }
 
+    const project = await req
+      .scopedFindOne(Project, { _id: task.projectId })
+      .lean();
+
+    if (!project) {
+      throw notFound("Project not found");
+    }
+
     const oldStatus = task.status;
     const oldPosition = task.position;
     const newStatus = req.body.status ?? oldStatus;
     let newPosition = req.body.position;
+
+    if (req.body.status !== undefined) {
+      assertValidTaskStatus(project, newStatus);
+    }
 
     if (req.body.status !== undefined && req.body.position === undefined) {
       newPosition = await resolveDestinationPosition(
@@ -363,26 +415,24 @@ export async function moveTask(req, res, next) {
 
     const moverId = req.user.userId;
     const assigneeId = task.assigneeId?.toString?.() ?? null;
-    if (newStatus === "done" && assigneeId && moverId !== assigneeId) {
+    if (
+      isDoneColumn(project, newStatus) &&
+      assigneeId &&
+      moverId !== assigneeId
+    ) {
       try {
-        const project = await Project.findById(task.projectId).lean();
-        if (
-          project &&
-          project.organizationId.toString() === task.organizationId.toString()
-        ) {
-          await createNotification({
-            organizationId: task.organizationId,
-            userId: project.ownerId,
-            type: "task_moved",
-            payload: {
-              taskId: task._id.toString(),
-              taskTitle: task.title,
-              projectId: project._id.toString(),
-              projectName: project.name,
-              newStatus,
-            },
-          });
-        }
+        await createNotification({
+          organizationId: task.organizationId,
+          userId: project.ownerId,
+          type: "task_moved",
+          payload: {
+            taskId: task._id.toString(),
+            taskTitle: task.title,
+            projectId: project._id.toString(),
+            projectName: project.name,
+            newStatus,
+          },
+        });
       } catch (notifyErr) {
         console.error("Failed to create task_moved notification:", notifyErr);
       }
@@ -398,7 +448,7 @@ export async function listMyTasks(req, res, next) {
   try {
     const tasks = await req
       .scopedQuery(Task, { assigneeId: req.user.userId })
-      .populate("projectId", "name")
+      .populate("projectId", "name columns")
       .populate("assigneeId", "name email")
       .sort({ dueDate: 1, updatedAt: -1 })
       .lean();

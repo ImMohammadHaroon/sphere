@@ -87,7 +87,7 @@ export function PlatformOverviewPage() {
             <div className="grid gap-4 lg:grid-cols-2">
               {data.totalTasks > 0 ? (
                 <TasksByStatusChart
-                  tasksByStatus={data.tasksByStatus}
+                  tasksByProject={data.tasksByProject}
                   description="Platform-wide task distribution across Kanban columns."
                 />
               ) : (

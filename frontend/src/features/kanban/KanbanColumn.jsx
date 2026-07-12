@@ -3,12 +3,13 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { TASK_STATUS_COLORS, TASK_STATUS_LABELS } from "@/lib/taskStatusConfig";
+import { getStatusColor, getStatusLabel } from "@/lib/taskStatusConfig";
 import { cn } from "@/lib/utils";
 import { KanbanTaskCard } from "./KanbanTaskCard";
 
 export function KanbanColumn({
   status,
+  columns,
   tasks,
   canMoveTask,
   taskDetailPathForTask,
@@ -18,7 +19,7 @@ export function KanbanColumn({
   });
 
   const taskIds = tasks.map((task) => task._id);
-  const accentColor = TASK_STATUS_COLORS[status] ?? TASK_STATUS_COLORS.todo;
+  const accentColor = getStatusColor(columns, status);
 
   return (
     <div className="flex min-h-[24rem] w-72 shrink-0 flex-col rounded-lg border border-border bg-surface">
@@ -29,7 +30,7 @@ export function KanbanColumn({
           aria-hidden
         />
         <h3 className="text-sm font-medium text-text-primary">
-          {TASK_STATUS_LABELS[status]}
+          {getStatusLabel(columns, status)}
         </h3>
         <span className="ml-auto text-xs text-text-muted">{tasks.length}</span>
       </div>
@@ -46,6 +47,7 @@ export function KanbanColumn({
             <KanbanTaskCard
               key={task._id}
               task={task}
+              columns={columns}
               canMove={canMoveTask(task)}
               taskDetailPath={taskDetailPathForTask(task)}
             />

@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
 import { useMyTasks } from "@/features/tasks/hooks/useMyTasks";
+import { TaskStatusBadge } from "@/features/tasks/components/TaskStatusBadge";
+import { getTaskProjectColumns } from "@/lib/taskStatusConfig";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
@@ -15,19 +17,6 @@ function formatDate(value) {
     month: "short",
     day: "numeric",
   });
-}
-
-function statusBadgeVariant(status) {
-  switch (status) {
-    case "done":
-      return "success";
-    case "in-progress":
-      return "default";
-    case "review":
-      return "accent";
-    default:
-      return "muted";
-  }
 }
 
 function priorityBadgeVariant(priority) {
@@ -124,9 +113,10 @@ export function MyTasksPage() {
                           </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <Badge variant={statusBadgeVariant(task.status)}>
-                            {task.status}
-                          </Badge>
+                          <TaskStatusBadge
+                            status={task.status}
+                            columns={getTaskProjectColumns(task)}
+                          />
                           <Badge variant={priorityBadgeVariant(task.priority)}>
                             {task.priority}
                           </Badge>

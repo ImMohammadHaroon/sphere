@@ -20,6 +20,13 @@
   --warning: 38 70% 51%;
   --danger: 9 53% 51%;
   --info: 93 4% 46%;
+  --kanban-gray: 51 7% 58%;
+  --kanban-amber: 38 70% 51%;
+  --kanban-orange: 23 53% 51%;
+  --kanban-green: 160 56% 28%;
+  --kanban-blue: 210 45% 45%;
+  --kanban-purple: 270 35% 50%;
+  --kanban-red: 9 53% 51%;
   --kanban-todo: 51 7% 58%;
   --kanban-progress: 38 70% 51%;
   --kanban-review: 23 53% 51%;

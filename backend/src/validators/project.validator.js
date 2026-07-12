@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { columnInputSchema } from "./kanbanTemplate.validator.js";
 
 const objectId = z.string().regex(/^[a-f\d]{24}$/i, "Invalid id");
 
@@ -9,8 +10,18 @@ export const createProjectSchema = z.object({
       description: z.string().trim().max(5000).optional(),
       startDate: z.coerce.date().optional().nullable(),
       dueDate: z.coerce.date().optional().nullable(),
+      kanbanTemplateId: objectId.optional(),
+      newTemplate: z
+        .object({
+          name: z.string().trim().min(1).max(200),
+          columns: z.array(columnInputSchema).min(1),
+        })
+        .optional(),
     })
-    .strict(),
+    .strict()
+    .refine((body) => !(body.kanbanTemplateId && body.newTemplate), {
+      message: "Provide kanbanTemplateId or newTemplate, not both",
+    }),
 });
 
 export const updateProjectSchema = z.object({

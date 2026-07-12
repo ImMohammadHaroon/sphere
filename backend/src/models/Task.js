@@ -19,7 +19,7 @@ const taskSchema = new mongoose.Schema(
     description: { type: String, trim: true, default: "" },
     status: {
       type: String,
-      enum: ["todo", "in-progress", "review", "done"],
+      required: true,
       default: "todo",
     },
     assigneeId: {

@@ -10,7 +10,7 @@ export const createTaskSchema = z.object({
     .object({
       title: z.string().trim().min(1).max(300),
       description: z.string().trim().max(10000).optional(),
-      status: z.enum(["todo", "in-progress", "review", "done"]).optional(),
+      status: z.string().optional(),
       assigneeId: objectId.optional().nullable(),
       priority: z.enum(["low", "medium", "high"]).optional(),
       dueDate: z.coerce.date().optional().nullable(),
@@ -27,7 +27,7 @@ export const updateTaskSchema = z.object({
     .object({
       title: z.string().trim().min(1).max(300).optional(),
       description: z.string().trim().max(10000).optional(),
-      status: z.enum(["todo", "in-progress", "review", "done"]).optional(),
+      status: z.string().optional(),
       assigneeId: objectId.optional().nullable(),
       priority: z.enum(["low", "medium", "high"]).optional(),
       dueDate: z.coerce.date().optional().nullable(),
@@ -54,7 +54,7 @@ export const moveTaskSchema = z.object({
   }),
   body: z
     .object({
-      status: z.enum(["todo", "in-progress", "review", "done"]).optional(),
+      status: z.string().optional(),
       position: z.number().optional(),
     })
     .strict()

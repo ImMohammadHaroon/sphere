@@ -35,7 +35,7 @@ function priorityBadgeVariant(priority) {
   }
 }
 
-export function KanbanTaskCardContent({ task, taskDetailPath, className }) {
+export function KanbanTaskCardContent({ task, columns, taskDetailPath, className }) {
   const assigneeName = task.assignee?.name ?? null;
   const dueLabel = formatDate(task.dueDate);
 
@@ -44,7 +44,7 @@ export function KanbanTaskCardContent({ task, taskDetailPath, className }) {
       <p className="text-sm font-medium text-text-primary">{task.title}</p>
 
       <div className="flex flex-wrap items-center gap-2">
-        <TaskStatusBadge status={task.status} />
+        <TaskStatusBadge status={task.status} columns={columns} />
         <Badge variant={priorityBadgeVariant(task.priority)}>
           {task.priority}
         </Badge>
@@ -73,7 +73,7 @@ export function KanbanTaskCardContent({ task, taskDetailPath, className }) {
   return <div className={cn("space-y-2", className)}>{body}</div>;
 }
 
-export function KanbanTaskCard({ task, canMove, taskDetailPath }) {
+export function KanbanTaskCard({ task, columns, canMove, taskDetailPath }) {
   const {
     attributes,
     listeners,
@@ -115,7 +115,11 @@ export function KanbanTaskCard({ task, canMove, taskDetailPath }) {
           </button>
         ) : null}
         <div className="min-w-0 flex-1">
-          <KanbanTaskCardContent task={task} taskDetailPath={taskDetailPath} />
+          <KanbanTaskCardContent
+            task={task}
+            columns={columns}
+            taskDetailPath={taskDetailPath}
+          />
         </div>
       </div>
     </div>

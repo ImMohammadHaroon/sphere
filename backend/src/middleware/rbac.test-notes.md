@@ -17,7 +17,7 @@ Base URL: `http://localhost:5000/api/v1`
 
 ## Project routes
 
-### Create project — `POST /projects`
+### Create project  `POST /projects`
 
 | # | Role | Body | Expected |
 |---|------|------|----------|
@@ -33,7 +33,7 @@ curl -X POST http://localhost:5000/api/v1/projects \
   -d '{"name":"RBAC Test Project"}'
 ```
 
-### Update project — `PATCH /projects/:id`
+### Update project  `PATCH /projects/:id`
 
 | # | Actor | Target | Expected |
 |---|--------|--------|----------|
@@ -49,11 +49,11 @@ curl -X PATCH http://localhost:5000/api/v1/projects/PROJECT_ID \
   -d '{"description":"Updated"}'
 ```
 
-### Archive project — `DELETE /projects/:id`
+### Archive project  `DELETE /projects/:id`
 
 Same rules as PATCH (ownership or `org_admin`). Repeat cases 5–8 with `DELETE`.
 
-### Read projects — `GET /projects`, `GET /projects/:id`
+### Read projects  `GET /projects`, `GET /projects/:id`
 
 | # | Role | Expected |
 |---|------|----------|
@@ -61,7 +61,7 @@ Same rules as PATCH (ownership or `org_admin`). Repeat cases 5–8 with `DELETE`
 
 > **TODO (not in this PR):** Clients should only see linked projects once client–project linking exists.
 
-### Cross-org — `PATCH /projects/:id`
+### Cross-org  `PATCH /projects/:id`
 
 | # | Actor | Target | Expected |
 |---|--------|--------|----------|
@@ -71,7 +71,7 @@ Same rules as PATCH (ownership or `org_admin`). Repeat cases 5–8 with `DELETE`
 
 ## Task routes
 
-### Create task — `POST /projects/:projectId/tasks`
+### Create task  `POST /projects/:projectId/tasks`
 
 | # | Role | Expected |
 |---|------|----------|
@@ -87,7 +87,7 @@ curl -X POST http://localhost:5000/api/v1/projects/PROJECT_ID/tasks \
   -d '{"title":"RBAC test task"}'
 ```
 
-### Update task — `PATCH /tasks/:id`
+### Update task  `PATCH /tasks/:id`
 
 | # | Actor | Task | Expected |
 |---|--------|------|----------|
@@ -103,7 +103,7 @@ curl -X PATCH http://localhost:5000/api/v1/tasks/TASK_ID \
   -d '{"status":"in-progress"}'
 ```
 
-### Delete task — `DELETE /tasks/:id`
+### Delete task  `DELETE /tasks/:id`
 
 | # | Role | Expected |
 |---|------|----------|
@@ -111,7 +111,7 @@ curl -X PATCH http://localhost:5000/api/v1/tasks/TASK_ID \
 | 20 | `project_manager` | **200** |
 | 21 | `org_admin` | **200** |
 
-### Cross-org — `PATCH /tasks/:id`
+### Cross-org  `PATCH /tasks/:id`
 
 | # | Actor | Target | Expected |
 |---|--------|--------|----------|

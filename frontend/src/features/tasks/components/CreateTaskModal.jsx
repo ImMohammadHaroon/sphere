@@ -26,6 +26,16 @@ const emptyForm = {
 const selectClassName =
   "flex h-10 w-full rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20";
 
+function formatRoleLabel(role) {
+  const labels = {
+    org_admin: "Organization Admin",
+    project_manager: "Project Manager",
+    team_member: "Team Member",
+    client: "Client",
+  };
+  return labels[role] ?? role?.replaceAll("_", " ") ?? "";
+}
+
 export function CreateTaskModal({ open, onOpenChange, projectId }) {
   const createTask = useCreateTask(projectId);
   const { data: members, isLoading: membersLoading } = useProjectMembers(
@@ -119,7 +129,8 @@ export function CreateTaskModal({ open, onOpenChange, projectId }) {
               </option>
               {(members ?? []).map((member) => (
                 <option key={member.id} value={member.id}>
-                  {member.name} ({member.email})
+                  {member.name}
+                  {member.role ? ` ${formatRoleLabel(member.role)}` : ""}
                 </option>
               ))}
             </select>

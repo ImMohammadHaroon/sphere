@@ -10,12 +10,6 @@ const clientPortalNav = [
     icon: "lucide:folder-kanban",
   },
   {
-    label: "Project progress",
-    to: "/portal/progress",
-    match: (p) => p === "/portal/progress",
-    icon: "lucide:trending-up",
-  },
-  {
     label: "Milestones",
     to: "/portal/milestones",
     match: (p) => p === "/portal/milestones",

@@ -127,7 +127,7 @@ export function MyProjectsOverviewPage() {
         data.length === 0 ? (
           <Card className="p-8 text-center">
             <p className="text-text-secondary">
-              No projects yet — create your first one
+              No projects yet  create your first one
             </p>
             <Button className="mt-4" type="button" onClick={() => setCreateOpen(true)}>
               New project

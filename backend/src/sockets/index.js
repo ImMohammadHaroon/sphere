@@ -4,16 +4,9 @@ import { env } from "../config/env.js";
 import { Project } from "../models/Project.js";
 import { User } from "../models/User.js";
 import { verifyAccessToken } from "../services/token.service.js";
+import { isProjectMember } from "../utils/projectAccess.js";
 
 let io = null;
-
-function isProjectMember(project, userId) {
-  const id = userId.toString();
-  if (project.ownerId?.toString() === id) {
-    return true;
-  }
-  return (project.members ?? []).some((member) => member.toString() === id);
-}
 
 async function assertProjectAccess(user, projectId) {
   const project = await Project.findOne({
@@ -95,7 +88,7 @@ export function initSockets(httpServer) {
     const user = socket.data.user;
 
     // super_admin sockets have no organizationId and must NOT be disconnected or
-    // excluded here — they still need their personal user:{id} room for
+    // excluded here  they still need their personal user:{id} room for
     // platform-level notifications.
     socket.join(`user:${user.userId}`);
 

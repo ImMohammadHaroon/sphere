@@ -81,7 +81,7 @@ projectTaskRouter.get(
  *       201:
  *         description: Task created
  *       403:
- *         description: Forbidden — client role cannot create tasks
+ *         description: Forbidden  client role cannot create tasks
  *       404:
  *         description: Project not found
  */
@@ -152,7 +152,7 @@ taskRouter.get("/:id", validate(taskIdParamSchema), taskController.getTask);
  *       200:
  *         description: Task moved
  *       403:
- *         description: Forbidden — team members may only move tasks assigned to them
+ *         description: Forbidden  team members may only move tasks assigned to them
  *       404:
  *         description: Not found
  */
@@ -192,7 +192,7 @@ taskRouter.patch(
  *       200:
  *         description: Task updated
  *       403:
- *         description: Forbidden — team members may only update status on tasks assigned to them
+ *         description: Forbidden  team members may only update status on tasks assigned to them
  *       404:
  *         description: Not found
  */
@@ -219,7 +219,7 @@ taskRouter.patch(
  *       200:
  *         description: Task deleted
  *       403:
- *         description: Forbidden — team members cannot delete tasks
+ *         description: Forbidden  team members cannot delete tasks
  *       404:
  *         description: Not found
  */

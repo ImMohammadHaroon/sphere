@@ -18,7 +18,7 @@ export function buildOrgApprovalEmail({ name, orgName }) {
               <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#6366f1;text-transform:uppercase;letter-spacing:0.04em;">ProjectSphere</p>
               <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;">You're approved</h1>
               <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#3f3f46;">
-                Hi ${escapeHtml(name)}, great news — <strong>${escapeHtml(orgName)}</strong> has been approved on ProjectSphere.
+                Hi ${escapeHtml(name)}, great news  <strong>${escapeHtml(orgName)}</strong> has been approved on ProjectSphere.
               </p>
               <p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#3f3f46;">
                 You can now log in and access your full organization dashboard.
@@ -38,7 +38,7 @@ export function buildOrgApprovalEmail({ name, orgName }) {
   const text = [
     `Hi ${name},`,
     "",
-    `Great news — ${orgName} has been approved on ProjectSphere.`,
+    `Great news  ${orgName} has been approved on ProjectSphere.`,
     "",
     "You can now log in and access your full organization dashboard.",
     "",

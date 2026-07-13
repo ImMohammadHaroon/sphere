@@ -64,6 +64,16 @@ function memberInitials(name) {
     .toUpperCase();
 }
 
+function formatRoleLabel(role) {
+  const labels = {
+    org_admin: "Organization Admin",
+    project_manager: "Project Manager",
+    team_member: "Team Member",
+    client: "Client",
+  };
+  return labels[role] ?? role?.replaceAll("_", " ") ?? "";
+}
+
 function priorityBadgeVariant(priority) {
   switch (priority) {
     case "high":
@@ -152,6 +162,7 @@ function AddMemberDialog({ open, onOpenChange, project, onAdd, isLoading }) {
             {availableUsers.map((user) => (
               <option key={user.id} value={user.id}>
                 {user.name} ({user.email})
+                {user.role ? ` ${formatRoleLabel(user.role)}` : ""}
               </option>
             ))}
           </select>
@@ -461,7 +472,6 @@ export function ProjectDetailPage() {
                 const memberId = typeof member === "string" ? member : member.id;
                 const isOwner = memberId === project.ownerId;
                 const name = typeof member === "string" ? memberId : member.name;
-                const email = typeof member === "string" ? "" : member.email;
                 const role = typeof member === "string" ? "" : member.role;
 
                 return (
@@ -482,13 +492,12 @@ export function ProjectDetailPage() {
                             </span>
                           ) : null}
                         </p>
-                        {email ? (
-                          <p className="text-sm text-text-secondary">{email}</p>
-                        ) : null}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {role ? <Badge variant="muted">{role.replaceAll("_", " ")}</Badge> : null}
+                      {role ? (
+                        <Badge variant="muted">{formatRoleLabel(role)}</Badge>
+                      ) : null}
                       <Button
                         type="button"
                         variant="ghost"

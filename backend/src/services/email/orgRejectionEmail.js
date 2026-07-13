@@ -26,7 +26,7 @@ export function buildOrgRejectionEmail({ name, orgName, reason }) {
               <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#6366f1;text-transform:uppercase;letter-spacing:0.04em;">ProjectSphere</p>
               <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;">Registration not approved</h1>
               <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#3f3f46;">
-                Hi ${escapeHtml(name)}, we're sorry — the registration for
+                Hi ${escapeHtml(name)}, we're sorry  the registration for
                 <strong>${escapeHtml(orgName)}</strong> on ProjectSphere was not approved.
               </p>
               ${reasonBlock}
@@ -45,7 +45,7 @@ export function buildOrgRejectionEmail({ name, orgName, reason }) {
   const text = [
     `Hi ${name},`,
     "",
-    `We're sorry — the registration for ${orgName} on ProjectSphere was not approved.`,
+    `We're sorry  the registration for ${orgName} on ProjectSphere was not approved.`,
     reasonText,
     "If you believe this was a mistake, please contact support.",
   ].join("\n");

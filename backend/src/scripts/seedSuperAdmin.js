@@ -14,7 +14,7 @@ async function seedSuperAdmin() {
 
   const existing = await User.findOne({ email: SUPER_ADMIN_EMAIL });
   if (existing) {
-    console.log(`[seed] Super Admin already exists (${SUPER_ADMIN_EMAIL}) — skipping.`);
+    console.log(`[seed] Super Admin already exists (${SUPER_ADMIN_EMAIL})  skipping.`);
     await User.db.close();
     process.exit(0);
   }

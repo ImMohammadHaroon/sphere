@@ -29,6 +29,7 @@ import { MilestonesPage as PmMilestonesPage } from "@/pages/project-manager/Mile
 import { MyTasksPage } from "@/pages/team-member/MyTasksPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { TeamMemberKanbanBoardPage } from "@/pages/team-member/KanbanBoardPage";
+import { TeamMemberTaskDetailPage } from "@/pages/team-member/TaskDetailPage";
 import { NotificationsPage as TeamMemberNotificationsPage } from "@/pages/team-member/NotificationsPage";
 import { NotificationsPage as PmNotificationsPage } from "@/pages/project-manager/NotificationsPage";
 import { NotificationsPage as OrgAdminNotificationsPage } from "@/pages/admin/NotificationsPage";
@@ -173,7 +174,7 @@ function AppRoutes() {
         path="/member/projects/:projectId/tasks/:taskId"
         element={
           <ProtectedRoute allowedRoles={["team_member"]}>
-            <TaskDetailPage />
+            <TeamMemberTaskDetailPage />
           </ProtectedRoute>
         }
       />

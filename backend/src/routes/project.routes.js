@@ -50,7 +50,7 @@ router.get("/", projectController.listProjects);
  *       201:
  *         description: Project created
  *       403:
- *         description: Forbidden — requires org_admin or project_manager role
+ *         description: Forbidden  requires org_admin or project_manager role
  */
 router.post(
   "/",
@@ -143,7 +143,7 @@ router.get(
  *       200:
  *         description: Project updated
  *       403:
- *         description: Forbidden — requires org_admin or project_manager role
+ *         description: Forbidden  requires org_admin or project_manager role
  *       404:
  *         description: Not found
  */
@@ -179,7 +179,7 @@ router.patch(
  *       200:
  *         description: Member added
  *       403:
- *         description: Forbidden — requires org_admin or project_manager role
+ *         description: Forbidden  requires org_admin or project_manager role
  *       404:
  *         description: Project or user not found
  */
@@ -217,7 +217,7 @@ router.patch(
  *       400:
  *         description: Cannot remove project owner
  *       403:
- *         description: Forbidden — requires org_admin or project_manager role
+ *         description: Forbidden  requires org_admin or project_manager role
  *       404:
  *         description: Project not found
  */
@@ -244,7 +244,7 @@ router.patch(
  *       200:
  *         description: Project archived
  *       403:
- *         description: Forbidden — requires org_admin or project_manager role
+ *         description: Forbidden  requires org_admin or project_manager role
  *       404:
  *         description: Not found
  */

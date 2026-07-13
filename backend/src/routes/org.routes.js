@@ -48,7 +48,7 @@ const orgUserListRoles = requireRole(["org_admin", "project_manager"]);
  *                       status: { type: string, enum: [active, archived] }
  *                       updatedAt: { type: string, format: date-time }
  *       403:
- *         description: Forbidden — requires org_admin role
+ *         description: Forbidden  requires org_admin role
  */
 router.get(
   "/reports/overview",
@@ -67,7 +67,7 @@ router.get(
  *       200:
  *         description: Organization users
  *       403:
- *         description: Forbidden — requires org_admin or project_manager role
+ *         description: Forbidden  requires org_admin or project_manager role
  */
 router.get("/users", orgUserListRoles, orgController.listUsers);
 
@@ -87,7 +87,7 @@ router.get("/users", orgUserListRoles, orgController.listUsers);
  *       200:
  *         description: User details
  *       403:
- *         description: Forbidden — requires org_admin role
+ *         description: Forbidden  requires org_admin role
  *       404:
  *         description: Not found
  */
@@ -127,7 +127,7 @@ router.get(
  *       400:
  *         description: Cannot change own role
  *       403:
- *         description: Forbidden — requires org_admin role
+ *         description: Forbidden  requires org_admin role
  *       404:
  *         description: Not found
  */
@@ -156,7 +156,7 @@ router.patch(
  *       400:
  *         description: Cannot remove self or last org admin
  *       403:
- *         description: Forbidden — requires org_admin role
+ *         description: Forbidden  requires org_admin role
  *       404:
  *         description: Not found
  */

@@ -98,7 +98,7 @@ export function SecuritySettingsTab({ organization, onSuccess }) {
             <div>
               <p className="text-sm font-medium">Require 2FA</p>
               <p className="mt-1 text-xs text-text-muted">
-                Coming soon — preference is saved but not enforced yet.
+                Coming soon  preference is saved but not enforced yet.
               </p>
             </div>
             <Switch

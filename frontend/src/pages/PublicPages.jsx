@@ -1,34 +1,7 @@
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { PublicHeader } from "@/components/layout/PublicHeader";
+import { LandingPage } from "@/features/landing/LandingPage";
 
-export function LandingPage() {
-  return (
-    <div className="min-h-screen bg-background">
-      <PublicHeader />
-
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:py-16">
-        <section className="max-w-2xl">
-          <h1 className="text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
-            Organize projects, tasks, and teams in one calm workspace.
-          </h1>
-          <p className="mt-4 text-base text-text-secondary sm:mt-6 sm:text-lg">
-            ProjectSphere helps organizations manage work with strict tenant
-            isolation, secure authentication, and role-based dashboards for every
-            stakeholder.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <ButtonLink to="/login" size="lg">
-              Sign in
-            </ButtonLink>
-            <ButtonLink to="/register" size="lg" variant="outline">
-              Create organization
-            </ButtonLink>
-          </div>
-        </section>
-      </main>
-    </div>
-  );
-}
+export { LandingPage };
 
 export function ForbiddenPage() {
   return (

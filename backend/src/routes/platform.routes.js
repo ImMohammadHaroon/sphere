@@ -699,7 +699,7 @@ router.delete(
  * /platform/users:
  *   get:
  *     summary: List all platform users (Super Admin)
- *     description: Paginated cross-organization user search. Read-only oversight — no user mutations from this endpoint. Users in soft-deleted organizations are excluded unless filtering by a specific active organization.
+ *     description: Paginated cross-organization user search. Read-only oversight  no user mutations from this endpoint. Users in soft-deleted organizations are excluded unless filtering by a specific active organization.
  *     tags: [Platform]
  *     security: [{ bearerAuth: [] }]
  *     parameters:
@@ -1139,7 +1139,7 @@ router.patch(
  * /platform/settings/security:
  *   patch:
  *     summary: Update platform security settings (Super Admin)
- *     description: Stored preferences only — globalPasswordMinLength and enforceGlobal2FA are not enforced yet.
+ *     description: Stored preferences only  globalPasswordMinLength and enforceGlobal2FA are not enforced yet.
  *     tags: [Platform]
  *     security: [{ bearerAuth: [] }]
  *     requestBody:

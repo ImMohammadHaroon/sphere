@@ -82,7 +82,7 @@ export function MembersRolesSettingsTab({ organization, onSuccess }) {
             onChange={(e) => setInviteExpiryDays(e.target.value)}
           />
           <p className="text-xs text-text-muted">
-            Stored for future use — not applied to invites yet.
+            Stored for future use  not applied to invites yet.
           </p>
         </div>
 

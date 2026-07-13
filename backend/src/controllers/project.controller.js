@@ -8,6 +8,7 @@ import {
   copyColumns,
   DEFAULT_BOARD_COLUMNS,
 } from "../services/kanbanTemplate.service.js";
+import { isProjectMember } from "../utils/projectAccess.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -25,14 +26,6 @@ function membershipFilter(userId) {
   return {
     $or: [{ ownerId: userId }, { members: userId }],
   };
-}
-
-function isProjectMember(project, userId) {
-  const id = userId.toString();
-  if (project.ownerId?.toString() === id) {
-    return true;
-  }
-  return (project.members ?? []).some((member) => member.toString() === id);
 }
 
 function formatMember(member) {

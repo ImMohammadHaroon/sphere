@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useSocket } from "@/hooks/useSocket";
+import { areSocketsEnabled } from "@/lib/backendUrl";
 import { getProjectTasks, moveTask as moveTaskApi } from "@/lib/tasksApi";
 import { getSortedColumns } from "@/lib/taskStatusConfig";
+
+const KANBAN_POLL_INTERVAL_MS = 10_000;
 
 function optimisticMoveTasks(tasks, taskId, newStatus, newPosition) {
   const moving = tasks.find((task) => task._id === taskId);
@@ -88,6 +91,15 @@ export function useKanbanTasks(projectId, columns, { onError } = {}) {
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
+  useEffect(() => {
+    if (socket || areSocketsEnabled()) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(fetchTasks, KANBAN_POLL_INTERVAL_MS);
+    return () => window.clearInterval(intervalId);
+  }, [socket, fetchTasks]);
 
   useEffect(() => {
     if (!socket) {

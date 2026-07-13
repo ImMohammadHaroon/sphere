@@ -4,6 +4,7 @@ import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
 import { useOrganizationDetail } from "@/features/platform/hooks/useOrganizationDetail";
 import { useOrganizationActions } from "@/features/platform/hooks/useOrganizationActions";
 import { ConfirmSlugDialog } from "@/pages/admin/settings/ConfirmSlugDialog";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
@@ -92,6 +93,7 @@ export function OrganizationDetailPage() {
   const navigate = useNavigate();
   const { toast, showToast, dismissToast } = useToast();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [suspendOpen, setSuspendOpen] = useState(false);
 
   const { data, isLoading, isError, error, refetch, isFetching } =
     useOrganizationDetail(id);
@@ -102,15 +104,24 @@ export function OrganizationDetailPage() {
   const projects = data?.projects ?? [];
   const stats = data?.stats;
 
-  async function handleSuspendToggle() {
+  async function handleSuspendConfirm() {
     try {
-      if (organization?.isActive) {
-        await suspend.mutateAsync();
-        showToast("Organization suspended.");
-      } else {
-        await activate.mutateAsync();
-        showToast("Organization activated.");
-      }
+      await suspend.mutateAsync();
+      showToast("Organization suspended.");
+      setSuspendOpen(false);
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Action failed",
+        "error"
+      );
+      throw err;
+    }
+  }
+
+  async function handleActivate() {
+    try {
+      await activate.mutateAsync();
+      showToast("Organization activated.");
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : "Action failed",
@@ -161,7 +172,9 @@ export function OrganizationDetailPage() {
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
-                onClick={handleSuspendToggle}
+                onClick={() =>
+                  organization.isActive ? setSuspendOpen(true) : handleActivate()
+                }
                 isLoading={suspend.isPending || activate.isPending}
                 disabled={isMutating}
               >
@@ -305,6 +318,16 @@ export function OrganizationDetailPage() {
               </TableScrollArea>
             )}
           </Card>
+
+          <ConfirmDialog
+            open={suspendOpen}
+            onOpenChange={setSuspendOpen}
+            title="Suspend organization"
+            description={`Suspend ${organization.name}? All members will be unable to sign in until the organization is reactivated.`}
+            confirmLabel="Suspend organization"
+            onConfirm={handleSuspendConfirm}
+            isLoading={suspend.isPending}
+          />
 
           <ConfirmSlugDialog
             open={deleteOpen}

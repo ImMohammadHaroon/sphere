@@ -3,15 +3,8 @@ import { ApiError } from "@/lib/apiClient";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/Dialog";
 import { ColumnColorDots } from "@/features/kanban-templates/ColumnsBuilder";
 import { TemplateFormDialog } from "@/features/kanban-templates/TemplateFormDialog";
 import {
@@ -31,7 +24,6 @@ export function KanbanTemplatesSettingsTab({ onSuccess }) {
   const [formOpen, setFormOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleteError, setDeleteError] = useState("");
 
   function openCreate() {
     setEditingTemplate(null);
@@ -45,7 +37,6 @@ export function KanbanTemplatesSettingsTab({ onSuccess }) {
 
   function openDelete(template) {
     setDeleteTarget(template);
-    setDeleteError("");
   }
 
   async function handleCreate({ name, columns }) {
@@ -63,7 +54,6 @@ export function KanbanTemplatesSettingsTab({ onSuccess }) {
 
   async function handleDelete() {
     if (!deleteTarget) return;
-    setDeleteError("");
 
     try {
       await deleteTemplate.mutateAsync(deleteTarget._id);
@@ -71,10 +61,9 @@ export function KanbanTemplatesSettingsTab({ onSuccess }) {
       setDeleteTarget(null);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        setDeleteError(err.message);
-        return;
+        throw err;
       }
-      setDeleteError(
+      throw new Error(
         err instanceof Error ? err.message : "Failed to delete template."
       );
     }
@@ -171,39 +160,19 @@ export function KanbanTemplatesSettingsTab({ onSuccess }) {
         onSubmit={editingTemplate ? handleUpdate : handleCreate}
       />
 
-      <Dialog
+      <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
-        <DialogContent onClose={() => setDeleteTarget(null)}>
-          <DialogHeader>
-            <DialogTitle>Delete template</DialogTitle>
-            <DialogDescription>
-              Delete &quot;{deleteTarget?.name}&quot;? This cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-
-          {deleteError ? <Alert variant="error">{deleteError}</Alert> : null}
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setDeleteTarget(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              isLoading={deleteTemplate.isPending}
-              onClick={handleDelete}
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Delete template"
+        description={
+          deleteTarget
+            ? `Delete "${deleteTarget.name}"? This cannot be undone.`
+            : null
+        }
+        confirmLabel="Delete"
+        onConfirm={handleDelete}
+        isLoading={deleteTemplate.isPending}
+      />
     </>
   );
 }

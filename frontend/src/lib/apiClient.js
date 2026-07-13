@@ -1,19 +1,4 @@
-const API_VERSION_PREFIX = "/api/v1";
-
-function resolveApiBaseUrl() {
-  const configured = import.meta.env.VITE_API_URL?.trim();
-  const fallback = import.meta.env.PROD
-    ? "https://ml-sphere.onrender.com"
-    : "http://localhost:5000";
-
-  const base = (configured || fallback).replace(/\/+$/, "");
-
-  if (base.endsWith(API_VERSION_PREFIX)) {
-    return base;
-  }
-
-  return `${base}${API_VERSION_PREFIX}`;
-}
+import { resolveApiBaseUrl } from "@/lib/backendUrl";
 
 const API_URL = resolveApiBaseUrl();
 

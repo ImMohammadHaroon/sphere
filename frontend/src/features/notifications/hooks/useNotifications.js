@@ -10,8 +10,11 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "@/lib/notificationsApi";
+import { areSocketsEnabled } from "@/lib/backendUrl";
 import { createSocket } from "@/lib/socket";
 import { useAuth } from "@/hooks/useAuth";
+
+const NOTIFICATION_POLL_INTERVAL_MS = 30_000;
 
 const EMPTY_LIST = {
   notifications: [],
@@ -37,6 +40,7 @@ export function useNotifications() {
     queryKey: notificationsQueryKey(userId),
     queryFn: () => listNotifications(1),
     staleTime: 30_000,
+    refetchInterval: areSocketsEnabled() ? false : NOTIFICATION_POLL_INTERVAL_MS,
     enabled: isAuthenticated && !!userId,
   });
 
@@ -46,6 +50,9 @@ export function useNotifications() {
     }
 
     const socket = createSocket(accessToken);
+    if (!socket) {
+      return undefined;
+    }
 
     function handleNewNotification(notification) {
       queryClient.setQueryData(notificationsQueryKey(userId), (current) => {

@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { cn } from "@/lib/utils";
 
 export function ProfileMenu({ user, onLogout, roleLabel }) {
   const [open, setOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const containerRef = useRef(null);
   const { pathname } = useLocation();
 
@@ -32,9 +35,18 @@ export function ProfileMenu({ user, onLogout, roleLabel }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
-  function handleSignOut() {
+  function handleSignOutClick() {
     setOpen(false);
-    onLogout();
+    setLogoutOpen(true);
+  }
+
+  async function handleSignOutConfirm() {
+    setIsLoggingOut(true);
+    try {
+      await onLogout();
+    } finally {
+      setIsLoggingOut(false);
+    }
   }
 
   return (
@@ -74,13 +86,23 @@ export function ProfileMenu({ user, onLogout, roleLabel }) {
           <hr className="border-border" />
           <button
             type="button"
-            onClick={handleSignOut}
+            onClick={handleSignOutClick}
             className="w-full px-4 py-2 text-left text-sm text-text-primary hover:bg-surface"
           >
             Sign out
           </button>
         </div>
       ) : null}
+
+      <ConfirmDialog
+        open={logoutOpen}
+        onOpenChange={setLogoutOpen}
+        title="Sign out"
+        description="Are you sure you want to sign out of your account on this device?"
+        confirmLabel="Sign out"
+        onConfirm={handleSignOutConfirm}
+        isLoading={isLoggingOut}
+      />
     </div>
   );
 }

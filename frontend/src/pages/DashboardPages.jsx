@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { ProjectManagerSidebar } from "@/components/layout/ProjectManagerSidebar";
@@ -33,12 +35,19 @@ function getProfileSidebar(role) {
 export function ProfilePage() {
   const { user } = useAuth();
   const homePath = user?.role ? getDashboardPath(user.role) : "/dashboard";
+  const [logoutAllOpen, setLogoutAllOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  async function logoutAllDevices() {
-    await authApi.logoutAll();
-    setAccessToken(null);
-    syncLogout();
-    window.location.href = "/login";
+  async function handleLogoutAllConfirm() {
+    setIsLoggingOut(true);
+    try {
+      await authApi.logoutAll();
+      setAccessToken(null);
+      syncLogout();
+      window.location.href = "/login";
+    } finally {
+      setIsLoggingOut(false);
+    }
   }
 
   return (
@@ -66,11 +75,21 @@ export function ProfilePage() {
           <ButtonLink to={homePath} variant="outline">
             Back to dashboard
           </ButtonLink>
-          <Button variant="danger" onClick={logoutAllDevices}>
+          <Button variant="danger" onClick={() => setLogoutAllOpen(true)}>
             Log out of all devices
           </Button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={logoutAllOpen}
+        onOpenChange={setLogoutAllOpen}
+        title="Log out of all devices"
+        description="This will sign you out on every device where you're currently logged in. You'll need to sign in again on each one."
+        confirmLabel="Log out everywhere"
+        onConfirm={handleLogoutAllConfirm}
+        isLoading={isLoggingOut}
+      />
     </DashboardShell>
   );
 }

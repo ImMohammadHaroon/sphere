@@ -8,3 +8,5 @@ temp_interactive_push.bat
 ProjectSphere-Documentation.md
 .agents/
 skills-lock.json
+.cursor/
+.codex

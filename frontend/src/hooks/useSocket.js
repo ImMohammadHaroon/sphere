@@ -13,6 +13,10 @@ export function useSocket(projectId) {
     }
 
     const instance = createSocket(accessToken);
+    if (!instance) {
+      return undefined;
+    }
+
     socketRef.current = instance;
 
     function joinProject() {

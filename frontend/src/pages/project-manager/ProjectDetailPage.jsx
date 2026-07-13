@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -36,14 +37,6 @@ import {
   TableRow,
   TableScrollArea,
 } from "@/components/ui/Table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/Dialog";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -209,6 +202,7 @@ export function ProjectDetailPage() {
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [removeMemberTarget, setRemoveMemberTarget] = useState(null);
   const [actionError, setActionError] = useState("");
 
   function startEditing() {
@@ -241,14 +235,18 @@ export function ProjectDetailPage() {
     await addMember.mutateAsync({ id, userId });
   }
 
-  async function handleRemoveMember(userId) {
+  async function handleRemoveMemberConfirm() {
+    if (!removeMemberTarget) return;
+
     setActionError("");
     try {
-      await removeMember.mutateAsync({ id, userId });
+      await removeMember.mutateAsync({ id, userId: removeMemberTarget.id });
+      setRemoveMemberTarget(null);
     } catch (err) {
       setActionError(
         err instanceof Error ? err.message : "Failed to remove member."
       );
+      throw err;
     }
   }
 
@@ -256,12 +254,12 @@ export function ProjectDetailPage() {
     setActionError("");
     try {
       await archiveProject.mutateAsync(id);
-      setArchiveDialogOpen(false);
       navigate(projectsPath);
     } catch (err) {
       setActionError(
         err instanceof Error ? err.message : "Failed to archive project."
       );
+      throw err;
     }
   }
 
@@ -503,7 +501,9 @@ export function ProjectDetailPage() {
                         variant="ghost"
                         size="sm"
                         disabled={isOwner || removeMember.isPending}
-                        onClick={() => handleRemoveMember(memberId)}
+                        onClick={() =>
+                          setRemoveMemberTarget({ id: memberId, name })
+                        }
                       >
                         Remove
                       </Button>
@@ -530,34 +530,33 @@ export function ProjectDetailPage() {
         projectId={id}
       />
 
-      <Dialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
-        <DialogContent onClose={() => setArchiveDialogOpen(false)}>
-          <DialogHeader>
-            <DialogTitle>Archive project</DialogTitle>
-            <DialogDescription>
-              Archive &ldquo;{project?.name}&rdquo;? The project will be hidden from
-              active lists but not permanently deleted.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setArchiveDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              onClick={handleArchive}
-              isLoading={archiveProject.isPending}
-            >
-              Archive project
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={Boolean(removeMemberTarget)}
+        onOpenChange={(open) => !open && setRemoveMemberTarget(null)}
+        title="Remove member"
+        description={
+          removeMemberTarget
+            ? `Remove ${removeMemberTarget.name} from this project? They will lose access to project tasks and updates.`
+            : null
+        }
+        confirmLabel="Remove member"
+        onConfirm={handleRemoveMemberConfirm}
+        isLoading={removeMember.isPending}
+      />
+
+      <ConfirmDialog
+        open={archiveDialogOpen}
+        onOpenChange={setArchiveDialogOpen}
+        title="Archive project"
+        description={
+          project
+            ? `Archive "${project.name}"? The project will be hidden from active lists but not permanently deleted.`
+            : null
+        }
+        confirmLabel="Archive project"
+        onConfirm={handleArchive}
+        isLoading={archiveProject.isPending}
+      />
     </Layout>
   );
 }

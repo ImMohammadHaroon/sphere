@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import {
@@ -51,6 +53,8 @@ function ColorSwatches({ value, onChange }) {
 }
 
 export function ColumnsBuilder({ columns, onChange }) {
+  const [removeIndex, setRemoveIndex] = useState(null);
+
   function updateColumn(index, patch) {
     const next = columns.map((col, i) =>
       i === index ? { ...col, ...patch } : col
@@ -74,6 +78,12 @@ export function ColumnsBuilder({ columns, onChange }) {
     const next = [...columns];
     [next[index], next[target]] = [next[target], next[index]];
     onChange(next);
+  }
+
+  function confirmRemoveColumn() {
+    if (removeIndex === null) return;
+    removeColumn(removeIndex);
+    setRemoveIndex(null);
   }
 
   function addColumn() {
@@ -145,7 +155,7 @@ export function ColumnsBuilder({ columns, onChange }) {
                   size="sm"
                   className="h-8 w-8 p-0 text-danger hover:text-danger"
                   disabled={columns.length <= 1}
-                  onClick={() => removeColumn(index)}
+                  onClick={() => setRemoveIndex(index)}
                   aria-label="Remove column"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -158,6 +168,19 @@ export function ColumnsBuilder({ columns, onChange }) {
       <Button type="button" variant="outline" size="sm" onClick={addColumn}>
         Add column
       </Button>
+
+      <ConfirmDialog
+        open={removeIndex !== null}
+        onOpenChange={(open) => !open && setRemoveIndex(null)}
+        title="Remove column"
+        description={
+          removeIndex !== null
+            ? `Remove the "${columns[removeIndex]?.name || "Untitled"}" column from this template?`
+            : null
+        }
+        confirmLabel="Remove column"
+        onConfirm={confirmRemoveColumn}
+      />
     </div>
   );
 }

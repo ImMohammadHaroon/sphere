@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Alert } from "@/components/ui/Alert";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
   Table,
@@ -49,7 +49,8 @@ function roleBadgeVariant(role) {
 export function TeamMembersPage() {
   const { user: currentUser } = useAuth();
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [removeError, setRemoveError] = useState("");
+  const [removeTarget, setRemoveTarget] = useState(null);
+  const [revokeTarget, setRevokeTarget] = useState(null);
   const {
     data: users,
     isLoading: usersLoading,
@@ -79,20 +80,16 @@ export function TeamMembersPage() {
     refetchInvites();
   }
 
-  async function handleRemove(member) {
-    const confirmed = window.confirm(
-      `Remove ${member.name} from your organization? Their account will be deleted and they will be signed out of all devices.`
-    );
+  async function handleRemoveConfirm() {
+    if (!removeTarget) return;
+    await removeUser.mutateAsync(removeTarget.id);
+    setRemoveTarget(null);
+  }
 
-    if (!confirmed) return;
-
-    setRemoveError("");
-
-    try {
-      await removeUser.mutateAsync(member.id);
-    } catch (err) {
-      setRemoveError(err instanceof Error ? err.message : "Failed to remove member");
-    }
+  async function handleRevokeConfirm() {
+    if (!revokeTarget) return;
+    await revokeInvite.mutateAsync(revokeTarget.id);
+    setRevokeTarget(null);
   }
 
   const isCurrentUser = (memberId) => memberId === currentUser?.id;
@@ -113,12 +110,6 @@ export function TeamMembersPage() {
       </div>
 
       <InviteMemberDialog open={inviteOpen} onOpenChange={setInviteOpen} />
-
-      {removeError ? (
-        <Alert variant="error" className="mb-6">
-          {removeError}
-        </Alert>
-      ) : null}
 
       {isLoading ? (
         <div className="space-y-3">
@@ -200,7 +191,7 @@ export function TeamMembersPage() {
                             variant="ghost"
                             size="sm"
                             className="text-danger hover:text-danger"
-                            onClick={() => handleRemove(member)}
+                            onClick={() => setRemoveTarget(member)}
                             isLoading={
                               removeUser.isPending &&
                               removeUser.variables === member.id
@@ -252,7 +243,7 @@ export function TeamMembersPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => revokeInvite.mutate(invite.id)}
+                          onClick={() => setRevokeTarget(invite)}
                           isLoading={
                             revokeInvite.isPending &&
                             revokeInvite.variables === invite.id
@@ -269,6 +260,34 @@ export function TeamMembersPage() {
           </Card>
         </div>
       ) : null}
+
+      <ConfirmDialog
+        open={Boolean(removeTarget)}
+        onOpenChange={(open) => !open && setRemoveTarget(null)}
+        title="Remove member"
+        description={
+          removeTarget
+            ? `Remove ${removeTarget.name} from your organization? Their account will be deleted and they will be signed out of all devices.`
+            : null
+        }
+        confirmLabel="Remove member"
+        onConfirm={handleRemoveConfirm}
+        isLoading={removeUser.isPending}
+      />
+
+      <ConfirmDialog
+        open={Boolean(revokeTarget)}
+        onOpenChange={(open) => !open && setRevokeTarget(null)}
+        title="Revoke invite"
+        description={
+          revokeTarget
+            ? `Revoke the invitation for ${revokeTarget.email}? They will no longer be able to join using this invite link.`
+            : null
+        }
+        confirmLabel="Revoke invite"
+        onConfirm={handleRevokeConfirm}
+        isLoading={revokeInvite.isPending}
+      />
     </OrgAdminLayout>
   );
 }

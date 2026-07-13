@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { authApi } from "@/lib/authApi";
 import { syncLogout } from "@/lib/authSync";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,12 +10,13 @@ import { useAuth } from "@/hooks/useAuth";
 export function AwaitingApprovalPage() {
   const { user } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   const status = user?.organizationVerificationStatus ?? "pending";
   const isRejected = status === "rejected";
   const reason = user?.organizationVerificationRejectionReason;
 
-  async function handleLogout() {
+  async function handleLogoutConfirm() {
     setIsLoggingOut(true);
     try {
       await authApi.logout();
@@ -64,12 +66,21 @@ export function AwaitingApprovalPage() {
         <Button
           className="mt-8"
           variant="outline"
-          onClick={handleLogout}
-          isLoading={isLoggingOut}
+          onClick={() => setLogoutOpen(true)}
         >
           Log out
         </Button>
       </Card>
+
+      <ConfirmDialog
+        open={logoutOpen}
+        onOpenChange={setLogoutOpen}
+        title="Log out"
+        description="Are you sure you want to log out?"
+        confirmLabel="Log out"
+        onConfirm={handleLogoutConfirm}
+        isLoading={isLoggingOut}
+      />
     </div>
   );
 }

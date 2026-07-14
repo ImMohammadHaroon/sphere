@@ -6,6 +6,7 @@ import {
   ColumnsBuilder,
   validateColumnsBuilder,
 } from "@/features/kanban-templates/ColumnsBuilder";
+import { useAuth } from "@/hooks/useAuth";
 import { dateInputToIso } from "@/lib/dateFormHelpers";
 import { DEFAULT_BUILDER_COLUMNS } from "@/lib/taskStatusConfig";
 import { Alert } from "@/components/ui/Alert";
@@ -40,6 +41,7 @@ function emptyBuilderColumns() {
 
 export function CreateProjectDialog({ open, onOpenChange }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const createProject = useCreateProject();
   const { data: templates, isLoading: templatesLoading } = useKanbanTemplates();
   const [form, setForm] = useState(emptyForm);
@@ -104,7 +106,9 @@ export function CreateProjectDialog({ open, onOpenChange }) {
     try {
       const result = await createProject.mutateAsync(payload);
       handleOpenChange(false);
-      navigate(`/dashboard/projects/${result.project._id}`);
+      const base =
+        user?.role === "org_admin" ? "/admin/projects" : "/dashboard/projects";
+      navigate(`${base}/${result.project._id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create project.");
     }

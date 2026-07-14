@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
+import { CreateProjectDialog } from "@/features/projects/components/CreateProjectDialog";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -26,6 +28,7 @@ function formatDate(value) {
 
 export function AllProjectsPage() {
   const navigate = useNavigate();
+  const [createOpen, setCreateOpen] = useState(false);
   const { data, isLoading, isError, error, refetch, isFetching } = useProjects();
 
   return (
@@ -55,47 +58,63 @@ export function AllProjectsPage() {
       {!isLoading && !isError && data ? (
         data.length === 0 ? (
           <Card className="p-8 text-center">
-            <p className="text-text-secondary">No projects in your organization yet.</p>
+            <p className="text-text-secondary">
+              No projects in your organization yet.
+            </p>
+            <Button className="mt-4" type="button" onClick={() => setCreateOpen(true)}>
+              New project
+            </Button>
           </Card>
         ) : (
-          <Card className="overflow-hidden p-0">
-            <TableScrollArea>
-              <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Due date</TableHead>
-                  <TableHead>Created</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.map((project) => (
-                  <TableRow
-                    key={project._id}
-                    className="cursor-pointer"
-                    onClick={() => navigate(`/admin/projects/${project._id}`)}
-                  >
-                    <TableCell className="font-medium">{project.name}</TableCell>
-                    <TableCell>
-                      <Badge variant={project.status === "active" ? "success" : "muted"}>
-                        {project.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-text-secondary">
-                      {formatDate(project.dueDate)}
-                    </TableCell>
-                    <TableCell className="text-text-secondary">
-                      {formatDate(project.createdAt)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-              </Table>
-            </TableScrollArea>
-          </Card>
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Button type="button" onClick={() => setCreateOpen(true)}>
+                New project
+              </Button>
+            </div>
+            <Card className="overflow-hidden p-0">
+              <TableScrollArea>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Due date</TableHead>
+                      <TableHead>Created</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.map((project) => (
+                      <TableRow
+                        key={project._id}
+                        className="cursor-pointer"
+                        onClick={() => navigate(`/admin/projects/${project._id}`)}
+                      >
+                        <TableCell className="font-medium">{project.name}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={project.status === "active" ? "success" : "muted"}
+                          >
+                            {project.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-text-secondary">
+                          {formatDate(project.dueDate)}
+                        </TableCell>
+                        <TableCell className="text-text-secondary">
+                          {formatDate(project.createdAt)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableScrollArea>
+            </Card>
+          </div>
         )
       ) : null}
+
+      <CreateProjectDialog open={createOpen} onOpenChange={setCreateOpen} />
     </OrgAdminLayout>
   );
 }

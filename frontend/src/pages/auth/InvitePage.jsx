@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Alert } from "@/components/ui/Alert";
-import { authApi } from "@/lib/authApi";
+import { invitesApi } from "@/lib/invitesApi";
 import { setAccessToken } from "@/lib/apiClient";
 import { syncLogin } from "@/lib/authSync";
 import { getDashboardPath } from "@/lib/authHelpers";
@@ -38,7 +38,7 @@ export function InvitePage() {
   async function onSubmit(data) {
     setError("");
     try {
-      const result = await authApi.acceptInvite({
+      const result = await invitesApi.acceptInvite({
         token,
         name: data.name,
         password: data.password,

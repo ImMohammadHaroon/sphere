@@ -19,10 +19,6 @@ function buildOrganizationsQuery(params = {}) {
     searchParams.set("search", params.search);
   }
 
-  if (params.plan) {
-    searchParams.set("plan", params.plan);
-  }
-
   if (params.isActive === true || params.isActive === false) {
     searchParams.set("isActive", String(params.isActive));
   }

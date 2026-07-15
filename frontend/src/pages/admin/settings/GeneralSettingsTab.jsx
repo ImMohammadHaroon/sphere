@@ -7,17 +7,6 @@ import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { useUpdateGeneralSettings } from "@/features/settings/hooks/useOrgSettings";
 
-function planBadgeVariant(plan) {
-  switch (plan) {
-    case "enterprise":
-      return "success";
-    case "pro":
-      return "accent";
-    default:
-      return "muted";
-  }
-}
-
 function formatDate(value) {
   if (!value) return "—";
   return new Date(value).toLocaleDateString(undefined, {
@@ -78,9 +67,6 @@ export function GeneralSettingsTab({ organization, onSuccess }) {
 
       <div className="space-y-6">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={planBadgeVariant(organization.plan)}>
-            {organization.plan ?? "free"}
-          </Badge>
           <Badge variant={organization.isActive ? "success" : "danger"}>
             {organization.isActive ? "Active" : "Inactive"}
           </Badge>

@@ -204,15 +204,10 @@ export async function verifyOrganizationRegistration({
     throw err;
   }
 
-  const platformSettings = await PlatformSettings.getOrCreate();
-  const defaultPlan =
-    platformSettings.registration?.defaultPlan ?? "free";
-
   const slug = await uniqueOrgSlug(Organization, pending.orgName);
   const organization = await Organization.create({
     name: pending.orgName,
     slug,
-    plan: defaultPlan,
     verificationStatus: "pending",
   });
 

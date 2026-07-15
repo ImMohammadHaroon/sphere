@@ -3,6 +3,7 @@ import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { logAction, getClientIp } from "../services/auditLog.service.js";
 import { createNotification } from "../services/notification.service.js";
+import { isDoneColumn } from "../services/reportAggregation.service.js";
 import { emitToProject } from "../sockets/index.js";
 
 function notFound(message = "Not found") {
@@ -32,10 +33,6 @@ function getDefaultStatus(project) {
   return sorted[0]?.key ?? "todo";
 }
 
-function isDoneColumn(project, statusKey) {
-  return project.columns?.find((c) => c.key === statusKey)?.isDone === true;
-}
-
 function formatAssignee(assignee) {
   if (!assignee) {
     return null;
@@ -54,7 +51,7 @@ function formatAssignee(assignee) {
   };
 }
 
-function formatTask(task) {
+export function formatTask(task) {
   const assignee = formatAssignee(task.assigneeId);
 
   return {

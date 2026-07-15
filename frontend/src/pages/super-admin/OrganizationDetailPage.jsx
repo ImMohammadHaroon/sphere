@@ -22,17 +22,6 @@ import {
 } from "@/components/ui/Table";
 import { useToast } from "@/hooks/useToast";
 
-function planBadgeVariant(plan) {
-  switch (plan) {
-    case "enterprise":
-      return "success";
-    case "pro":
-      return "accent";
-    default:
-      return "muted";
-  }
-}
-
 function formatDate(value) {
   return new Date(value).toLocaleDateString(undefined, {
     year: "numeric",
@@ -144,7 +133,7 @@ export function OrganizationDetailPage() {
       description={
         organization
           ? `Read-only oversight for ${organization.slug}.`
-          : "Organization plan, members, projects, and status."
+          : "Organization members, projects, and status."
       }
     >
       {toast ? <Toast toast={toast} onDismiss={dismissToast} /> : null}
@@ -201,9 +190,6 @@ export function OrganizationDetailPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Badge variant={planBadgeVariant(organization.plan)}>
-                  {organization.plan}
-                </Badge>
                 <Badge variant={organization.isActive ? "success" : "danger"}>
                   {organization.isActive ? "Active" : "Suspended"}
                 </Badge>

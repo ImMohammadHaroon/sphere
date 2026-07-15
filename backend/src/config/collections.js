@@ -6,6 +6,7 @@ export const COLLECTIONS = {
   PROJECTS: "projects",
   REFRESH_TOKENS: "refreshtokens",
   TASKS: "tasks",
+  MILESTONES: "milestones",
   USERS: "users",
   ORG_REGISTRATION_PENDING: "orgregistrationpendings",
   NOTIFICATIONS: "notifications",

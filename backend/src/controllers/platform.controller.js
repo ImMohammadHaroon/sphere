@@ -10,6 +10,10 @@ import { sendMail } from "../services/email/transporter.js";
 import { buildOrgApprovalEmail } from "../services/email/orgApprovalEmail.js";
 import { buildOrgRejectionEmail } from "../services/email/orgRejectionEmail.js";
 import { buildTasksByProject, totalTasksFromProjects } from "../services/taskOverviewStats.service.js";
+import {
+  buildMonthBuckets,
+  summarizeDoneNotDone,
+} from "../services/reportAggregation.service.js";
 
 function httpError(message, status) {
   const err = new Error(message);
@@ -41,10 +45,6 @@ function buildListMatch(query = {}) {
     match.name = { $regex: query.search, $options: "i" };
   }
 
-  if (query.plan) {
-    match.plan = query.plan;
-  }
-
   if (query.isActive === "true") {
     match.isActive = true;
   } else if (query.isActive === "false") {
@@ -59,7 +59,6 @@ function mapListOrganization(org) {
     id: org._id.toString(),
     name: org.name,
     slug: org.slug,
-    plan: org.plan,
     isActive: org.isActive,
     userCount: org.userCount ?? 0,
     projectCount: org.projectCount ?? 0,
@@ -72,10 +71,19 @@ function mapOrganizationDetail(org) {
     id: org._id.toString(),
     name: org.name,
     slug: org.slug,
-    plan: org.plan,
     isActive: org.isActive,
     timezone: org.settings?.timezone ?? "UTC",
     createdAt: org.createdAt,
+  };
+}
+
+function approvedOrganizationFilter() {
+  return {
+    ...notDeletedFilter(),
+    $or: [
+      { verificationStatus: "approved" },
+      { verificationStatus: { $exists: false } },
+    ],
   };
 }
 
@@ -111,7 +119,6 @@ async function organizationsWithUserCounts(pipeline = []) {
       $project: {
         name: 1,
         slug: 1,
-        plan: 1,
         isActive: 1,
         createdAt: 1,
         userCount: 1,
@@ -124,7 +131,6 @@ function normalizeOverviewOrganization(org) {
   return {
     _id: org._id.toString(),
     name: org.name,
-    plan: org.plan,
     isActive: org.isActive,
     createdAt: org.createdAt,
     userCount: org.userCount ?? 0,
@@ -135,65 +141,104 @@ export async function getPlatformOverview(req, res, next) {
   try {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const monthBuckets = buildMonthBuckets(6);
+    const growthWindowStart = monthBuckets[0]?.start;
 
-    const [orgStats, userStats, projectStats, taskCountRows, recentOrganizations] =
-      await Promise.all([
-        Organization.aggregate([
-          { $match: notDeletedFilter() },
-          {
-            $facet: {
-              totals: [
-                {
-                  $group: {
-                    _id: null,
-                    totalOrganizations: { $sum: 1 },
-                    activeOrganizations: {
-                      $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] },
-                    },
-                    newOrganizationsLast30Days: {
-                      $sum: {
-                        $cond: [{ $gte: ["$createdAt", thirtyDaysAgo] }, 1, 0],
-                      },
+    const [
+      orgStats,
+      userStats,
+      usersByRoleRows,
+      projectStats,
+      taskCountRows,
+      recentOrganizations,
+      orgsRegisteredInWindow,
+      pendingOrganizationsCount,
+    ] = await Promise.all([
+      Organization.aggregate([
+        { $match: approvedOrganizationFilter() },
+        {
+          $facet: {
+            totals: [
+              {
+                $group: {
+                  _id: null,
+                  totalOrganizations: { $sum: 1 },
+                  activeOrganizations: {
+                    $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] },
+                  },
+                  newOrganizationsLast30Days: {
+                    $sum: {
+                      $cond: [{ $gte: ["$createdAt", thirtyDaysAgo] }, 1, 0],
                     },
                   },
                 },
-              ],
+              },
+            ],
+          },
+        },
+      ]),
+      User.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalUsers: { $sum: 1 },
+            activeUsers: {
+              $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] },
             },
           },
-        ]),
-        User.aggregate([{ $count: "totalUsers" }]),
-        Project.aggregate([
-          {
-            $facet: {
-              totals: [
-                {
-                  $group: {
-                    _id: null,
-                    totalProjects: { $sum: 1 },
-                    activeProjects: {
-                      $sum: {
-                        $cond: [{ $eq: ["$status", "active"] }, 1, 0],
-                      },
+        },
+      ]),
+      User.aggregate([
+        {
+          $group: {
+            _id: "$role",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      Project.aggregate([
+        {
+          $facet: {
+            totals: [
+              {
+                $group: {
+                  _id: null,
+                  totalProjects: { $sum: 1 },
+                  activeProjects: {
+                    $sum: {
+                      $cond: [{ $eq: ["$status", "active"] }, 1, 0],
                     },
                   },
                 },
-              ],
-            },
+              },
+            ],
           },
-        ]),
-        Task.aggregate([
-          {
-            $group: {
-              _id: { projectId: "$projectId", status: "$status" },
-              count: { $sum: 1 },
-            },
+        },
+      ]),
+      Task.aggregate([
+        {
+          $group: {
+            _id: { projectId: "$projectId", status: "$status" },
+            count: { $sum: 1 },
           },
-        ]),
-        organizationsWithUserCounts([
-          { $sort: { createdAt: -1 } },
-          { $limit: 5 },
-        ]),
-      ]);
+        },
+      ]),
+      organizationsWithUserCounts([
+        { $match: approvedOrganizationFilter() },
+        { $sort: { createdAt: -1 } },
+        { $limit: 5 },
+      ]),
+      Organization.find({
+        ...approvedOrganizationFilter(),
+        createdAt: { $gte: growthWindowStart },
+      })
+        .select("createdAt")
+        .lean(),
+      Organization.countDocuments({
+        verificationStatus: "pending",
+        ...notDeletedFilter(),
+      }),
+    ]);
 
     const orgTotals = orgStats[0]?.totals[0] ?? {
       totalOrganizations: 0,
@@ -206,6 +251,8 @@ export async function getPlatformOverview(req, res, next) {
       activeProjects: 0,
     };
 
+    const userTotals = userStats[0] ?? { totalUsers: 0, activeUsers: 0 };
+
     const projectIds = [
       ...new Set(taskCountRows.map((row) => row._id.projectId)),
     ];
@@ -217,17 +264,54 @@ export async function getPlatformOverview(req, res, next) {
 
     const tasksByProject = buildTasksByProject(projects, taskCountRows);
     const totalTasks = totalTasksFromProjects(tasksByProject);
+    const taskSummary = summarizeDoneNotDone(projects, taskCountRows);
+
+    const usersByRole = {
+      super_admin: 0,
+      org_admin: 0,
+      project_manager: 0,
+      team_member: 0,
+      client: 0,
+    };
+    for (const row of usersByRoleRows) {
+      if (row._id in usersByRole) {
+        usersByRole[row._id] = row.count;
+      }
+    }
+
+    const organizationsRegisteredByMonth = monthBuckets.map((bucket) => {
+      const count = orgsRegisteredInWindow.filter((org) => {
+        const created = new Date(org.createdAt).getTime();
+        return (
+          created >= bucket.start.getTime() && created <= bucket.end.getTime()
+        );
+      }).length;
+
+      return {
+        monthStart: bucket.monthStart,
+        monthLabel: bucket.monthLabel,
+        count,
+      };
+    });
 
     res.json({
       totalOrganizations: orgTotals.totalOrganizations,
       activeOrganizations: orgTotals.activeOrganizations,
-      totalUsers: userStats[0]?.totalUsers ?? 0,
+      totalUsers: userTotals.totalUsers,
+      activeUsers: userTotals.activeUsers,
       totalProjects: projectTotals.totalProjects,
       activeProjects: projectTotals.activeProjects,
       totalTasks,
       tasksByProject,
       newOrganizationsLast30Days: orgTotals.newOrganizationsLast30Days,
       recentOrganizations: recentOrganizations.map(normalizeOverviewOrganization),
+      // Extended analytics KPIs (additive — existing overview fields preserved)
+      usersByRole,
+      organizationsRegisteredByMonth,
+      pendingOrganizations: pendingOrganizationsCount,
+      taskCompletionRate: taskSummary.taskCompletionRate,
+      tasksDone: taskSummary.tasksDone,
+      tasksNotDone: taskSummary.tasksNotDone,
     });
   } catch (err) {
     next(err);
@@ -275,7 +359,6 @@ export async function listOrganizations(req, res, next) {
               $project: {
                 name: 1,
                 slug: 1,
-                plan: 1,
                 isActive: 1,
                 createdAt: 1,
                 userCount: 1,
@@ -306,7 +389,6 @@ function mapPendingOrganization(org) {
   return {
     id: org._id.toString(),
     name: org.name,
-    plan: org.plan,
     createdAt: org.createdAt,
     admin: admin
       ? { name: admin.name, email: admin.email }
@@ -370,7 +452,6 @@ export async function listPendingOrganizations(req, res, next) {
             {
               $project: {
                 name: 1,
-                plan: 1,
                 createdAt: 1,
                 adminUsers: 1,
               },
@@ -817,7 +898,6 @@ function formatPlatformSettings(doc) {
     },
     registration: {
       allowSelfServeSignup: doc.registration?.allowSelfServeSignup ?? true,
-      defaultPlan: doc.registration?.defaultPlan ?? "free",
     },
     security: {
       globalPasswordMinLength: doc.security?.globalPasswordMinLength ?? 8,
@@ -880,7 +960,6 @@ export async function updateRegistrationSettings(req, res, next) {
 
     settings.registration = {
       allowSelfServeSignup: registration.allowSelfServeSignup,
-      defaultPlan: registration.defaultPlan,
     };
 
     settings.markModified("registration");

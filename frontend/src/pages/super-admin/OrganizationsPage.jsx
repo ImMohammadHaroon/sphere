@@ -40,17 +40,6 @@ const STATUS_OPTIONS = [
   { value: "false", label: "Suspended" },
 ];
 
-function planBadgeVariant(plan) {
-  switch (plan) {
-    case "enterprise":
-      return "success";
-    case "pro":
-      return "accent";
-    default:
-      return "muted";
-  }
-}
-
 function formatDate(value) {
   return new Date(value).toLocaleDateString(undefined, {
     year: "numeric",
@@ -230,7 +219,6 @@ export function OrganizationsPage() {
                         <TableRow>
                           <TableHead>Organization</TableHead>
                           <TableHead>Admin</TableHead>
-                          <TableHead>Plan</TableHead>
                           <TableHead>Registered</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -248,11 +236,6 @@ export function OrganizationsPage() {
                                   {org.admin?.email ?? "—"}
                                 </p>
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={planBadgeVariant(org.plan)}>
-                                {org.plan}
-                              </Badge>
                             </TableCell>
                             <TableCell className="text-text-secondary">
                               {formatDate(org.createdAt)}

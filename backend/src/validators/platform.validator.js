@@ -9,7 +9,6 @@ export const listOrganizationsQuerySchema = z.object({
       page: z.coerce.number().int().min(1).optional(),
       limit: z.coerce.number().int().min(1).max(100).optional(),
       search: z.string().trim().optional(),
-      plan: z.enum(["free", "pro", "enterprise"]).optional(),
       isActive: z.enum(["true", "false"]).optional(),
     })
     .strict(),
@@ -102,7 +101,6 @@ export const updateRegistrationSettingsSchema = z.object({
       registration: z
         .object({
           allowSelfServeSignup: z.boolean(),
-          defaultPlan: z.enum(["free", "pro", "enterprise"]),
         })
         .strict(),
     })

@@ -44,6 +44,18 @@ export const projectIdParamSchema = z.object({
   }),
 });
 
+export const projectCalendarSchema = z.object({
+  params: z.object({
+    id: objectId,
+  }),
+  query: z
+    .object({
+      start: z.coerce.date().optional(),
+      end: z.coerce.date().optional(),
+    })
+    .strict(),
+});
+
 export const addMemberSchema = z.object({
   params: z.object({
     id: objectId,

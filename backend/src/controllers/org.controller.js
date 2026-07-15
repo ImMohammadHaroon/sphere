@@ -2,9 +2,16 @@ import mongoose from "mongoose";
 import { User } from "../models/User.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
+import { Milestone } from "../models/Milestone.js";
 import { logAction, getClientIp } from "../services/auditLog.service.js";
 import { revokeAllRefreshTokens } from "../services/token.service.js";
 import { buildTasksByProject } from "../services/taskOverviewStats.service.js";
+import {
+  buildCompletionTrend,
+  countCompletedInWindow,
+  getOrganizationTaskCompletionEvents,
+  summarizeDoneNotDone,
+} from "../services/reportAggregation.service.js";
 
 const TEAM_ROLES = ["org_admin", "project_manager", "team_member"];
 
@@ -22,6 +29,8 @@ function formatUser(user) {
 export async function getOrgOverview(req, res, next) {
   try {
     const organizationId = new mongoose.Types.ObjectId(req.user.organizationId);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const [
       projectTotal,
@@ -30,6 +39,9 @@ export async function getOrgOverview(req, res, next) {
       teamSize,
       projects,
       taskCountRows,
+      milestoneStats,
+      recentProjects,
+      completionEvents,
     ] = await Promise.all([
       req.scopedQuery(Project).countDocuments(),
       req.scopedQuery(Project, { status: "active" }).countDocuments(),
@@ -47,16 +59,45 @@ export async function getOrgOverview(req, res, next) {
           },
         },
       ]),
+      Milestone.aggregate([
+        { $match: { organizationId } },
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      req
+        .scopedQuery(Project)
+        .sort({ updatedAt: -1 })
+        .limit(5)
+        .select("name status updatedAt")
+        .lean(),
+      getOrganizationTaskCompletionEvents(organizationId),
     ]);
 
     const tasksByProject = buildTasksByProject(projects, taskCountRows);
+    const taskSummary = summarizeDoneNotDone(projects, taskCountRows);
 
-    const recentProjects = await req
-      .scopedQuery(Project)
-      .sort({ updatedAt: -1 })
-      .limit(5)
-      .select("name status updatedAt")
-      .lean();
+    const milestoneCounts = { pending: 0, approved: 0, rejected: 0 };
+    for (const row of milestoneStats) {
+      if (row._id in milestoneCounts) {
+        milestoneCounts[row._id] = row.count;
+      }
+    }
+    const milestonesDecided =
+      milestoneCounts.approved + milestoneCounts.rejected;
+    const milestoneApprovalRate =
+      milestonesDecided === 0
+        ? null
+        : milestoneCounts.approved / milestonesDecided;
+
+    const tasksCompletedLast30Days = countCompletedInWindow(
+      completionEvents,
+      thirtyDaysAgo
+    );
+    const completionTrend = buildCompletionTrend(completionEvents, 30);
 
     res.json({
       projects: {
@@ -72,6 +113,19 @@ export async function getOrgOverview(req, res, next) {
         status: project.status,
         updatedAt: project.updatedAt,
       })),
+      // Extended analytics KPIs (additive — existing overview fields preserved)
+      totalTasks: taskSummary.totalTasks,
+      tasksDone: taskSummary.tasksDone,
+      tasksNotDone: taskSummary.tasksNotDone,
+      milestones: {
+        pending: milestoneCounts.pending,
+        approved: milestoneCounts.approved,
+        rejected: milestoneCounts.rejected,
+        decided: milestonesDecided,
+        approvalRate: milestoneApprovalRate,
+      },
+      tasksCompletedLast30Days,
+      completionTrend,
     });
   } catch (err) {
     next(err);

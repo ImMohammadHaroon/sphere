@@ -18,17 +18,6 @@ import {
 } from "@/components/ui/Table";
 import { cn } from "@/lib/utils";
 
-function planBadgeVariant(plan) {
-  switch (plan) {
-    case "enterprise":
-      return "success";
-    case "pro":
-      return "accent";
-    default:
-      return "muted";
-  }
-}
-
 function formatDate(value) {
   return new Date(value).toLocaleDateString(undefined, {
     year: "numeric",
@@ -61,7 +50,7 @@ export function PlatformOverviewPage() {
       ) : null}
 
       {!isLoading && !isError && data ? (
-        data.totalOrganizations === 0 ? (
+        data.totalOrganizations === 0 && (data.pendingOrganizations ?? 0) === 0 ? (
           <Card className="mt-8 p-8 text-center">
             <p className="font-medium text-text-primary">No organizations yet</p>
             <p className="mt-2 text-sm text-text-secondary">
@@ -77,11 +66,17 @@ export function PlatformOverviewPage() {
                 value={data.totalOrganizations}
               />
               <MetricCard
-                label="Active projects"
-                value={data.activeProjects}
+                label="Active users"
+                value={data.activeUsers ?? data.totalUsers}
               />
-              <MetricCard label="Total users" value={data.totalUsers} />
-              <MetricCard label="Total tasks" value={data.totalTasks} />
+              <MetricCard
+                label="Active projects"
+                value={data.activeProjects ?? 0}
+              />
+              <MetricCard
+                label="Pending approvals"
+                value={data.pendingOrganizations ?? 0}
+              />
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
@@ -98,82 +93,63 @@ export function PlatformOverviewPage() {
                 </Card>
               )}
 
-              <Card className="flex h-full min-h-72 flex-col justify-center bg-primary-subtle/60 p-8">
-                <p className="text-sm font-medium text-text-secondary">
-                  New organizations (30 days)
-                </p>
-                <p className="mt-4 font-display text-3xl font-semibold text-primary sm:text-4xl lg:text-5xl">
-                  {data.newOrganizationsLast30Days.toLocaleString()}
-                </p>
-                <p className="mt-3 text-sm text-text-secondary">
-                  {data.activeOrganizations} of {data.totalOrganizations}{" "}
-                  organizations are currently active.
-                </p>
+              <Card className="flex h-full min-h-72 flex-col overflow-hidden p-0">
+                <div className="border-b border-border px-4 py-4 sm:px-6">
+                  <h2 className="font-display text-lg font-semibold">
+                    Recent organizations
+                  </h2>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    Latest five organizations by signup date.
+                  </p>
+                </div>
+
+                {data.recentOrganizations.length === 0 ? (
+                  <p className="flex flex-1 items-center justify-center px-4 py-8 text-sm text-text-secondary sm:px-6">
+                    No recent organizations to display.
+                  </p>
+                ) : (
+                  <TableScrollArea className="flex-1">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Users</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Created</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {data.recentOrganizations.map((org) => (
+                          <TableRow key={org._id}>
+                            <TableCell>
+                              <Link
+                                to={`/super-admin/organizations/${org._id}`}
+                                className={cn(
+                                  "font-medium text-primary hover:underline"
+                                )}
+                              >
+                                {org.name}
+                              </Link>
+                            </TableCell>
+                            <TableCell className="text-text-secondary">
+                              {org.userCount}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={org.isActive ? "success" : "danger"}>
+                                {org.isActive ? "Active" : "Suspended"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-text-secondary">
+                              {formatDate(org.createdAt)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableScrollArea>
+                )}
               </Card>
             </div>
-
-            <Card className="overflow-hidden p-0">
-              <div className="border-b border-border px-4 py-4 sm:px-6">
-                <h2 className="font-display text-lg font-semibold">
-                  Recent organizations
-                </h2>
-                <p className="mt-1 text-sm text-text-secondary">
-                  Latest five organizations by signup date.
-                </p>
-              </div>
-
-              {data.recentOrganizations.length === 0 ? (
-                <p className="px-4 py-8 text-sm text-text-secondary sm:px-6">
-                  No recent organizations to display.
-                </p>
-              ) : (
-                <TableScrollArea>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Plan</TableHead>
-                        <TableHead>Users</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Created</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.recentOrganizations.map((org) => (
-                        <TableRow key={org._id}>
-                          <TableCell>
-                            <Link
-                              to={`/super-admin/organizations/${org._id}`}
-                              className={cn(
-                                "font-medium text-primary hover:underline"
-                              )}
-                            >
-                              {org.name}
-                            </Link>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={planBadgeVariant(org.plan)}>
-                              {org.plan}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-text-secondary">
-                            {org.userCount}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={org.isActive ? "success" : "danger"}>
-                              {org.isActive ? "Active" : "Suspended"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-text-secondary">
-                            {formatDate(org.createdAt)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableScrollArea>
-              )}
-            </Card>
           </div>
         )
       ) : null}

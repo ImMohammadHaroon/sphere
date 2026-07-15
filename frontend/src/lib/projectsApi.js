@@ -33,3 +33,8 @@ export function removeMember(id, userId) {
     body: { userId },
   });
 }
+
+export function getProjectCalendar(projectId, start, end) {
+  const params = new URLSearchParams({ start, end });
+  return apiClient(`/projects/${projectId}/calendar?${params}`);
+}

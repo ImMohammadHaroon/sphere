@@ -32,16 +32,10 @@ export function LandingFooter() {
           >
             Sign in
           </Link>
-          <a
-            href="#pricing"
-            className="text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm"
-          >
-            Pricing
-          </a>
         </nav>
       </div>
 
-      <p id="pricing" className="mt-8 font-mono text-xs text-text-muted">
+      <p className="mt-8 font-mono text-xs text-text-muted">
         © {year} ProjectSphere
       </p>
     </footer>

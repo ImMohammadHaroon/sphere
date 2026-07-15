@@ -13,21 +13,24 @@ const projectManagerNav = [
   {
     label: "Calendar view",
     to: "/dashboard/calendar",
-    match: (p) => p === "/dashboard/calendar",
+    match: (p) =>
+      p === "/dashboard/calendar" || p.endsWith("/calendar"),
     roles: ["project_manager"],
     icon: "lucide:calendar",
   },
   {
     label: "Reports",
     to: "/dashboard/reports",
-    match: (p) => p === "/dashboard/reports",
+    match: (p) =>
+      p === "/dashboard/reports" || p.includes("/reports"),
     roles: ["project_manager"],
     icon: "lucide:bar-chart-3",
   },
   {
     label: "Milestones",
     to: "/dashboard/milestones",
-    match: (p) => p === "/dashboard/milestones",
+    match: (p) =>
+      p === "/dashboard/milestones" || p.includes("/milestones"),
     roles: ["project_manager"],
     icon: "lucide:flag",
   },

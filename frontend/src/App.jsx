@@ -41,6 +41,7 @@ import { OrganizationsPage } from "@/pages/super-admin/OrganizationsPage";
 import { OrganizationDetailPage } from "@/pages/super-admin/OrganizationDetailPage";
 import { UsersPage } from "@/pages/super-admin/UsersPage";
 import { SuperAdminAuditLogsPage } from "@/pages/super-admin/AuditLogsPage";
+import { SuperAdminReportsPage } from "@/pages/super-admin/ReportsPage";
 import { OrgOverviewPage } from "@/pages/admin/OrgOverviewPage";
 import { AwaitingApprovalPage } from "@/pages/admin/AwaitingApprovalPage";
 import { TeamMembersPage } from "@/pages/admin/TeamMembersPage";
@@ -95,6 +96,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
             <PmKanbanBoardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/projects/:id/calendar"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <CalendarViewPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/projects/:id/milestones"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <PmMilestonesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/projects/:id/reports"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <ProjectManagerReportsPage />
           </ProtectedRoute>
         }
       />
@@ -219,6 +244,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["super_admin"]}>
             <UsersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/super-admin/reports"
+        element={
+          <ProtectedRoute allowedRoles={["super_admin"]}>
+            <SuperAdminReportsPage />
           </ProtectedRoute>
         }
       />

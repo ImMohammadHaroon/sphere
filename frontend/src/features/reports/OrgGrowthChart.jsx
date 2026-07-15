@@ -2,35 +2,46 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { Card } from "@/components/ui/Card";
-import {
-  getPaletteColor,
-  rollupTasksByColumnName,
-} from "@/lib/taskStatusConfig";
 
-export function TasksByStatusChart({
-  tasksByProject,
-  title = "Tasks by status",
-  description = "Task distribution across Kanban columns.",
+export function OrgGrowthChart({
+  series = [],
+  title = "Organizations registered",
+  description = "New organizations per month over the last six months.",
 }) {
-  const data = rollupTasksByColumnName(tasksByProject);
+  const hasData =
+    Array.isArray(series) && series.some((month) => (month.count ?? 0) > 0);
+
+  if (!hasData) {
+    return (
+      <Card className="h-full p-4 sm:p-6">
+        <h2 className="font-display text-lg font-semibold">{title}</h2>
+        <p className="mt-1 text-sm text-text-secondary">{description}</p>
+        <div className="mt-6 flex h-64 items-center justify-center">
+          <p className="text-sm text-text-secondary">Not enough data yet</p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="h-full p-4 sm:p-6">
       <h2 className="font-display text-lg font-semibold">{title}</h2>
       <p className="mt-1 text-sm text-text-secondary">{description}</p>
-      <div className="mt-6 h-72 sm:h-80">
+      <div className="mt-6 h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <BarChart
+            data={series}
+            margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
-              dataKey="name"
+              dataKey="monthLabel"
               tick={{ fill: "hsl(var(--text-secondary))", fontSize: 12 }}
               axisLine={{ stroke: "hsl(var(--border))" }}
               tickLine={false}
@@ -50,14 +61,13 @@ export function TasksByStatusChart({
               }}
               cursor={{ fill: "hsl(var(--primary-subtle))" }}
             />
-            <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-              {data.map((entry) => (
-                <Cell
-                  key={entry.name}
-                  fill={getPaletteColor(entry.color)}
-                />
-              ))}
-            </Bar>
+            <Bar
+              dataKey="count"
+              name="Organizations"
+              fill="hsl(var(--primary))"
+              radius={[6, 6, 0, 0]}
+              isAnimationActive={false}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

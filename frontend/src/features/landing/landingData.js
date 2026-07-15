@@ -115,10 +115,10 @@ export const ROLES = [
     title: "Super Admin",
     scope: "Platform-wide",
     description:
-      "Oversee every organization on the platform  settings, billing oversight, and cross-tenant visibility without mixing data.",
+      "Oversee every organization on the platform — settings and cross-tenant visibility without mixing data.",
     actions: [
       "Manage all organizations",
-      "Platform settings & billing oversight",
+      "Platform settings",
       "Platform-wide audit visibility",
     ],
   },
@@ -127,7 +127,7 @@ export const ROLES = [
     title: "Org Admin",
     scope: "Your organization",
     description:
-      "Own your team's workspace  invite users, assign roles, configure Kanban templates, and manage org billing.",
+      "Own your team's workspace — invite users, assign roles, and configure Kanban templates.",
     actions: [
       "Invite & manage members",
       "Kanban template library",

@@ -1,11 +1,14 @@
 import { Router } from "express";
 import * as projectController from "../controllers/project.controller.js";
+import * as calendarController from "../controllers/calendar.controller.js";
+import * as reportController from "../controllers/report.controller.js";
 import { requireRole } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 import {
   createProjectSchema,
   updateProjectSchema,
   projectIdParamSchema,
+  projectCalendarSchema,
   addMemberSchema,
   removeMemberSchema,
 } from "../validators/project.validator.js";
@@ -13,6 +16,12 @@ import {
 const router = Router();
 
 const projectWriteRoles = requireRole(["org_admin", "project_manager"]);
+const burndownRoles = requireRole([
+  "org_admin",
+  "project_manager",
+  "client",
+]);
+const reportManageRoles = requireRole(["org_admin", "project_manager"]);
 
 /**
  * @openapi
@@ -115,6 +124,119 @@ router.get(
   "/:id/members",
   validate(projectIdParamSchema),
   projectController.listProjectMembers
+);
+
+/**
+ * @openapi
+ * /projects/{id}/calendar:
+ *   get:
+ *     summary: List tasks and milestones in a date range for a project
+ *     tags: [Projects]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: start
+ *         schema: { type: string, format: date }
+ *         description: Range start (YYYY-MM-DD). Defaults to first day of current month.
+ *       - in: query
+ *         name: end
+ *         schema: { type: string, format: date }
+ *         description: Range end (YYYY-MM-DD). Defaults to last day of current month.
+ *     responses:
+ *       200:
+ *         description: Tasks and milestones with dueDate in the range
+ *       404:
+ *         description: Project not found
+ */
+router.get(
+  "/:id/calendar",
+  validate(projectCalendarSchema),
+  calendarController.getProjectCalendar
+);
+
+/**
+ * @openapi
+ * /projects/{id}/reports/burndown:
+ *   get:
+ *     summary: Burndown chart series for a project
+ *     tags: [Reports]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Ideal vs actual remaining tasks by day
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Project not found
+ */
+router.get(
+  "/:id/reports/burndown",
+  burndownRoles,
+  validate(projectIdParamSchema),
+  reportController.getProjectBurndown
+);
+
+/**
+ * @openapi
+ * /projects/{id}/reports/velocity:
+ *   get:
+ *     summary: Task completion velocity for the last 8 weeks
+ *     tags: [Reports]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Weekly completed-task counts
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Project not found
+ */
+router.get(
+  "/:id/reports/velocity",
+  reportManageRoles,
+  validate(projectIdParamSchema),
+  reportController.getProjectVelocity
+);
+
+/**
+ * @openapi
+ * /projects/{id}/reports/workload:
+ *   get:
+ *     summary: Workload by assignee with per-column task counts
+ *     tags: [Reports]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Assignee workload breakdown
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Project not found
+ */
+router.get(
+  "/:id/reports/workload",
+  reportManageRoles,
+  validate(projectIdParamSchema),
+  reportController.getProjectWorkload
 );
 
 /**

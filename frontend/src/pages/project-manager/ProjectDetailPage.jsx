@@ -382,9 +382,20 @@ export function ProjectDetailPage() {
                       Edit
                     </Button>
                     {!isOrgAdmin ? (
-                      <ButtonLink to={`/dashboard/projects/${id}/board`}>
-                        Open board
-                      </ButtonLink>
+                      <>
+                        <ButtonLink to={`/dashboard/projects/${id}/board`}>
+                          Open board
+                        </ButtonLink>
+                        <ButtonLink to={`/dashboard/projects/${id}/calendar`}>
+                          Open calendar
+                        </ButtonLink>
+                        <ButtonLink to={`/dashboard/projects/${id}/milestones`}>
+                          Open milestones
+                        </ButtonLink>
+                        <ButtonLink to={`/dashboard/projects/${id}/reports`}>
+                          Open reports
+                        </ButtonLink>
+                      </>
                     ) : null}
                     {project.status === "active" ? (
                       <Button

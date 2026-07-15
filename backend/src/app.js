@@ -7,6 +7,9 @@ import authRoutes from "./routes/auth.routes.js";
 import inviteRoutes from "./routes/invite.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import taskRoutes, { projectTaskRouter } from "./routes/task.routes.js";
+import milestoneRoutes, {
+  projectMilestoneRouter,
+} from "./routes/milestone.routes.js";
 import platformRoutes from "./routes/platform.routes.js";
 import orgRoutes from "./routes/org.routes.js";
 import auditLogRoutes from "./routes/auditLog.routes.js";
@@ -80,6 +83,13 @@ app.use(
   projectTaskRouter
 );
 app.use("/api/v1/tasks", authenticate, tenantScope, taskRoutes);
+app.use(
+  "/api/v1/projects/:projectId/milestones",
+  authenticate,
+  tenantScope,
+  projectMilestoneRouter
+);
+app.use("/api/v1/milestones", authenticate, tenantScope, milestoneRoutes);
 
 app.use(
   "/api/v1/kanban-templates",

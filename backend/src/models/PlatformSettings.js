@@ -15,11 +15,6 @@ const generalSchema = new mongoose.Schema(
 const registrationSchema = new mongoose.Schema(
   {
     allowSelfServeSignup: { type: Boolean, default: true },
-    defaultPlan: {
-      type: String,
-      enum: ["free", "pro", "enterprise"],
-      default: "free",
-    },
   },
   { _id: false }
 );

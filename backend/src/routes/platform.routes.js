@@ -42,6 +42,9 @@ const router = Router();
  *                 totalUsers:
  *                   type: integer
  *                   example: 48
+ *                 activeUsers:
+ *                   type: integer
+ *                   example: 42
  *                 totalProjects:
  *                   type: integer
  *                   example: 34
@@ -51,6 +54,12 @@ const router = Router();
  *                 totalTasks:
  *                   type: integer
  *                   example: 156
+ *                 pendingOrganizations:
+ *                   type: integer
+ *                   example: 2
+ *                 taskCompletionRate:
+ *                   type: number
+ *                   example: 0.42
  *                 tasksByStatus:
  *                   type: object
  *                   properties:
@@ -80,10 +89,6 @@ const router = Router();
  *                       name:
  *                         type: string
  *                         example: Acme Corp
- *                       plan:
- *                         type: string
- *                         enum: [free, pro, enterprise]
- *                         example: pro
  *                       isActive:
  *                         type: boolean
  *                         example: true
@@ -130,12 +135,6 @@ router.get("/reports/overview", platformController.getPlatformOverview);
  *           type: string
  *         description: Case-insensitive search by organization name
  *       - in: query
- *         name: plan
- *         schema:
- *           type: string
- *           enum: [free, pro, enterprise]
- *         description: Filter by subscription plan
- *       - in: query
  *         name: isActive
  *         schema:
  *           type: string
@@ -163,10 +162,6 @@ router.get("/reports/overview", platformController.getPlatformOverview);
  *                       slug:
  *                         type: string
  *                         example: acme-corp
- *                       plan:
- *                         type: string
- *                         enum: [free, pro, enterprise]
- *                         example: pro
  *                       isActive:
  *                         type: boolean
  *                         example: true
@@ -193,7 +188,6 @@ router.get("/reports/overview", platformController.getPlatformOverview);
  *                 - id: 507f1f77bcf86cd799439011
  *                   name: Acme Corp
  *                   slug: acme-corp
- *                   plan: pro
  *                   isActive: true
  *                   userCount: 8
  *                   projectCount: 5
@@ -257,10 +251,6 @@ router.get(
  *                       name:
  *                         type: string
  *                         example: Acme Corp
- *                       plan:
- *                         type: string
- *                         enum: [free, pro, enterprise]
- *                         example: free
  *                       createdAt:
  *                         type: string
  *                         format: date-time
@@ -424,9 +414,6 @@ router.patch(
  *                       type: string
  *                     slug:
  *                       type: string
- *                     plan:
- *                       type: string
- *                       enum: [free, pro, enterprise]
  *                     isActive:
  *                       type: boolean
  *                     timezone:
@@ -481,7 +468,6 @@ router.patch(
  *                 id: 507f1f77bcf86cd799439011
  *                 name: Acme Corp
  *                 slug: acme-corp
- *                 plan: pro
  *                 isActive: true
  *                 timezone: UTC
  *                 createdAt: 2026-06-15T10:00:00.000Z
@@ -549,8 +535,6 @@ router.get(
  *                       type: string
  *                     slug:
  *                       type: string
- *                     plan:
- *                       type: string
  *                     isActive:
  *                       type: boolean
  *                       example: false
@@ -606,8 +590,6 @@ router.patch(
  *                     name:
  *                       type: string
  *                     slug:
- *                       type: string
- *                     plan:
  *                       type: string
  *                     isActive:
  *                       type: boolean
@@ -1016,10 +998,6 @@ router.get(
  *                         allowSelfServeSignup:
  *                           type: boolean
  *                           example: true
- *                         defaultPlan:
- *                           type: string
- *                           enum: [free, pro, enterprise]
- *                           example: free
  *                     security:
  *                       type: object
  *                       properties:
@@ -1109,15 +1087,11 @@ router.patch(
  *             properties:
  *               registration:
  *                 type: object
- *                 required: [allowSelfServeSignup, defaultPlan]
+ *                 required: [allowSelfServeSignup]
  *                 properties:
  *                   allowSelfServeSignup:
  *                     type: boolean
  *                     example: true
- *                   defaultPlan:
- *                     type: string
- *                     enum: [free, pro, enterprise]
- *                     example: free
  *     responses:
  *       200:
  *         description: Registration settings updated

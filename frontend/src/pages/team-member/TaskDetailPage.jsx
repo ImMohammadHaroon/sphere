@@ -20,6 +20,8 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Label } from "@/components/ui/Label";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { TaskComments } from "@/features/tasks/components/TaskComments";
+import { TaskAttachments } from "@/features/tasks/components/TaskAttachments";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -287,6 +289,9 @@ export function TeamMemberTaskDetailPage() {
               </div>
             </div>
           </Card>
+
+          <TaskComments taskId={taskId} projectId={projectId} />
+          <TaskAttachments taskId={taskId} projectId={projectId} />
         </div>
       ) : null}
     </TeamMemberLayout>

@@ -7,6 +7,14 @@ import authRoutes from "./routes/auth.routes.js";
 import inviteRoutes from "./routes/invite.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import taskRoutes, { projectTaskRouter } from "./routes/task.routes.js";
+import {
+  projectTaskCommentRouter,
+  taskCommentRouter,
+} from "./routes/comment.routes.js";
+import {
+  projectTaskAttachmentRouter,
+  taskAttachmentRouter,
+} from "./routes/attachment.routes.js";
 import milestoneRoutes, {
   projectMilestoneRouter,
 } from "./routes/milestone.routes.js";
@@ -81,6 +89,30 @@ app.use(
   authenticate,
   tenantScope,
   projectTaskRouter
+);
+app.use(
+  "/api/v1/projects/:projectId/tasks/:taskId/comments",
+  authenticate,
+  tenantScope,
+  projectTaskCommentRouter
+);
+app.use(
+  "/api/v1/projects/:projectId/tasks/:taskId/attachments",
+  authenticate,
+  tenantScope,
+  projectTaskAttachmentRouter
+);
+app.use(
+  "/api/v1/tasks/:taskId/comments",
+  authenticate,
+  tenantScope,
+  taskCommentRouter
+);
+app.use(
+  "/api/v1/tasks/:taskId/attachments",
+  authenticate,
+  tenantScope,
+  taskAttachmentRouter
 );
 app.use("/api/v1/tasks", authenticate, tenantScope, taskRoutes);
 app.use(

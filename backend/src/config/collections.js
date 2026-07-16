@@ -11,4 +11,6 @@ export const COLLECTIONS = {
   ORG_REGISTRATION_PENDING: "orgregistrationpendings",
   NOTIFICATIONS: "notifications",
   KANBAN_TEMPLATES: "kanbantemplates",
+  COMMENTS: "comments",
+  ATTACHMENTS: "attachments",
 };

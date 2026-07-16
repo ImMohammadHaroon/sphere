@@ -25,21 +25,29 @@ async function assertProjectAccess(user, projectId) {
   return project;
 }
 
+/** Mutable emitters object so tests can mock.method(emitters, "emitToUser", ...). */
+export const emitters = {
+  emitToProject(projectId, event, payload) {
+    if (!io) {
+      return;
+    }
+    io.to(`project:${projectId}`).emit(event, payload);
+  },
+  emitToUser(userId, event, payload) {
+    if (!io) {
+      return;
+    }
+    io.to(`user:${userId}`).emit(event, payload);
+  },
+};
+
 export function emitToProject(projectId, event, payload) {
-  if (!io) {
-    return;
-  }
-  io.to(`project:${projectId}`).emit(event, payload);
+  return emitters.emitToProject(projectId, event, payload);
 }
 
 export function emitToUser(userId, event, payload) {
-  if (!io) {
-    return;
-  }
-  io.to(`user:${userId}`).emit(event, payload);
+  return emitters.emitToUser(userId, event, payload);
 }
-
-// TODO: emitToProject(projectId, "comment:new", payload) when Comment model exists
 
 export function initSockets(httpServer) {
   io = new Server(httpServer, {

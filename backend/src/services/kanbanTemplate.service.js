@@ -76,6 +76,34 @@ export function copyColumns(columns) {
   }));
 }
 
+/**
+ * Pre-save column invariants: unique keys, at most one isDone,
+ * and default the last column (by order) to isDone when none is set.
+ * Mutates and returns the columns array.
+ */
+export function enforceKanbanColumnRules(columns) {
+  const keys = columns.map((c) => c.key);
+  if (new Set(keys).size !== keys.length) {
+    throw new Error("Column keys must be unique within a template");
+  }
+
+  const doneColumns = columns.filter((c) => c.isDone);
+  if (doneColumns.length > 1) {
+    throw new Error("Exactly one column must be marked as done");
+  }
+
+  if (doneColumns.length === 0 && columns.length > 0) {
+    const sorted = [...columns].sort((a, b) => a.order - b.order);
+    const last = sorted[sorted.length - 1];
+    const lastInDoc = columns.find((c) => c.key === last.key);
+    if (lastInDoc) {
+      lastInDoc.isDone = true;
+    }
+  }
+
+  return columns;
+}
+
 export async function createKanbanTemplate({
   organizationId,
   createdBy,

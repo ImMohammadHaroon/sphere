@@ -27,6 +27,8 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { TaskComments } from "@/features/tasks/components/TaskComments";
+import { TaskAttachments } from "@/features/tasks/components/TaskAttachments";
 
 const selectClassName =
   "flex h-10 w-full rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20";
@@ -405,6 +407,9 @@ export function TaskDetailPage() {
               </div>
             </div>
           </Card>
+
+          <TaskComments taskId={taskId} projectId={projectId} />
+          <TaskAttachments taskId={taskId} projectId={projectId} />
         </div>
       ) : null}
     </Layout>

@@ -1,5 +1,5 @@
 import { Notification } from "../models/Notification.js";
-import { emitToUser } from "../sockets/index.js";
+import { emitters } from "../sockets/index.js";
 
 function formatNotification(notification) {
   return {
@@ -34,7 +34,7 @@ export async function createNotification({
   });
 
   try {
-    emitToUser(
+    emitters.emitToUser(
       userId.toString(),
       "notification:new",
       formatNotification(notification)

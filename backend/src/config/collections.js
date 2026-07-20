@@ -1,5 +1,4 @@
 export const COLLECTIONS = {
-  AUDIT_LOGS: "auditlogs",
   INVITES: "invites",
   INVITE_TOKENS: "invitetokens",
   ORGANIZATIONS: "organizations",

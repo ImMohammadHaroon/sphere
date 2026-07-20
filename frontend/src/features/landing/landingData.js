@@ -119,7 +119,7 @@ export const ROLES = [
     actions: [
       "Manage all organizations",
       "Platform settings",
-      "Platform-wide audit visibility",
+      "Cross-tenant reports",
     ],
   },
   {
@@ -179,9 +179,9 @@ export const SECURITY_POINTS = [
       "Every query is scoped by organizationId server-side. One org's projects, tasks, and files never bleed into another's.",
   },
   {
-    title: "Audit logs",
+    title: "Encrypted at rest",
     description:
-      "Track who changed what  role changes, task updates, and org events are recorded for accountability.",
+      "Sensitive fields and attachment bytes are encrypted server-side so stored data stays protected beyond access control.",
   },
   {
     title: "Role-based access",

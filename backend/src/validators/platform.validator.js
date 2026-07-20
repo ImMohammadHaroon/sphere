@@ -69,19 +69,6 @@ export const listAllUsersQuerySchema = z.object({
     .strict(),
 });
 
-export const listPlatformAuditLogsQuerySchema = z.object({
-  query: z
-    .object({
-      page: z.coerce.number().int().min(1).optional().default(1),
-      limit: z.coerce.number().int().min(1).max(100).optional().default(20),
-      action: z.string().trim().min(1).optional(),
-      organizationId: objectId.optional(),
-      startDate: z.coerce.date().optional(),
-      endDate: z.coerce.date().optional(),
-    })
-    .strict(),
-});
-
 export const updateGeneralSettingsSchema = z.object({
   body: z
     .object({

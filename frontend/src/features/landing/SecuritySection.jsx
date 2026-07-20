@@ -1,11 +1,11 @@
 import { motion } from "motion/react";
-import { Lock, ScrollText, Shield } from "lucide-react";
+import { Lock, Shield, KeyRound } from "lucide-react";
 import { SECURITY_POINTS } from "./landingData";
 import { useLandingMotion } from "./landingMotion";
 
 const ICONS = {
   "Tenant isolation": Shield,
-  "Audit logs": ScrollText,
+  "Encrypted at rest": KeyRound,
   "Role-based access": Lock,
 };
 
@@ -24,7 +24,7 @@ export function SecuritySection() {
         </h2>
         <p className="mt-4 text-text-secondary">
           Multi-tenant SaaS only works if each organization&apos;s data stays
-          walled off  and if you can trace what happened when it matters.
+          walled off  and if access is enforced at every layer.
         </p>
       </motion.div>
 

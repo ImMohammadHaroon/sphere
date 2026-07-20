@@ -112,32 +112,3 @@ function buildUsersQuery(params = {}) {
 export function listAllUsers(params = {}) {
   return apiClient(`/platform/users${buildUsersQuery(params)}`);
 }
-
-function buildAuditLogsQuery(params = {}) {
-  const searchParams = new URLSearchParams();
-  searchParams.set("page", String(params.page ?? 1));
-  searchParams.set("limit", String(params.limit ?? 10));
-
-  if (params.action) {
-    searchParams.set("action", params.action);
-  }
-
-  if (params.organizationId) {
-    searchParams.set("organizationId", params.organizationId);
-  }
-
-  if (params.startDate) {
-    searchParams.set("startDate", params.startDate);
-  }
-
-  if (params.endDate) {
-    searchParams.set("endDate", params.endDate);
-  }
-
-  const query = searchParams.toString();
-  return query ? `?${query}` : "";
-}
-
-export function listPlatformAuditLogs(params = {}) {
-  return apiClient(`/platform/audit-logs${buildAuditLogsQuery(params)}`);
-}

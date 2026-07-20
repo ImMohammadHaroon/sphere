@@ -29,6 +29,9 @@ function createAttachmentRouter() {
    * /projects/{projectId}/tasks/{taskId}/attachments:
    *   get:
    *     summary: List attachment metadata for a task (tenant-scoped)
+   *     description: >
+   *       Returns metadata only. File bytes are encrypted at rest (AES-256-GCM)
+   *       and are never included in this response — use the download endpoint.
    *     tags: [Attachments]
    *     security: [{ bearerAuth: [] }]
    *     parameters:
@@ -42,7 +45,7 @@ function createAttachmentRouter() {
    *         schema: { type: string }
    *     responses:
    *       200:
-   *         description: List of attachment metadata (no file bytes)
+   *         description: List of attachment metadata (no encryptedData/iv/authTag)
    *       404:
    *         description: Task not found
    */
@@ -57,6 +60,9 @@ function createAttachmentRouter() {
    * /projects/{projectId}/tasks/{taskId}/attachments:
    *   post:
    *     summary: Upload a file attachment to a task (tenant-scoped)
+   *     description: >
+   *       Accepts multipart file (max 5MB). Bytes are encrypted with AES-256-GCM
+   *       before being stored in MongoDB — plaintext is never persisted.
    *     tags: [Attachments]
    *     security: [{ bearerAuth: [] }]
    *     parameters:
@@ -81,7 +87,7 @@ function createAttachmentRouter() {
    *                 format: binary
    *     responses:
    *       201:
-   *         description: Attachment uploaded
+   *         description: Attachment uploaded (metadata only in response body)
    *       400:
    *         description: No file or file too large (max 5MB)
    *       403:
@@ -102,6 +108,10 @@ function createAttachmentRouter() {
    * /projects/{projectId}/tasks/{taskId}/attachments/{id}/download:
    *   get:
    *     summary: Download or view an attachment file (tenant-scoped)
+   *     description: >
+   *       Decrypts AES-256-GCM ciphertext stored in MongoDB and streams the
+   *       original file bytes. Requires the same tenant/project membership
+   *       checks as listing attachments.
    *     tags: [Attachments]
    *     security: [{ bearerAuth: [] }]
    *     parameters:
@@ -119,7 +129,7 @@ function createAttachmentRouter() {
    *         schema: { type: string }
    *     responses:
    *       200:
-   *         description: File bytes
+   *         description: Decrypted file bytes
    *         content:
    *           application/octet-stream:
    *             schema:

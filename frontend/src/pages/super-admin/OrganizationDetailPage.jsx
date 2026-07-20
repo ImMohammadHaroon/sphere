@@ -319,7 +319,7 @@ export function OrganizationDetailPage() {
             open={deleteOpen}
             onOpenChange={setDeleteOpen}
             title="Delete organization"
-            description="This soft-deletes the organization. It will be hidden from the platform list and return 404 on access. The audit log retains a record."
+            description="This soft-deletes the organization. It will be hidden from the platform list and return 404 on access."
             confirmLabel="Delete organization"
             slug={organization.slug}
             onConfirm={handleDelete}

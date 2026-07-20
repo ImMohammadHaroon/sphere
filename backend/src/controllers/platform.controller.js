@@ -3,9 +3,7 @@ import { Organization } from "../models/Organization.js";
 import { User } from "../models/User.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
-import { AuditLog } from "../models/AuditLog.js";
 import { PlatformSettings } from "../models/PlatformSettings.js";
-import { getClientIp, logAction } from "../services/auditLog.service.js";
 import { sendMail } from "../services/email/transporter.js";
 import { buildOrgApprovalEmail } from "../services/email/orgApprovalEmail.js";
 import { buildOrgRejectionEmail } from "../services/email/orgRejectionEmail.js";
@@ -508,16 +506,6 @@ export async function approveOrganization(req, res, next) {
       await sendMail({ to: admin.email, subject, html, text });
     }
 
-    await logAction({
-      organizationId: org._id,
-      actorId: req.user.userId,
-      action: "organization.approved",
-      targetType: "Organization",
-      targetId: org._id,
-      metadata: { slug: org.slug, name: org.name },
-      ip: getClientIp(req),
-    });
-
     res.json({
       message: "Organization approved",
       organization: mapOrganizationDetail(org),
@@ -559,16 +547,6 @@ export async function rejectOrganization(req, res, next) {
       });
       await sendMail({ to: admin.email, subject, html, text });
     }
-
-    await logAction({
-      organizationId: org._id,
-      actorId: req.user.userId,
-      action: "organization.rejected",
-      targetType: "Organization",
-      targetId: org._id,
-      metadata: { slug: org.slug, name: org.name, reason },
-      ip: getClientIp(req),
-    });
 
     res.json({
       message: "Organization rejected",
@@ -667,16 +645,6 @@ export async function suspendOrganization(req, res, next) {
     org.isActive = false;
     await org.save();
 
-    await logAction({
-      organizationId: org._id,
-      actorId: req.user.userId,
-      action: "organization.suspended",
-      targetType: "Organization",
-      targetId: org._id,
-      metadata: { slug: org.slug, name: org.name },
-      ip: getClientIp(req),
-    });
-
     res.json({
       message: "Organization suspended",
       organization: mapOrganizationDetail(org),
@@ -704,16 +672,6 @@ export async function activateOrganization(req, res, next) {
     org.isActive = true;
     await org.save();
 
-    await logAction({
-      organizationId: org._id,
-      actorId: req.user.userId,
-      action: "organization.activated",
-      targetType: "Organization",
-      targetId: org._id,
-      metadata: { slug: org.slug, name: org.name },
-      ip: getClientIp(req),
-    });
-
     res.json({
       message: "Organization activated",
       organization: mapOrganizationDetail(org),
@@ -738,16 +696,6 @@ export async function deleteOrganization(req, res, next) {
     org.isActive = false;
     org.deletedAt = new Date();
     await org.save();
-
-    await logAction({
-      organizationId: org._id,
-      actorId: req.user.userId,
-      action: "organization.deleted",
-      targetType: "Organization",
-      targetId: org._id,
-      metadata: { slug: org.slug, name: org.name },
-      ip: getClientIp(req),
-    });
 
     res.json({
       message: "Organization deleted",
@@ -860,35 +808,6 @@ export async function listAllUsers(req, res, next) {
   }
 }
 
-function formatPlatformAuditLog(log) {
-  const actor = log.actorId;
-  const org = log.organizationId;
-
-  return {
-    id: log._id.toString(),
-    action: log.action,
-    targetType: log.targetType,
-    targetId: log.targetId?.toString() ?? null,
-    metadata: log.metadata ?? {},
-    ip: log.ip,
-    createdAt: log.createdAt,
-    actor: actor
-      ? {
-          name: actor.name,
-          email: actor.email,
-        }
-      : null,
-    organization:
-      org && org._id
-        ? {
-            id: org._id.toString(),
-            name: org.name,
-            slug: org.slug,
-          }
-        : null,
-  };
-}
-
 function formatPlatformSettings(doc) {
   return {
     id: doc._id.toString(),
@@ -912,18 +831,6 @@ function formatPlatformSettings(doc) {
   };
 }
 
-async function logPlatformSettingsUpdate(req, settings, section) {
-  await logAction({
-    organizationId: null,
-    actorId: req.user.userId,
-    action: "platform_settings.updated",
-    targetType: "PlatformSettings",
-    targetId: settings._id,
-    metadata: { section },
-    ip: getClientIp(req),
-  });
-}
-
 export async function getPlatformSettings(req, res, next) {
   try {
     const settings = await PlatformSettings.getOrCreate();
@@ -945,7 +852,6 @@ export async function updateGeneralSettings(req, res, next) {
 
     settings.markModified("general");
     await settings.save();
-    await logPlatformSettingsUpdate(req, settings, "general");
 
     res.json({ settings: formatPlatformSettings(settings) });
   } catch (err) {
@@ -964,7 +870,6 @@ export async function updateRegistrationSettings(req, res, next) {
 
     settings.markModified("registration");
     await settings.save();
-    await logPlatformSettingsUpdate(req, settings, "registration");
 
     res.json({ settings: formatPlatformSettings(settings) });
   } catch (err) {
@@ -984,7 +889,6 @@ export async function updateSecuritySettings(req, res, next) {
 
     settings.markModified("security");
     await settings.save();
-    await logPlatformSettingsUpdate(req, settings, "security");
 
     res.json({ settings: formatPlatformSettings(settings) });
   } catch (err) {
@@ -1004,58 +908,8 @@ export async function updateMaintenanceSettings(req, res, next) {
 
     settings.markModified("maintenance");
     await settings.save();
-    await logPlatformSettingsUpdate(req, settings, "maintenance");
 
     res.json({ settings: formatPlatformSettings(settings) });
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function listPlatformAuditLogs(req, res, next) {
-  try {
-    const query = req.validatedQuery ?? req.query;
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
-    const skip = (page - 1) * limit;
-
-    const filter = {};
-
-    if (query.action) {
-      filter.action = query.action;
-    }
-
-    if (query.organizationId) {
-      filter.organizationId = new mongoose.Types.ObjectId(query.organizationId);
-    }
-
-    if (query.startDate || query.endDate) {
-      filter.createdAt = {};
-      if (query.startDate) {
-        filter.createdAt.$gte = query.startDate;
-      }
-      if (query.endDate) {
-        filter.createdAt.$lte = query.endDate;
-      }
-    }
-
-    const [logs, total] = await Promise.all([
-      AuditLog.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate("actorId", "name email")
-        .populate("organizationId", "name slug")
-        .lean(),
-      AuditLog.countDocuments(filter),
-    ]);
-
-    res.json({
-      logs: logs.map(formatPlatformAuditLog),
-      total,
-      page,
-      totalPages: Math.ceil(total / limit) || 1,
-    });
   } catch (err) {
     next(err);
   }

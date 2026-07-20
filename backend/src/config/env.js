@@ -51,6 +51,8 @@ export const env = {
   JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
   ENCRYPTION_KEY: required("ENCRYPTION_KEY"),
+  // AES-256-GCM master key for attachment bytes at rest (base64-encoded 32 bytes)
+  FILE_ENCRYPTION_KEY: required("FILE_ENCRYPTION_KEY"),
   COOKIE_SECURE: cookieSecure,
   COOKIE_SAME_SITE: cookieSameSite,
   RATE_LIMIT_WINDOW_MS: Number(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
@@ -62,5 +64,6 @@ export const env = {
   SMTP_USER: process.env.SMTP_USER || "",
   SMTP_PASS: process.env.SMTP_PASS || "",
   SMTP_FROM: process.env.SMTP_FROM || "",
+  ENABLE_SCHEDULED_CLEANUP: process.env.ENABLE_SCHEDULED_CLEANUP !== "false",
   isProduction,
 };

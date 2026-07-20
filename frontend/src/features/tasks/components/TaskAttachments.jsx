@@ -111,8 +111,18 @@ export function TaskAttachments({ taskId, projectId }) {
   async function handleOpen(attachment) {
     try {
       const blob = await downloadAttachment(taskId, attachment._id);
-      const objectUrl = URL.createObjectURL(blob);
-      window.open(objectUrl, "_blank", "noopener,noreferrer");
+      const typedBlob =
+        blob.type || !attachment.mimeType
+          ? blob
+          : new Blob([blob], { type: attachment.mimeType });
+      const objectUrl = URL.createObjectURL(typedBlob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = attachment.fileName || "download";
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
     } catch (err) {
       showToast(

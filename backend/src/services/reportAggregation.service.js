@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { AuditLog } from "../models/AuditLog.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { DEFAULT_BOARD_COLUMNS, copyColumns } from "./kanbanTemplate.service.js";
@@ -89,8 +88,7 @@ export function formatUtcDate(date) {
 
 /**
  * Completion events for a single project.
- * Uses AuditLog task.moved → done column (earliest per task), falling back to
- * task.updatedAt for tasks currently in done with no matching audit entry.
+ * Uses task.updatedAt for tasks currently in the done column.
  *
  * @returns {Promise<Array<{ taskId: string, completedAt: Date }>>}
  */
@@ -117,49 +115,17 @@ export async function getTaskCompletionEvents(projectId, organizationId) {
   const tasks = await Task.find({
     projectId: projId,
     organizationId: orgId,
+    status: doneKey,
   })
-    .select("_id status updatedAt")
+    .select("_id updatedAt")
     .lean();
 
-  if (tasks.length === 0) {
-    return [];
-  }
-
-  const taskIds = tasks.map((task) => task._id);
-
-  const auditEntries = await AuditLog.find({
-    organizationId: orgId,
-    targetType: "Task",
-    action: "task.moved",
-    targetId: { $in: taskIds },
-    "metadata.toStatus": doneKey,
-  })
-    .select("targetId createdAt")
-    .sort({ createdAt: 1 })
-    .lean();
-
-  const earliestByTask = new Map();
-  for (const entry of auditEntries) {
-    const id = entry.targetId.toString();
-    if (!earliestByTask.has(id)) {
-      earliestByTask.set(id, entry.createdAt);
-    }
-  }
-
-  const events = [];
-  for (const task of tasks) {
-    const id = task._id.toString();
-    if (earliestByTask.has(id)) {
-      events.push({ taskId: id, completedAt: earliestByTask.get(id) });
-      continue;
-    }
-
-    if (task.status === doneKey && task.updatedAt) {
-      events.push({ taskId: id, completedAt: task.updatedAt });
-    }
-  }
-
-  return events;
+  return tasks
+    .filter((task) => task.updatedAt)
+    .map((task) => ({
+      taskId: task._id.toString(),
+      completedAt: task.updatedAt,
+    }));
 }
 
 /**

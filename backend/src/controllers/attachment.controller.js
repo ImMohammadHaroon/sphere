@@ -1,9 +1,12 @@
 import { Attachment } from "../models/Attachment.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
-import { logAction, getClientIp } from "../services/auditLog.service.js";
 import { isProjectMember } from "../utils/projectAccess.js";
+import { encryptBuffer, decryptBuffer } from "../utils/fileEncryption.js";
 import { emitToProject } from "../sockets/index.js";
+
+/** Projection that strips ciphertext material from metadata responses. */
+const METADATA_SELECT = "-encryptedData -iv -authTag";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -91,7 +94,7 @@ export async function listAttachments(req, res, next) {
 
     const attachments = await req
       .scopedQuery(Attachment, { taskId: req.params.taskId })
-      .select("-data")
+      .select(METADATA_SELECT)
       .populate("uploaderId", "name email")
       .sort({ createdAt: 1 })
       .lean();
@@ -108,11 +111,15 @@ export async function uploadAttachment(req, res, next) {
       throw badRequest("No file uploaded");
     }
 
+    // 5MB cap is enforced by multer in src/config/upload.js because MongoDB's
+    // 16MB document limit is the hard ceiling (metadata + encrypted buffer must fit).
     const { task } = await assertTaskReadable(
       req,
       req.params.taskId,
       req.params.projectId
     );
+
+    const { ciphertext, iv, authTag } = encryptBuffer(req.file.buffer);
 
     const created = await Attachment.create({
       organizationId: req.user.organizationId,
@@ -121,31 +128,18 @@ export async function uploadAttachment(req, res, next) {
       fileName: req.file.originalname,
       mimeType: req.file.mimetype,
       size: req.file.size,
-      data: req.file.buffer,
+      encryptedData: ciphertext,
+      iv,
+      authTag,
     });
 
     const attachment = await req
       .scopedFindOne(Attachment, { _id: created._id })
-      .select("-data")
+      .select(METADATA_SELECT)
       .populate("uploaderId", "name email")
       .lean();
 
     const attachmentPayload = formatAttachment(attachment);
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "attachment.uploaded",
-      targetType: "Attachment",
-      targetId: created._id,
-      metadata: {
-        taskId: task._id.toString(),
-        projectId: task.projectId.toString(),
-        fileName: created.fileName,
-        size: created.size,
-      },
-      ip: getClientIp(req),
-    });
 
     emitToProject(task.projectId.toString(), "attachment:new", attachmentPayload);
 
@@ -170,12 +164,18 @@ export async function downloadAttachment(req, res, next) {
       throw notFound();
     }
 
+    const plaintext = decryptBuffer(
+      attachment.encryptedData,
+      attachment.iv,
+      attachment.authTag
+    );
+
     res.set("Content-Type", attachment.mimeType);
     res.set(
       "Content-Disposition",
       `inline; filename="${attachment.fileName}"`
     );
-    res.send(attachment.data);
+    res.send(plaintext);
   } catch (err) {
     next(err);
   }
@@ -202,20 +202,6 @@ export async function deleteAttachment(req, res, next) {
     if (!task) {
       throw notFound();
     }
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "attachment.deleted",
-      targetType: "Attachment",
-      targetId: attachment._id,
-      metadata: {
-        taskId: attachment.taskId.toString(),
-        projectId: task.projectId.toString(),
-        fileName: attachment.fileName,
-      },
-      ip: getClientIp(req),
-    });
 
     emitToProject(task.projectId.toString(), "attachment:deleted", {
       attachmentId: attachment._id.toString(),

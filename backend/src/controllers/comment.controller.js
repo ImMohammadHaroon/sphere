@@ -1,7 +1,6 @@
 import { Comment } from "../models/Comment.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
-import { logAction, getClientIp } from "../services/auditLog.service.js";
 import { isProjectMember } from "../utils/projectAccess.js";
 import { emitToProject } from "../sockets/index.js";
 
@@ -116,19 +115,6 @@ export async function createComment(req, res, next) {
 
     const commentPayload = formatComment(comment);
 
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "comment.created",
-      targetType: "Comment",
-      targetId: created._id,
-      metadata: {
-        taskId: task._id.toString(),
-        projectId: task.projectId.toString(),
-      },
-      ip: getClientIp(req),
-    });
-
     emitToProject(task.projectId.toString(), "comment:new", commentPayload);
 
     res.status(201).json({ comment: commentPayload });
@@ -158,19 +144,6 @@ export async function deleteComment(req, res, next) {
     if (!task) {
       throw notFound();
     }
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "comment.deleted",
-      targetType: "Comment",
-      targetId: comment._id,
-      metadata: {
-        taskId: comment.taskId.toString(),
-        projectId: task.projectId.toString(),
-      },
-      ip: getClientIp(req),
-    });
 
     emitToProject(task.projectId.toString(), "comment:deleted", {
       commentId: comment._id.toString(),

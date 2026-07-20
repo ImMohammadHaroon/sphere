@@ -1,6 +1,5 @@
 import * as inviteService from "../services/invite.service.js";
 import { Invite } from "../models/Invite.js";
-import { logAction, getClientIp } from "../services/auditLog.service.js";
 import { createNotification } from "../services/notification.service.js";
 
 export async function createInvite(req, res, next) {
@@ -10,16 +9,6 @@ export async function createInvite(req, res, next) {
       email: req.body.email,
       role: req.body.role,
       invitedBy: req.user.userId,
-    });
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "user.invited",
-      targetType: "Invite",
-      targetId: result.invite.id,
-      metadata: { email: req.body.email, role: req.body.role },
-      ip: getClientIp(req),
     });
 
     res.status(201).json({
@@ -49,7 +38,6 @@ export async function acceptInvite(req, res, next) {
       name: req.body.name,
       password: req.body.password,
       deviceId: req.body.deviceId,
-      ip: getClientIp(req),
     });
 
     try {
@@ -89,16 +77,6 @@ export async function revokeInvite(req, res, next) {
     const result = await inviteService.revokeInvite({
       organizationId: req.user.organizationId,
       inviteId: req.params.id,
-    });
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "invite.revoked",
-      targetType: "Invite",
-      targetId: req.params.id,
-      metadata: { email: result.email },
-      ip: getClientIp(req),
     });
 
     res.json(result);

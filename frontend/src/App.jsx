@@ -40,7 +40,6 @@ import { PlatformOverviewPage } from "@/pages/super-admin/PlatformOverviewPage";
 import { OrganizationsPage } from "@/pages/super-admin/OrganizationsPage";
 import { OrganizationDetailPage } from "@/pages/super-admin/OrganizationDetailPage";
 import { UsersPage } from "@/pages/super-admin/UsersPage";
-import { SuperAdminAuditLogsPage } from "@/pages/super-admin/AuditLogsPage";
 import { SuperAdminReportsPage } from "@/pages/super-admin/ReportsPage";
 import { OrgOverviewPage } from "@/pages/admin/OrgOverviewPage";
 import { AwaitingApprovalPage } from "@/pages/admin/AwaitingApprovalPage";
@@ -48,7 +47,6 @@ import { TeamMembersPage } from "@/pages/admin/TeamMembersPage";
 import { UserDetailPage } from "@/pages/admin/UserDetailPage";
 import { AllProjectsPage } from "@/pages/admin/AllProjectsPage";
 import { ReportsPage } from "@/pages/admin/ReportsPage";
-import { AuditLogsPage } from "@/pages/admin/AuditLogsPage";
 import { SettingsPage } from "@/pages/admin/SettingsPage";
 
 const queryClient = new QueryClient();
@@ -256,14 +254,6 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/super-admin/audit-logs"
-        element={
-          <ProtectedRoute allowedRoles={["super_admin"]}>
-            <SuperAdminAuditLogsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/super-admin/notifications"
         element={
           <ProtectedRoute allowedRoles={["super_admin"]}>
@@ -328,14 +318,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["org_admin"]}>
             <ReportsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/audit-logs"
-        element={
-          <ProtectedRoute allowedRoles={["org_admin"]}>
-            <AuditLogsPage />
           </ProtectedRoute>
         }
       />

@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Paperclip, X } from "lucide-react";
 import { useCreateTask } from "@/features/tasks/hooks/useCreateTask";
 import { useProjectMembers } from "@/features/tasks/hooks/useProjectMembers";
+import { uploadAttachment } from "@/lib/attachmentsApi";
 import { dateInputToIso } from "@/lib/dateFormHelpers";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 const emptyForm = {
   title: "",
@@ -36,24 +40,75 @@ function formatRoleLabel(role) {
   return labels[role] ?? role?.replaceAll("_", " ") ?? "";
 }
 
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function CreateTaskModal({ open, onOpenChange, projectId }) {
   const createTask = useCreateTask(projectId);
   const { data: members, isLoading: membersLoading } = useProjectMembers(
     open ? projectId : undefined
   );
+  const fileInputRef = useRef(null);
   const [form, setForm] = useState(emptyForm);
+  const [files, setFiles] = useState([]);
   const [error, setError] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+
+  const isSubmitting = createTask.isPending || isUploading;
+
+  function resetForm() {
+    setForm(emptyForm);
+    setFiles([]);
+    setError("");
+    setIsUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
 
   function handleOpenChange(nextOpen) {
     if (!nextOpen) {
-      setForm(emptyForm);
-      setError("");
+      resetForm();
     }
     onOpenChange(nextOpen);
   }
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleFileChange(event) {
+    const selected = Array.from(event.target.files ?? []);
+    event.target.value = "";
+
+    if (!selected.length) {
+      return;
+    }
+
+    const oversized = selected.find((file) => file.size > MAX_FILE_SIZE);
+    if (oversized) {
+      setError(`"${oversized.name}" is too large. Max size is 5MB.`);
+      return;
+    }
+
+    setError("");
+    setFiles((current) => {
+      const existingKeys = new Set(
+        current.map((file) => `${file.name}-${file.size}-${file.lastModified}`)
+      );
+      const next = selected.filter(
+        (file) =>
+          !existingKeys.has(`${file.name}-${file.size}-${file.lastModified}`)
+      );
+      return [...current, ...next];
+    });
+  }
+
+  function removeFile(index) {
+    setFiles((current) => current.filter((_, i) => i !== index));
   }
 
   async function handleSubmit(event) {
@@ -66,16 +121,37 @@ export function CreateTaskModal({ open, onOpenChange, projectId }) {
     }
 
     try {
-      await createTask.mutateAsync({
+      const result = await createTask.mutateAsync({
         title: form.title.trim(),
         description: form.description.trim(),
         assigneeId: form.assigneeId || null,
         priority: form.priority,
         dueDate: dateInputToIso(form.dueDate),
       });
+
+      const taskId = result?.task?._id;
+      if (taskId && files.length > 0) {
+        setIsUploading(true);
+        try {
+          for (const file of files) {
+            await uploadAttachment(taskId, file);
+          }
+        } catch (uploadErr) {
+          setError(
+            uploadErr instanceof Error
+              ? `Task created, but attachment failed: ${uploadErr.message}`
+              : "Task created, but failed to attach file."
+          );
+          setIsUploading(false);
+          return;
+        }
+        setIsUploading(false);
+      }
+
       handleOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create task.");
+      setIsUploading(false);
     }
   }
 
@@ -161,15 +237,64 @@ export function CreateTaskModal({ open, onOpenChange, projectId }) {
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label>Attachments</Label>
+            <p className="text-xs text-text-muted">Optional · max 5MB each</p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              multiple
+              onChange={handleFileChange}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isSubmitting}
+            >
+              <Paperclip className="mr-2 h-4 w-4" />
+              Attach file
+            </Button>
+            {files.length > 0 ? (
+              <ul className="space-y-2 pt-1">
+                {files.map((file, index) => (
+                  <li
+                    key={`${file.name}-${file.size}-${file.lastModified}`}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm"
+                  >
+                    <span className="min-w-0 truncate text-text-primary">
+                      {file.name}
+                      <span className="ml-2 text-text-muted">
+                        {formatFileSize(file.size)}
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      className="shrink-0 rounded p-1 text-text-muted hover:bg-surface hover:text-text-primary"
+                      onClick={() => removeFile(index)}
+                      disabled={isSubmitting}
+                      aria-label={`Remove ${file.name}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+
           <DialogFooter>
             <Button
               type="button"
               variant="ghost"
               onClick={() => handleOpenChange(false)}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button type="submit" isLoading={createTask.isPending}>
+            <Button type="submit" isLoading={isSubmitting}>
               Create task
             </Button>
           </DialogFooter>

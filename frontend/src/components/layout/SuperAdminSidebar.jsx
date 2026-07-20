@@ -32,12 +32,6 @@ const superAdminNav = [
     icon: "lucide:bar-chart-3",
   },
   {
-    label: "Audit logs",
-    to: "/super-admin/audit-logs",
-    match: (p) => p === "/super-admin/audit-logs",
-    icon: "lucide:scroll-text",
-  },
-  {
     label: "Notifications",
     to: "/super-admin/notifications",
     match: (p) => p === "/super-admin/notifications",

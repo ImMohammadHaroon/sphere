@@ -1,5 +1,4 @@
 import { Organization } from "../models/Organization.js";
-import { logAction, getClientIp } from "../services/auditLog.service.js";
 import { deleteOrganizationById } from "../services/orgDelete.service.js";
 import { slugify } from "../utils/slug.js";
 
@@ -102,16 +101,6 @@ export async function updateGeneralSettings(req, res, next) {
     org.markModified("settings");
     await org.save();
 
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "org.settings_updated",
-      targetType: "Organization",
-      targetId: org._id,
-      metadata: { section: "general" },
-      ip: getClientIp(req),
-    });
-
     res.json({ organization: formatOrganization(org) });
   } catch (err) {
     next(err);
@@ -131,16 +120,6 @@ export async function updateSecuritySettings(req, res, next) {
     org.markModified("settings");
     await org.save();
 
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "org.settings_updated",
-      targetType: "Organization",
-      targetId: org._id,
-      metadata: { section: "security" },
-      ip: getClientIp(req),
-    });
-
     res.json({ organization: formatOrganization(org) });
   } catch (err) {
     next(err);
@@ -159,16 +138,6 @@ export async function updateInvitePolicy(req, res, next) {
 
     org.markModified("settings");
     await org.save();
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "org.settings_updated",
-      targetType: "Organization",
-      targetId: org._id,
-      metadata: { section: "invite_policy" },
-      ip: getClientIp(req),
-    });
 
     res.json({ organization: formatOrganization(org) });
   } catch (err) {
@@ -194,16 +163,6 @@ export async function deactivateOrg(req, res, next) {
     org.isActive = false;
     await org.save();
 
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "org.deactivated",
-      targetType: "Organization",
-      targetId: org._id,
-      metadata: { slug: org.slug },
-      ip: getClientIp(req),
-    });
-
     res.json({
       message: "Organization deactivated",
       organization: formatOrganization(org),
@@ -226,16 +185,6 @@ export async function deleteOrg(req, res, next) {
       name: org.name,
       slug: org.slug,
     };
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "org.deleted",
-      targetType: "Organization",
-      targetId: orgId,
-      metadata: orgSnapshot,
-      ip: getClientIp(req),
-    });
 
     await deleteOrganizationById(orgId);
 

@@ -20,7 +20,6 @@ import milestoneRoutes, {
 } from "./routes/milestone.routes.js";
 import platformRoutes from "./routes/platform.routes.js";
 import orgRoutes from "./routes/org.routes.js";
-import auditLogRoutes from "./routes/auditLog.routes.js";
 import orgSettingsRoutes from "./routes/orgSettings.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import kanbanTemplateRoutes from "./routes/kanbanTemplate.routes.js";
@@ -142,14 +141,6 @@ app.use(
   authenticate,
   tenantScope,
   orgRoutes
-);
-
-app.use(
-  "/api/v1/org/audit-logs",
-  authenticate,
-  tenantScope,
-  requireRole(["org_admin"]),
-  auditLogRoutes
 );
 
 app.use(

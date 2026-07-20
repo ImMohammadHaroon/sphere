@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
-import { logAction, getClientIp } from "../services/auditLog.service.js";
 import { createNotification } from "../services/notification.service.js";
 import { isDoneColumn } from "../services/reportAggregation.service.js";
 import { emitToProject } from "../sockets/index.js";
@@ -122,16 +121,6 @@ export async function createTask(req, res, next) {
 
     const task = await loadTaskWithAssignee(req, { _id: created._id });
 
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "task.created",
-      targetType: "Task",
-      targetId: created._id,
-      metadata: { title: created.title, projectId: req.params.projectId },
-      ip: getClientIp(req),
-    });
-
     emitToProject(req.params.projectId, "task:created", formatTask(task));
 
     const assigneeId = req.body.assigneeId;
@@ -229,25 +218,6 @@ export async function updateTask(req, res, next) {
     await req.scopedFindOneAndUpdate(Task, { _id: req.params.id }, updates);
 
     const task = await loadTaskWithAssignee(req, { _id: req.params.id });
-
-    const metadata = { changes: updates };
-    if (
-      updates.status !== undefined &&
-      updates.status !== existing.status
-    ) {
-      metadata.from = existing.status;
-      metadata.to = updates.status;
-    }
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "task.updated",
-      targetType: "Task",
-      targetId: task._id,
-      metadata,
-      ip: getClientIp(req),
-    });
 
     emitToProject(
       existing.projectId.toString(),
@@ -390,20 +360,6 @@ export async function moveTask(req, res, next) {
 
     const populated = await loadTaskWithAssignee(req, { _id: task._id });
 
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "task.moved",
-      targetType: "Task",
-      targetId: task._id,
-      metadata: {
-        fromStatus: oldStatus,
-        toStatus: newStatus,
-        position: newPosition,
-      },
-      ip: getClientIp(req),
-    });
-
     emitToProject(task.projectId.toString(), "task:moved", {
       taskId: task._id.toString(),
       status: newStatus,
@@ -465,16 +421,6 @@ export async function deleteTask(req, res, next) {
     if (!task) {
       throw notFound();
     }
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "task.deleted",
-      targetType: "Task",
-      targetId: task._id,
-      metadata: { title: task.title, projectId: task.projectId?.toString() },
-      ip: getClientIp(req),
-    });
 
     res.json({ message: "Task deleted", task: formatTask(task) });
   } catch (err) {

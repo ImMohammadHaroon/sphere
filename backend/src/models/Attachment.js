@@ -23,7 +23,10 @@ const attachmentSchema = new mongoose.Schema(
     fileName: { type: String, required: true },
     mimeType: { type: String, required: true },
     size: { type: Number, required: true },
-    data: { type: Buffer, required: true },
+    // AES-256-GCM ciphertext — never store plaintext file bytes
+    encryptedData: { type: Buffer, required: true },
+    iv: { type: String, required: true },
+    authTag: { type: String, required: true },
   },
   { timestamps: true }
 );

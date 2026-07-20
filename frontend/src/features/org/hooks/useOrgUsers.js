@@ -28,9 +28,6 @@ export function useRemoveOrgUser() {
       queryClient.invalidateQueries({
         queryKey: ["org", "users", user?.organizationId],
       });
-      queryClient.invalidateQueries({
-        queryKey: ["org", "audit-logs", user?.organizationId],
-      });
     },
   });
 }

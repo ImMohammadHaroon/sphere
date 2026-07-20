@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import { Project } from "../models/Project.js";
 import { KanbanTemplate } from "../models/KanbanTemplate.js";
 import { User } from "../models/User.js";
-import { logAction, getClientIp } from "../services/auditLog.service.js";
 import {
   createKanbanTemplate,
   copyColumns,
@@ -133,16 +132,6 @@ export async function createProject(req, res, next) {
       columns,
     });
 
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "project.created",
-      targetType: "Project",
-      targetId: project._id,
-      metadata: { name: project.name },
-      ip: getClientIp(req),
-    });
-
     res.status(201).json({ project });
   } catch (err) {
     next(err);
@@ -224,16 +213,6 @@ export async function updateProject(req, res, next) {
       throw notFound();
     }
 
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "project.updated",
-      targetType: "Project",
-      targetId: project._id,
-      metadata: { changes: updates },
-      ip: getClientIp(req),
-    });
-
     res.json({ project });
   } catch (err) {
     next(err);
@@ -251,16 +230,6 @@ export async function archiveProject(req, res, next) {
     if (!project) {
       throw notFound();
     }
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "project.deleted",
-      targetType: "Project",
-      targetId: project._id,
-      metadata: { name: project.name },
-      ip: getClientIp(req),
-    });
 
     res.json({ project, message: "Project archived" });
   } catch (err) {
@@ -294,16 +263,6 @@ export async function addProjectMember(req, res, next) {
 
     const updated = await loadProjectWithMembers(req, req.params.id);
 
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "project.member_added",
-      targetType: "Project",
-      targetId: updated._id,
-      metadata: { userId: req.body.userId, userName: user.name },
-      ip: getClientIp(req),
-    });
-
     res.json({ project: formatProject(updated) });
   } catch (err) {
     next(err);
@@ -335,19 +294,6 @@ export async function removeProjectMember(req, res, next) {
     );
 
     const updated = await loadProjectWithMembers(req, req.params.id);
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "project.member_removed",
-      targetType: "Project",
-      targetId: updated._id,
-      metadata: {
-        userId: req.body.userId,
-        userName: user?.name ?? req.body.userId,
-      },
-      ip: getClientIp(req),
-    });
 
     res.json({ project: formatProject(updated) });
   } catch (err) {

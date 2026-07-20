@@ -34,8 +34,8 @@ export function DangerZoneTab({ organization }) {
         <CardHeader>
           <CardTitle className="text-lg text-danger">Delete organization</CardTitle>
           <CardDescription>
-            Permanently deletes your organization, all users, projects, tasks,
-            and audit logs. This action cannot be undone.
+            Permanently deletes your organization, all users, projects, and
+            tasks. This action cannot be undone.
           </CardDescription>
         </CardHeader>
 

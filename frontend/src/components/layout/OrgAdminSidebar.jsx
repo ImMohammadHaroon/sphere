@@ -29,12 +29,6 @@ const orgAdminNav = [
     icon: "lucide:bar-chart-3",
   },
   {
-    label: "Audit logs",
-    to: "/admin/audit-logs",
-    match: (p) => p === "/admin/audit-logs",
-    icon: "lucide:scroll-text",
-  },
-  {
     label: "Settings",
     to: "/admin/settings",
     match: (p) => p === "/admin/settings",

@@ -3,7 +3,6 @@ import { User } from "../models/User.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { Milestone } from "../models/Milestone.js";
-import { logAction, getClientIp } from "../services/auditLog.service.js";
 import { revokeAllRefreshTokens } from "../services/token.service.js";
 import { buildTasksByProject } from "../services/taskOverviewStats.service.js";
 import {
@@ -187,16 +186,6 @@ export async function updateUserRole(req, res, next) {
     user.role = req.body.role;
     await user.save();
 
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "user.role_changed",
-      targetType: "User",
-      targetId: user._id,
-      metadata: { from: previousRole, to: req.body.role },
-      ip: getClientIp(req),
-    });
-
     res.json({ user: formatUser(user) });
   } catch (err) {
     next(err);
@@ -236,16 +225,6 @@ export async function removeUser(req, res, next) {
     const removedUser = formatUser(user);
     await revokeAllRefreshTokens(user._id);
     await user.deleteOne();
-
-    await logAction({
-      organizationId: req.user.organizationId,
-      actorId: req.user.userId,
-      action: "user.removed",
-      targetType: "User",
-      targetId: user._id,
-      metadata: { email: removedUser.email, role: removedUser.role },
-      ip: getClientIp(req),
-    });
 
     res.json({ message: "User removed", user: removedUser });
   } catch (err) {

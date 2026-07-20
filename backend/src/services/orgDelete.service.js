@@ -4,7 +4,6 @@ import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { Invite } from "../models/Invite.js";
 import { InviteToken } from "../models/InviteToken.js";
-import { AuditLog } from "../models/AuditLog.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 
 function httpError(message, status) {
@@ -28,7 +27,6 @@ export async function deleteOrganizationById(organizationId) {
     Project.deleteMany({ organizationId }),
     Invite.deleteMany({ organizationId }),
     InviteToken.deleteMany({ organizationId }),
-    AuditLog.deleteMany({ organizationId }),
     userIds.length > 0
       ? RefreshToken.deleteMany({ userId: { $in: userIds } })
       : Promise.resolve(),

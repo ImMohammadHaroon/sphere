@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { authApi } from "@/lib/authApi";
+import { usersApi } from "@/lib/usersApi";
 import { cn } from "@/lib/utils";
 
 function getInitials(name) {
@@ -10,9 +10,10 @@ function getInitials(name) {
 }
 
 const sizeClasses = {
+  xs: "h-6 w-6 text-[10px]",
   sm: "h-7 w-7 text-xs",
-  md: "h-10 w-10 text-sm",
-  lg: "h-20 w-20 text-xl",
+  md: "h-9 w-9 text-sm",
+  lg: "h-10 w-10 text-sm",
   xl: "h-24 w-24 text-2xl",
 };
 
@@ -21,7 +22,7 @@ export function UserAvatar({ user, size = "sm", className }) {
   const initials = getInitials(user?.name);
 
   useEffect(() => {
-    if (!user?.hasAvatar) {
+    if (!user?.id || !user?.hasAvatar) {
       setSrc(null);
       return undefined;
     }
@@ -29,8 +30,8 @@ export function UserAvatar({ user, size = "sm", className }) {
     let objectUrl;
     let cancelled = false;
 
-    authApi
-      .getAvatarBlob(user.avatarUpdatedAt)
+    usersApi
+      .getAvatarBlob(user.id, user.avatarUpdatedAt)
       .then((blob) => {
         if (cancelled) return;
         objectUrl = URL.createObjectURL(blob);
@@ -44,7 +45,7 @@ export function UserAvatar({ user, size = "sm", className }) {
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [user?.hasAvatar, user?.avatarUpdatedAt]);
+  }, [user?.id, user?.hasAvatar, user?.avatarUpdatedAt]);
 
   return (
     <span

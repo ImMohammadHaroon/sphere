@@ -8,6 +8,7 @@ import {
   DEFAULT_BOARD_COLUMNS,
 } from "../services/kanbanTemplate.service.js";
 import { isProjectMember } from "../utils/projectAccess.js";
+import { formatPublicUser, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -28,12 +29,7 @@ function membershipFilter(userId) {
 }
 
 function formatMember(member) {
-  return {
-    id: member._id.toString(),
-    name: member.name,
-    email: member.email,
-    role: member.role,
-  };
+  return formatPublicUser(member);
 }
 
 function formatProject(project) {
@@ -59,7 +55,7 @@ function formatProject(project) {
 async function loadProjectWithMembers(req, projectId) {
   return req
     .scopedFindOne(Project, { _id: projectId })
-    .populate("members", "name email role")
+    .populate("members", USER_PUBLIC_FIELDS)
     .lean();
 }
 

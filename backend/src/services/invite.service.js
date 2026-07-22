@@ -13,6 +13,7 @@ import {
 import { sendMailInBackground } from "./email/transporter.js";
 import { buildInviteEmail } from "./email/inviteEmail.js";
 import { env } from "../config/env.js";
+import { formatPublicUser, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -24,12 +25,8 @@ function httpError(message, status) {
 
 function sanitizeUser(user) {
   return {
-    id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    role: user.role,
+    ...formatPublicUser(user),
     organizationId: user.organizationId?.toString() ?? null,
-    isActive: user.isActive,
   };
 }
 
@@ -228,7 +225,7 @@ export async function listInvites(organizationId) {
     expiresAt: { $gt: new Date() },
   })
     .select("-token")
-    .populate("invitedBy", "name email")
+    .populate("invitedBy", USER_PUBLIC_FIELDS)
     .sort({ createdAt: -1 });
 
   return invites.map((invite) => ({

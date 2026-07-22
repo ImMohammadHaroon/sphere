@@ -11,18 +11,12 @@ import {
   getOrganizationTaskCompletionEvents,
   summarizeDoneNotDone,
 } from "../services/reportAggregation.service.js";
+import { formatPublicUser, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 const TEAM_ROLES = ["org_admin", "project_manager", "team_member"];
 
 function formatUser(user) {
-  return {
-    id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    isActive: user.isActive,
-    createdAt: user.createdAt,
-  };
+  return formatPublicUser(user);
 }
 
 export async function getOrgOverview(req, res, next) {
@@ -135,7 +129,7 @@ export async function listUsers(req, res, next) {
   try {
     const users = await req
       .scopedQuery(User)
-      .select("name email role isActive createdAt")
+      .select(USER_PUBLIC_FIELDS)
       .sort({ createdAt: -1 });
 
     res.json({ users: users.map(formatUser) });
@@ -148,7 +142,7 @@ export async function getUser(req, res, next) {
   try {
     const user = await req
       .scopedFindOne(User, { _id: req.params.id })
-      .select("name email role isActive createdAt");
+      .select(USER_PUBLIC_FIELDS);
 
     if (!user) {
       const err = new Error("Not found");

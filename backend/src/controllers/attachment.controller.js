@@ -5,6 +5,7 @@ import { isProjectMember } from "../utils/projectAccess.js";
 import { encryptBuffer, decryptBuffer } from "../utils/fileEncryption.js";
 import { resolveAttachmentContentType } from "../utils/attachmentMime.js";
 import { emitToProject } from "../sockets/index.js";
+import { USER_PUBLIC_FIELDS, formatPublicUser } from "../utils/formatUser.js";
 
 /** Projection that strips ciphertext material from metadata responses. */
 const METADATA_SELECT = "-encryptedData -iv -authTag";
@@ -22,21 +23,7 @@ function badRequest(message) {
 }
 
 export function formatUploader(uploader) {
-  if (!uploader) {
-    return null;
-  }
-
-  if (typeof uploader === "object" && uploader.name !== undefined) {
-    return {
-      id: uploader._id.toString(),
-      name: uploader.name,
-      email: uploader.email,
-    };
-  }
-
-  return {
-    id: uploader.toString(),
-  };
+  return formatPublicUser(uploader);
 }
 
 export function formatAttachment(attachment) {
@@ -61,7 +48,7 @@ export function formatAttachment(attachment) {
 async function loadProjectWithMembers(req, projectId) {
   return req
     .scopedFindOne(Project, { _id: projectId })
-    .populate("members", "name email role")
+    .populate("members", USER_PUBLIC_FIELDS)
     .lean();
 }
 
@@ -98,7 +85,7 @@ export async function listAttachments(req, res, next) {
     const attachments = await req
       .scopedQuery(Attachment, { taskId: req.params.taskId })
       .select(METADATA_SELECT)
-      .populate("uploaderId", "name email")
+      .populate("uploaderId", USER_PUBLIC_FIELDS)
       .sort({ createdAt: 1 })
       .lean();
 
@@ -139,7 +126,7 @@ export async function uploadAttachment(req, res, next) {
     const attachment = await req
       .scopedFindOne(Attachment, { _id: created._id })
       .select(METADATA_SELECT)
-      .populate("uploaderId", "name email")
+      .populate("uploaderId", USER_PUBLIC_FIELDS)
       .lean();
 
     const attachmentPayload = formatAttachment(attachment);

@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
   Table,
   TableBody,
@@ -220,7 +221,12 @@ export function UsersPage() {
                   <TableBody>
                     {users.map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.name}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <UserAvatar user={user} size="md" />
+                            <span className="font-medium">{user.name}</span>
+                          </div>
+                        </TableCell>
                         <TableCell className="text-text-secondary">
                           {user.email}
                         </TableCell>

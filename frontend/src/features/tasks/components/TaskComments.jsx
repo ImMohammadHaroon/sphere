@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Alert } from "@/components/ui/Alert";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { AttachmentListItem } from "@/components/attachments/AttachmentListItem";
 import { FilePreviewDialog } from "@/components/attachments/FilePreviewDialog";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,16 +27,6 @@ import { useTaskCollaborationSocket } from "@/features/tasks/hooks/useTaskCollab
 import { uploadCommentAttachment } from "@/lib/commentAttachmentsApi";
 
 const MAX_COMMENT_LENGTH = 5000;
-
-function memberInitials(name) {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
 
 function CommentsSkeleton() {
   return (
@@ -351,9 +342,7 @@ export function TaskComments({ taskId, projectId }) {
                     key={comment._id}
                     className="flex gap-3 rounded-lg border border-border bg-surface-raised/50 p-4"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-sm font-medium text-primary">
-                      {memberInitials(comment.author?.name)}
-                    </div>
+                    <UserAvatar user={comment.author} size="md" />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <span className="text-sm font-medium text-text-primary">

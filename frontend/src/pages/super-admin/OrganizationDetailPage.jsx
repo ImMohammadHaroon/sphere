@@ -20,6 +20,7 @@ import {
   TableRow,
   TableScrollArea,
 } from "@/components/ui/Table";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { useToast } from "@/hooks/useToast";
 
 function formatDate(value) {
@@ -240,7 +241,12 @@ export function OrganizationDetailPage() {
                   <TableBody>
                     {members.map((member) => (
                       <TableRow key={member.id}>
-                        <TableCell className="font-medium">{member.name}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <UserAvatar user={member} size="md" />
+                            <span className="font-medium">{member.name}</span>
+                          </div>
+                        </TableCell>
                         <TableCell className="text-text-secondary">
                           {member.email}
                         </TableCell>

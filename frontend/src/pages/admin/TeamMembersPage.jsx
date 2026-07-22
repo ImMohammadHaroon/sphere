@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
   Table,
   TableBody,
@@ -162,12 +163,15 @@ export function TeamMembersPage() {
                   {users.map((member) => (
                     <TableRow key={member.id}>
                       <TableCell>
-                        <Link
-                          to={`/admin/users/${member.id}`}
-                          className="font-medium text-primary hover:underline"
-                        >
-                          {member.name}
-                        </Link>
+                        <div className="flex items-center gap-3">
+                          <UserAvatar user={member} size="md" />
+                          <Link
+                            to={`/admin/users/${member.id}`}
+                            className="font-medium text-primary hover:underline"
+                          >
+                            {member.name}
+                          </Link>
+                        </div>
                       </TableCell>
                       <TableCell className="text-text-secondary">
                         {member.email}

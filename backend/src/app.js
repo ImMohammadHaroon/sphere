@@ -4,6 +4,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import inviteRoutes from "./routes/invite.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import taskRoutes, { projectTaskRouter } from "./routes/task.routes.js";
@@ -87,6 +88,7 @@ app.use(async (req, res, next) => {
 
 app.use("/api-docs", swaggerServe, swaggerSetup);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/invites", inviteRoutes);
 app.use("/api/v1/notifications", authenticate, notificationRoutes);
 

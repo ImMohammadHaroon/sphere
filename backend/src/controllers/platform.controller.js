@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { formatPublicUser } from "../utils/formatUser.js";
 import { Organization } from "../models/Organization.js";
 import { User } from "../models/User.js";
 import { Project } from "../models/Project.js";
@@ -569,7 +570,7 @@ export async function getOrganizationDetail(req, res, next) {
 
     const [members, projects, taskCount] = await Promise.all([
       User.find({ organizationId: orgId })
-        .select("name email role createdAt")
+        .select("name email role createdAt avatar.mimeType avatar.updatedAt")
         .sort({ createdAt: -1 })
         .lean(),
       Project.aggregate([
@@ -602,13 +603,7 @@ export async function getOrganizationDetail(req, res, next) {
 
     res.json({
       organization: mapOrganizationDetail(org),
-      members: members.map((member) => ({
-        id: member._id.toString(),
-        name: member.name,
-        email: member.email,
-        role: member.role,
-        createdAt: member.createdAt,
-      })),
+      members: members.map((member) => formatPublicUser(member)),
       projects: projects.map((project) => ({
         id: project._id.toString(),
         name: project.name,
@@ -715,11 +710,7 @@ function mapListedUser(user) {
   const org = user.organizationId;
 
   return {
-    id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    isActive: user.isActive,
+    ...formatPublicUser(user),
     organization:
       org && org._id
         ? {
@@ -728,7 +719,6 @@ function mapListedUser(user) {
             slug: org.slug,
           }
         : null,
-    createdAt: user.createdAt,
   };
 }
 

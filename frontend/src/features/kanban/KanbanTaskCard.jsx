@@ -4,6 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { TaskStatusBadge } from "@/features/tasks/components/TaskStatusBadge";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { cn } from "@/lib/utils";
 
 function formatDate(value) {
@@ -12,16 +13,6 @@ function formatDate(value) {
     month: "short",
     day: "numeric",
   });
-}
-
-function memberInitials(name) {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 }
 
 function priorityBadgeVariant(priority) {
@@ -36,7 +27,8 @@ function priorityBadgeVariant(priority) {
 }
 
 export function KanbanTaskCardContent({ task, columns, taskDetailPath, className }) {
-  const assigneeName = task.assignee?.name ?? null;
+  const assignee = task.assignee ?? null;
+  const assigneeName = assignee?.name ?? null;
   const dueLabel = formatDate(task.dueDate);
 
   const body = (
@@ -52,9 +44,7 @@ export function KanbanTaskCardContent({ task, columns, taskDetailPath, className
 
       <div className="flex items-center justify-between gap-2 text-xs text-text-secondary">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-subtle text-[10px] font-medium text-primary">
-            {memberInitials(assigneeName)}
-          </div>
+          <UserAvatar user={assignee} size="xs" />
           <span>{assigneeName ?? "Unassigned"}</span>
         </div>
         {dueLabel ? <span>Due {dueLabel}</span> : null}

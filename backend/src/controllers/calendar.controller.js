@@ -4,6 +4,7 @@ import { Task } from "../models/Task.js";
 import { isProjectMember } from "../utils/projectAccess.js";
 import { formatTask } from "./task.controller.js";
 import { formatMilestone } from "./milestone.controller.js";
+import { USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -14,7 +15,7 @@ function notFound(message = "Not found") {
 async function loadProjectWithMembers(req, projectId) {
   return req
     .scopedFindOne(Project, { _id: projectId })
-    .populate("members", "name email role")
+    .populate("members", USER_PUBLIC_FIELDS)
     .lean();
 }
 
@@ -86,7 +87,7 @@ export async function getProjectCalendar(req, res, next) {
     const [tasks, milestones] = await Promise.all([
       req
         .scopedQuery(Task, { projectId, dueDate: dueDateFilter })
-        .populate("assigneeId", "name email")
+        .populate("assigneeId", USER_PUBLIC_FIELDS)
         .sort({ dueDate: 1 })
         .lean(),
       req

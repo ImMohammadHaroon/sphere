@@ -5,6 +5,7 @@ import { Project } from "../models/Project.js";
 import { User } from "../models/User.js";
 import { createNotification } from "../services/notification.service.js";
 import { isProjectMember } from "../utils/projectAccess.js";
+import { USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -40,7 +41,7 @@ export function formatMilestone(milestone) {
 async function loadProjectWithMembers(req, projectId) {
   return req
     .scopedFindOne(Project, { _id: projectId })
-    .populate("members", "name email role")
+    .populate("members", USER_PUBLIC_FIELDS)
     .lean();
 }
 

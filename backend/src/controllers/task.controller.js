@@ -4,6 +4,7 @@ import { Task } from "../models/Task.js";
 import { createNotification } from "../services/notification.service.js";
 import { isDoneColumn } from "../services/reportAggregation.service.js";
 import { emitToProject } from "../sockets/index.js";
+import { formatPublicUser, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -33,21 +34,7 @@ function getDefaultStatus(project) {
 }
 
 function formatAssignee(assignee) {
-  if (!assignee) {
-    return null;
-  }
-
-  if (typeof assignee === "object" && assignee.name !== undefined) {
-    return {
-      id: assignee._id.toString(),
-      name: assignee.name,
-      email: assignee.email,
-    };
-  }
-
-  return {
-    id: assignee.toString(),
-  };
+  return formatPublicUser(assignee);
 }
 
 export function formatTask(task) {
@@ -73,7 +60,7 @@ export function formatTask(task) {
 async function loadTaskWithAssignee(req, filter) {
   return req
     .scopedFindOne(Task, filter)
-    .populate("assigneeId", "name email")
+    .populate("assigneeId", USER_PUBLIC_FIELDS)
     .lean();
 }
 
@@ -91,7 +78,7 @@ export async function listTasks(req, res, next) {
 
     const tasks = await req
       .scopedQuery(Task, { projectId: req.params.projectId })
-      .populate("assigneeId", "name email")
+      .populate("assigneeId", USER_PUBLIC_FIELDS)
       .sort({ position: 1, createdAt: 1 })
       .lean();
 
@@ -402,7 +389,7 @@ export async function listMyTasks(req, res, next) {
     const tasks = await req
       .scopedQuery(Task, { assigneeId: req.user.userId })
       .populate("projectId", "name columns")
-      .populate("assigneeId", "name email")
+      .populate("assigneeId", USER_PUBLIC_FIELDS)
       .sort({ dueDate: 1, updatedAt: -1 })
       .lean();
 

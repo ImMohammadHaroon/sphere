@@ -5,6 +5,7 @@ import { Task } from "../models/Task.js";
 import { isProjectMember } from "../utils/projectAccess.js";
 import { emitToProject } from "../sockets/index.js";
 import { listAttachmentsForComments } from "./commentAttachment.controller.js";
+import { formatPublicUser, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -13,22 +14,7 @@ function notFound(message = "Not found") {
 }
 
 function formatAuthor(author) {
-  if (!author) {
-    return null;
-  }
-
-  if (typeof author === "object" && author.name !== undefined) {
-    return {
-      id: author._id.toString(),
-      name: author.name,
-      email: author.email,
-      role: author.role,
-    };
-  }
-
-  return {
-    id: author.toString(),
-  };
+  return formatPublicUser(author);
 }
 
 export function formatComment(comment, attachments = []) {
@@ -50,7 +36,7 @@ export function formatComment(comment, attachments = []) {
 async function loadProjectWithMembers(req, projectId) {
   return req
     .scopedFindOne(Project, { _id: projectId })
-    .populate("members", "name email role")
+    .populate("members", USER_PUBLIC_FIELDS)
     .lean();
 }
 
@@ -86,7 +72,7 @@ export async function listComments(req, res, next) {
 
     const comments = await req
       .scopedQuery(Comment, { taskId: req.params.taskId })
-      .populate("authorId", "name email role")
+      .populate("authorId", USER_PUBLIC_FIELDS)
       .sort({ createdAt: 1 })
       .lean();
 
@@ -125,7 +111,7 @@ export async function createComment(req, res, next) {
 
     const comment = await req
       .scopedFindOne(Comment, { _id: created._id })
-      .populate("authorId", "name email role")
+      .populate("authorId", USER_PUBLIC_FIELDS)
       .lean();
 
     const commentPayload = formatComment(comment, []);

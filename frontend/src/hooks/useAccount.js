@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "@/lib/authApi";
+import { usersApi } from "@/lib/usersApi";
 import { useAuthStore } from "@/store/authStore";
 
 export function useUpdateProfile() {
@@ -21,6 +22,7 @@ export function useChangePassword() {
 
 function updateUserInStore(result) {
   if (result?.user) {
+    usersApi.clearAvatarCache(result.user.id);
     useAuthStore.getState().setUser(result.user);
   }
 }

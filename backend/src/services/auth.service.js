@@ -26,6 +26,7 @@ import { buildPasswordResetEmail } from "./email/passwordResetEmail.js";
 import { buildOrgVerificationEmail } from "./email/orgVerificationEmail.js";
 import { buildOrgRegistrationAdminEmail } from "./email/orgRegistrationAdminEmail.js";
 import { createNotification } from "./notification.service.js";
+import { formatPublicUser } from "../utils/formatUser.js";
 
 const ORG_VERIFICATION_TTL_MS = 15 * 60 * 1000;
 const MAX_VERIFICATION_ATTEMPTS = 5;
@@ -36,14 +37,8 @@ function generateVerificationCode() {
 
 function sanitizeUser(user) {
   return {
-    id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    role: user.role,
+    ...formatPublicUser(user),
     organizationId: user.organizationId?.toString() ?? null,
-    isActive: user.isActive,
-    hasAvatar: Boolean(user.avatar?.mimeType),
-    avatarUpdatedAt: user.avatar?.updatedAt?.toISOString?.() ?? null,
   };
 }
 
@@ -476,7 +471,53 @@ export async function uploadAvatar(userId, file) {
 }
 
 export async function getAvatar(userId) {
-  const user = await User.findById(userId).select("+avatar.data");
+  return getAvatarForViewer({
+    viewer: { userId, role: "super_admin" },
+    targetUserId: userId,
+    skipAccessCheck: true,
+  });
+}
+
+async function assertCanViewUserAvatar(viewer, targetUserId) {
+  if (viewer.userId === targetUserId) {
+    return;
+  }
+
+  if (viewer.role === "super_admin") {
+    return;
+  }
+
+  const target = await User.findById(targetUserId)
+    .select("organizationId isActive")
+    .lean();
+
+  if (!target || !target.isActive) {
+    const err = new Error("User not found");
+    err.status = 404;
+    throw err;
+  }
+
+  if (
+    !viewer.organizationId ||
+    !target.organizationId ||
+    viewer.organizationId !== target.organizationId.toString()
+  ) {
+    const err = new Error("Forbidden");
+    err.status = 403;
+    throw err;
+  }
+}
+
+export async function getAvatarForViewer({
+  viewer,
+  targetUserId,
+  skipAccessCheck = false,
+}) {
+  if (!skipAccessCheck) {
+    await assertCanViewUserAvatar(viewer, targetUserId);
+  }
+
+  const user = await User.findById(targetUserId).select("+avatar.data");
   if (!user || !user.isActive || !user.avatar?.data) {
     return null;
   }

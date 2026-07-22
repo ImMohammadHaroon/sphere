@@ -25,6 +25,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { TaskComments } from "@/features/tasks/components/TaskComments";
 import { TaskAttachments } from "@/features/tasks/components/TaskAttachments";
 const selectClassName =
@@ -37,16 +38,6 @@ function formatDate(value) {
     month: "short",
     day: "numeric",
   });
-}
-
-function memberInitials(name) {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 }
 
 function priorityBadgeVariant(priority) {
@@ -168,8 +159,9 @@ export function TaskDetailPage() {
   }, [task, title, description, status, assigneeId, priority, dueDate, defaultStatusKey]);
 
   const assigneeMember = members?.find((member) => member.id === task?.assigneeId);
-  const assigneeName = task?.assignee?.name ?? assigneeMember?.name ?? null;
-  const assigneeEmail = task?.assignee?.email ?? assigneeMember?.email ?? null;
+  const assigneeUser = task?.assignee ?? assigneeMember ?? null;
+  const assigneeName = assigneeUser?.name ?? null;
+  const assigneeEmail = assigneeUser?.email ?? null;
 
   async function handleSave() {
     if (!task || !canSave) return;
@@ -353,9 +345,7 @@ export function TaskDetailPage() {
                   </select>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-subtle text-sm font-medium text-primary">
-                      {memberInitials(assigneeName)}
-                    </div>
+                    <UserAvatar user={assigneeUser} size="md" />
                     <div>
                       <span className="text-sm text-text-primary">
                         {assigneeName ?? "Unassigned"}

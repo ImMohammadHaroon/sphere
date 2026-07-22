@@ -11,6 +11,7 @@ import {
   startOfUtcDay,
   toObjectId,
 } from "../services/reportAggregation.service.js";
+import { USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -21,7 +22,7 @@ function notFound(message = "Not found") {
 async function loadProjectWithMembers(req, projectId) {
   return req
     .scopedFindOne(Project, { _id: projectId })
-    .populate("members", "name email role")
+    .populate("members", USER_PUBLIC_FIELDS)
     .lean();
 }
 

@@ -44,6 +44,7 @@ import {
   TableRow,
   TableScrollArea,
 } from "@/components/ui/Table";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -52,16 +53,6 @@ function formatDate(value) {
     month: "short",
     day: "numeric",
   });
-}
-
-function memberInitials(name) {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 }
 
 function formatRoleLabel(role) {
@@ -454,8 +445,11 @@ export function ProjectDetailPage() {
                             {task.title}
                           </Link>
                         </TableCell>
-                        <TableCell className="text-text-secondary">
-                          {task.assignee?.name ?? "Unassigned"}
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-text-secondary">
+                            <UserAvatar user={task.assignee} size="xs" />
+                            <span>{task.assignee?.name ?? "Unassigned"}</span>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <TaskStatusBadge
@@ -490,6 +484,7 @@ export function ProjectDetailPage() {
                 const isOwner = memberId === project.ownerId;
                 const name = typeof member === "string" ? memberId : member.name;
                 const role = typeof member === "string" ? "" : member.role;
+                const memberUser = typeof member === "string" ? { id: memberId, name } : member;
 
                 return (
                   <li
@@ -497,9 +492,7 @@ export function ProjectDetailPage() {
                     className="flex items-center justify-between gap-3 rounded-lg border border-border px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-subtle text-sm font-medium text-primary">
-                        {memberInitials(name)}
-                      </div>
+                      <UserAvatar user={memberUser} size="md" />
                       <div>
                         <p className="font-medium text-text-primary">
                           {name}

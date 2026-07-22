@@ -6,6 +6,7 @@ import { isProjectMember } from "../utils/projectAccess.js";
 import { encryptBuffer, decryptBuffer } from "../utils/fileEncryption.js";
 import { resolveAttachmentContentType } from "../utils/attachmentMime.js";
 import { formatUploader } from "./attachment.controller.js";
+import { USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 const METADATA_SELECT = "-encryptedData -iv -authTag";
 
@@ -42,7 +43,7 @@ export function formatCommentAttachment(attachment) {
 async function loadProjectWithMembers(req, projectId) {
   return req
     .scopedFindOne(Project, { _id: projectId })
-    .populate("members", "name email role")
+    .populate("members", USER_PUBLIC_FIELDS)
     .lean();
 }
 
@@ -111,7 +112,7 @@ export async function uploadCommentAttachment(req, res, next) {
     const attachment = await req
       .scopedFindOne(Attachment, { _id: created._id })
       .select(METADATA_SELECT)
-      .populate("uploaderId", "name email")
+      .populate("uploaderId", USER_PUBLIC_FIELDS)
       .lean();
 
     res.status(201).json({
@@ -208,7 +209,7 @@ export async function listAttachmentsForComments(req, commentIds) {
   const attachments = await req
     .scopedQuery(Attachment, { commentId: { $in: commentIds } })
     .select(METADATA_SELECT)
-    .populate("uploaderId", "name email")
+    .populate("uploaderId", USER_PUBLIC_FIELDS)
     .sort({ createdAt: 1 })
     .lean();
 

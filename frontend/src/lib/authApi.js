@@ -1,5 +1,8 @@
-import { apiClient } from "./apiClient";
+import { apiClient, ApiError, getAccessToken } from "./apiClient";
 import { getDeviceId } from "./authHelpers";
+import { resolveApiBaseUrl } from "./backendUrl";
+
+const API_URL = resolveApiBaseUrl();
 
 export const authApi = {
   registerOrg: (data) =>
@@ -44,6 +47,76 @@ export const authApi = {
     apiClient("/auth/logout-all", { method: "POST" }),
 
   me: () => apiClient("/auth/me"),
+
+  updateProfile: (data) =>
+    apiClient("/auth/profile", { method: "PATCH", body: data }),
+
+  changePassword: (data) =>
+    apiClient("/auth/change-password", { method: "POST", body: data }),
+
+  uploadAvatar: async (file) => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    const headers = {};
+    const accessToken = getAccessToken();
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    const deviceId = localStorage.getItem("ps_device_id");
+    if (deviceId) {
+      headers["X-Device-Id"] = deviceId;
+    }
+
+    const response = await fetch(`${API_URL}/auth/avatar`, {
+      method: "POST",
+      headers,
+      body: formData,
+      credentials: "include",
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const message =
+        typeof data.message === "string" ? data.message : "Upload failed";
+      throw new ApiError(message, response.status);
+    }
+
+    return data;
+  },
+
+  getAvatarBlob: async (cacheBust) => {
+    const headers = {};
+    const accessToken = getAccessToken();
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    const deviceId = localStorage.getItem("ps_device_id");
+    if (deviceId) {
+      headers["X-Device-Id"] = deviceId;
+    }
+
+    const query = cacheBust ? `?t=${encodeURIComponent(cacheBust)}` : "";
+    const response = await fetch(`${API_URL}/auth/avatar${query}`, {
+      method: "GET",
+      headers,
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      const message =
+        typeof data.message === "string" ? data.message : "Failed to load avatar";
+      throw new ApiError(message, response.status);
+    }
+
+    return response.blob();
+  },
+
+  deleteAvatar: () => apiClient("/auth/avatar", { method: "DELETE" }),
 
   acceptInvite: (data) =>
     apiClient("/auth/accept-invite", {

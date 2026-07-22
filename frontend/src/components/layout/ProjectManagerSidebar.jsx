@@ -1,6 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Icon } from "@iconify/react";
-import { cn } from "@/lib/utils";
+import {
+  BarChart3,
+  Calendar,
+  Flag,
+  FolderKanban,
+} from "lucide-react";
+import { SidebarNavItem } from "./SidebarNavItem";
 
 const projectManagerNav = [
   {
@@ -8,7 +13,7 @@ const projectManagerNav = [
     to: "/dashboard",
     match: (p) => p === "/dashboard",
     roles: ["project_manager"],
-    icon: "lucide:folder-kanban",
+    icon: FolderKanban,
   },
   {
     label: "Calendar view",
@@ -16,7 +21,7 @@ const projectManagerNav = [
     match: (p) =>
       p === "/dashboard/calendar" || p.endsWith("/calendar"),
     roles: ["project_manager"],
-    icon: "lucide:calendar",
+    icon: Calendar,
   },
   {
     label: "Reports",
@@ -24,7 +29,7 @@ const projectManagerNav = [
     match: (p) =>
       p === "/dashboard/reports" || p.includes("/reports"),
     roles: ["project_manager"],
-    icon: "lucide:bar-chart-3",
+    icon: BarChart3,
   },
   {
     label: "Milestones",
@@ -32,14 +37,7 @@ const projectManagerNav = [
     match: (p) =>
       p === "/dashboard/milestones" || p.includes("/milestones"),
     roles: ["project_manager"],
-    icon: "lucide:flag",
-  },
-  {
-    label: "Notifications",
-    to: "/dashboard/notifications",
-    match: (p) => p === "/dashboard/notifications",
-    roles: ["project_manager"],
-    icon: "lucide:bell",
+    icon: Flag,
   },
 ];
 
@@ -66,27 +64,17 @@ export function ProjectManagerSidebar({ userRole }) {
 
       <nav>
         <ul className="space-y-2">
-          {navItems.map((item) => {
-            const isActive = item.match ? item.match(pathname) : pathname === item.to;
-
-            return (
-              <li key={item.label}>
-                <Link
-                  to={item.to}
-                  title={item.label}
-                  className={cn(
-                    "flex items-center justify-center gap-3 rounded-lg px-2 py-2.5 text-sm font-medium transition-colors lg:justify-start lg:px-4",
-                    isActive
-                      ? "bg-primary-subtle text-primary"
-                      : "text-text-secondary hover:bg-surface hover:text-text-primary"
-                  )}
-                >
-                  <Icon icon={item.icon} className="h-5 w-5 shrink-0" />
-                  <span className="hidden lg:inline">{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
+          {navItems.map((item) => (
+            <SidebarNavItem
+              key={item.label}
+              to={item.to}
+              label={item.label}
+              icon={item.icon}
+              isActive={
+                item.match ? item.match(pathname) : pathname === item.to
+              }
+            />
+          ))}
         </ul>
       </nav>
     </aside>

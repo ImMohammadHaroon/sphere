@@ -3,6 +3,7 @@ import * as authController from "../controllers/auth.controller.js";
 import { authenticate, requireRole } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 import { authRateLimiter } from "../middleware/rateLimit.middleware.js";
+import { avatarUpload } from "../config/upload.js";
 import {
   registerOrgSchema,
   verifyOrgRegistrationSchema,
@@ -12,6 +13,8 @@ import {
   acceptInviteSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  updateProfileSchema,
+  changePasswordSchema,
 } from "../validators/auth.validator.js";
 
 const router = Router();
@@ -211,6 +214,135 @@ router.post("/logout-all", authenticate, authController.logoutAll);
  *         description: Authentication required
  */
 router.get("/me", authenticate, authController.me);
+
+/**
+ * @openapi
+ * /auth/profile:
+ *   patch:
+ *     summary: Update current user profile
+ *     tags: [Auth]
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name]
+ *             properties:
+ *               name: { type: string, minLength: 2, maxLength: 100 }
+ *     responses:
+ *       200:
+ *         description: Updated user profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id: { type: string }
+ *                     name: { type: string }
+ *                     email: { type: string }
+ *                     role: { type: string }
+ *                     organizationId: { type: string }
+ *       401:
+ *         description: Authentication required
+ */
+router.patch(
+  "/profile",
+  authenticate,
+  validate(updateProfileSchema),
+  authController.updateProfile
+);
+
+/**
+ * @openapi
+ * /auth/change-password:
+ *   post:
+ *     summary: Change password for the current user
+ *     tags: [Auth]
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [currentPassword, newPassword]
+ *             properties:
+ *               currentPassword: { type: string, format: password }
+ *               newPassword: { type: string, format: password, minLength: 8 }
+ *     responses:
+ *       200:
+ *         description: Password updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: Password updated successfully }
+ *       400:
+ *         description: Current password is incorrect
+ *       401:
+ *         description: Authentication required
+ */
+router.post(
+  "/change-password",
+  authenticate,
+  validate(changePasswordSchema),
+  authController.changePassword
+);
+
+/**
+ * @openapi
+ * /auth/avatar:
+ *   post:
+ *     summary: Upload profile avatar
+ *     tags: [Auth]
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [avatar]
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Avatar uploaded
+ *       400:
+ *         description: Invalid file type or file too large (max 2MB)
+ *   get:
+ *     summary: Get current user avatar image
+ *     tags: [Auth]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Avatar image bytes
+ *       404:
+ *         description: Avatar not found
+ *   delete:
+ *     summary: Remove profile avatar
+ *     tags: [Auth]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Avatar removed
+ */
+router.post(
+  "/avatar",
+  authenticate,
+  avatarUpload.single("avatar"),
+  authController.uploadAvatar
+);
+router.get("/avatar", authenticate, authController.getAvatar);
+router.delete("/avatar", authenticate, authController.deleteAvatar);
 
 /**
  * @openapi

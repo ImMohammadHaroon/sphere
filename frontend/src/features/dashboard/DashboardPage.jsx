@@ -1,4 +1,4 @@
-import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { TaskSummaryCards } from "@/features/dashboard/TaskSummaryCards";
 import { AssignedProjectsList } from "@/features/dashboard/AssignedProjectsList";
 import { AssignedTasksPreview } from "@/features/dashboard/AssignedTasksPreview";
@@ -22,13 +22,15 @@ function DashboardSkeleton() {
 }
 
 export function DashboardPage() {
+  useDashboardPageMeta({
+    title: "Dashboard",
+    description: "Your work at a glance.",
+  });
+
   const { isLoading, isError, error, refetch, isFetching } = useDashboardData();
 
   return (
-    <TeamMemberLayout
-      title="Dashboard"
-      description="Your work at a glance."
-    >
+    <>
       {isLoading ? <DashboardSkeleton /> : null}
 
       {isError ? (
@@ -51,6 +53,6 @@ export function DashboardPage() {
           </div>
         </div>
       ) : null}
-    </TeamMemberLayout>
+    </>
   );
 }

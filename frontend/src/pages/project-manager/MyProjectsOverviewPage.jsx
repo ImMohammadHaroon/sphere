@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueries } from "@tanstack/react-query";
-import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { CreateProjectDialog } from "@/features/projects/components/CreateProjectDialog";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { useAuth } from "@/hooks/useAuth";
@@ -53,6 +53,11 @@ function totalUniqueMembers(projects) {
 }
 
 export function MyProjectsOverviewPage() {
+  useDashboardPageMeta({
+    title: "My projects",
+    description: "Projects you manage across your organization.",
+  });
+
   const { user } = useAuth();
   const [createOpen, setCreateOpen] = useState(false);
   const { data, isLoading, isError, error, refetch, isFetching } = useProjects();
@@ -93,10 +98,7 @@ export function MyProjectsOverviewPage() {
   const tasksLoading = taskQueries.some((query) => query.isLoading);
 
   return (
-    <ProjectManagerLayout
-      title="My projects"
-      description="Projects you manage across your organization."
-    >
+    <>
       {isLoading ? (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -206,6 +208,6 @@ export function MyProjectsOverviewPage() {
       ) : null}
 
       <CreateProjectDialog open={createOpen} onOpenChange={setCreateOpen} />
-    </ProjectManagerLayout>
+    </>
   );
 }

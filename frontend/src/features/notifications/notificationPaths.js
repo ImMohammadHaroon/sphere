@@ -1,12 +1,7 @@
-export function getNotificationsPath(role) {
-  const map = {
-    super_admin: "/super-admin/notifications",
-    org_admin: "/admin/notifications",
-    project_manager: "/dashboard/notifications",
-    team_member: "/member/notifications",
-    client: "/portal/notifications",
-  };
-  return map[role] ?? "/";
+export const NOTIFICATIONS_PATH = "/notifications";
+
+export function getNotificationsPath() {
+  return NOTIFICATIONS_PATH;
 }
 
 export function getTaskDetailPath(role, payload) {
@@ -16,5 +11,5 @@ export function getTaskDetailPath(role, payload) {
   if (role === "project_manager") {
     return `/dashboard/projects/${payload.projectId}/tasks/${payload.taskId}`;
   }
-  return getNotificationsPath(role);
+  return getNotificationsPath();
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { useOrganizations } from "@/features/platform/hooks/useOrganizations";
 import {
   useApproveOrganization,
@@ -55,6 +55,12 @@ function parseStatusFilter(value) {
 }
 
 export function OrganizationsPage() {
+  useDashboardPageMeta({
+    title: "Organizations",
+    description:
+      "Review pending registrations and manage organizations on the platform.",
+  });
+
   const [page, setPage] = useState(1);
   const [pendingPage, setPendingPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
@@ -162,10 +168,7 @@ export function OrganizationsPage() {
     isPendingLoading || isPendingError || pendingTotal > 0;
 
   return (
-    <SuperAdminLayout
-      title="Organizations"
-      description="Review pending registrations and manage organizations on the platform."
-    >
+    <>
       {toast ? <Toast toast={toast} onDismiss={dismissToast} /> : null}
 
       {showPendingSection ? (
@@ -496,6 +499,6 @@ export function OrganizationsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SuperAdminLayout>
+    </>
   );
 }

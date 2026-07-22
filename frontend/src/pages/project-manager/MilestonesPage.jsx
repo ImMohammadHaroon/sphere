@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { MilestoneFormDialog } from "@/features/milestones/components/MilestoneFormDialog";
+import { MilestoneAttachments } from "@/features/milestones/components/MilestoneAttachments";
 import {
   useCreateMilestone,
   useDeleteMilestone,
@@ -14,9 +15,9 @@ import {
   milestoneStatusBadgeVariant,
 } from "@/features/milestones/milestoneStatus";
 import { useProjects } from "@/features/projects/hooks/useProjects";
+import { ProjectPicker } from "@/components/projects/ProjectPicker";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -44,6 +45,14 @@ export function MilestonesPage() {
   const projectId =
     routeProjectId || id || searchParams.get("projectId") || "";
   const highlight = searchParams.get("highlight") || "";
+
+  useDashboardPageMeta({
+    title: "Milestones",
+    description: "Track key deliverables and project phases.",
+    showBack: Boolean(projectId),
+    backLabel: projectId ? "All projects" : undefined,
+    backTo: projectId ? "/dashboard/milestones" : undefined,
+  });
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -119,10 +128,11 @@ export function MilestonesPage() {
   async function handleFormSubmit(formData) {
     if (editing) {
       await updateMilestone.mutateAsync({ id: editing._id, data: formData });
-      setEditing(null);
-      return;
+      return null;
     }
-    await createMilestone.mutateAsync(formData);
+
+    const result = await createMilestone.mutateAsync(formData);
+    return result.milestone;
   }
 
   async function handleDeleteConfirm() {
@@ -132,43 +142,9 @@ export function MilestonesPage() {
   }
 
   return (
-    <ProjectManagerLayout
-      title="Milestones"
-      description="Track key deliverables and project phases."
-    >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          {projectId ? (
-            <ButtonLink
-              to={`/dashboard/projects/${projectId}`}
-              variant="ghost"
-              size="sm"
-            >
-              ← Back to project
-            </ButtonLink>
-          ) : null}
-
-          <label className="flex items-center gap-2 text-sm text-text-secondary">
-            <span className="shrink-0">Project</span>
-            <select
-              value={projectId}
-              onChange={(e) => handleProjectChange(e.target.value)}
-              disabled={projectsLoading}
-              className="h-10 min-w-[12rem] rounded-lg border border-border bg-surface-raised px-3 text-sm text-text-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-            >
-              <option value="">
-                {projectsLoading ? "Loading…" : "Select a project"}
-              </option>
-              {(projects ?? []).map((project) => (
-                <option key={project._id} value={project._id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        {projectId ? (
+    <>
+      {projectId ? (
+        <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
           <Button
             type="button"
             onClick={() => {
@@ -178,15 +154,27 @@ export function MilestonesPage() {
           >
             New milestone
           </Button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
-      {!projectId ? (
-        <Card className="p-8 text-center">
-          <p className="text-text-secondary">
-            Select a project to manage its milestones.
-          </p>
-        </Card>
+      {projectsLoading && !projectId ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-16" />
+          ))}
+        </div>
+      ) : null}
+
+      {!projectsLoading && !projectId ? (
+        <ProjectPicker
+          projects={projects ?? []}
+          getProjectHref={(project) =>
+            `/dashboard/projects/${project._id}/milestones`
+          }
+          actionLabel="Manage"
+          emptyTitle="No projects yet"
+          emptyDescription="Create a project to manage its milestones."
+        />
       ) : null}
 
       {projectId && isLoading ? (
@@ -259,6 +247,11 @@ export function MilestonesPage() {
                         <p className="mt-2 text-sm text-text-muted">
                           Due {formatDueDate(milestone.dueDate)}
                         </p>
+                        <MilestoneAttachments
+                          milestoneId={milestone._id}
+                          canUpload={canEdit}
+                          compact
+                        />
                       </div>
 
                       {canEdit ? (
@@ -313,6 +306,6 @@ export function MilestonesPage() {
         onConfirm={handleDeleteConfirm}
         isLoading={deleteMilestone.isPending}
       />
-    </ProjectManagerLayout>
+    </>
   );
 }

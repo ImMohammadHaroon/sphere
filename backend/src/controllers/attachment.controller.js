@@ -3,6 +3,7 @@ import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { isProjectMember } from "../utils/projectAccess.js";
 import { encryptBuffer, decryptBuffer } from "../utils/fileEncryption.js";
+import { resolveAttachmentContentType } from "../utils/attachmentMime.js";
 import { emitToProject } from "../sockets/index.js";
 
 /** Projection that strips ciphertext material from metadata responses. */
@@ -20,7 +21,7 @@ function badRequest(message) {
   return err;
 }
 
-function formatUploader(uploader) {
+export function formatUploader(uploader) {
   if (!uploader) {
     return null;
   }
@@ -45,6 +46,8 @@ export function formatAttachment(attachment) {
     _id: attachment._id.toString(),
     organizationId: attachment.organizationId?.toString(),
     taskId: attachment.taskId?.toString(),
+    milestoneId: attachment.milestoneId?.toString(),
+    commentId: attachment.commentId?.toString(),
     fileName: attachment.fileName,
     mimeType: attachment.mimeType,
     size: attachment.size,
@@ -153,15 +156,17 @@ export async function downloadAttachment(req, res, next) {
   try {
     await assertTaskReadable(req, req.params.taskId, req.params.projectId);
 
-    const attachment = await req
-      .scopedFindOne(Attachment, {
-        _id: req.params.id,
-        taskId: req.params.taskId,
-      })
-      .lean();
+    const attachment = await req.scopedFindOne(Attachment, {
+      _id: req.params.id,
+      taskId: req.params.taskId,
+    });
 
     if (!attachment) {
       throw notFound();
+    }
+
+    if (!attachment.encryptedData) {
+      throw notFound("Attachment file data not found");
     }
 
     const plaintext = decryptBuffer(
@@ -170,7 +175,11 @@ export async function downloadAttachment(req, res, next) {
       attachment.authTag
     );
 
-    res.set("Content-Type", attachment.mimeType);
+    res.set(
+      "Content-Type",
+      resolveAttachmentContentType(attachment.fileName, attachment.mimeType)
+    );
+    res.set("Cache-Control", "private, no-store");
     res.set(
       "Content-Disposition",
       `inline; filename="${attachment.fileName}"`

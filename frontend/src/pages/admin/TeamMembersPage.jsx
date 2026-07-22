@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { useOrgUsers, useRemoveOrgUser } from "@/features/org/hooks/useOrgUsers";
 import { useInvites, useRevokeInvite } from "@/features/invites/hooks/useInvites";
 import { InviteMemberDialog } from "@/features/invites/components/InviteMemberDialog";
@@ -47,6 +47,11 @@ function roleBadgeVariant(role) {
 }
 
 export function TeamMembersPage() {
+  useDashboardPageMeta({
+    title: "Team members",
+    description: "Manage users in your organization.",
+  });
+
   const { user: currentUser } = useAuth();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState(null);
@@ -95,10 +100,7 @@ export function TeamMembersPage() {
   const isCurrentUser = (memberId) => memberId === currentUser?.id;
 
   return (
-    <OrgAdminLayout
-      title="Team members"
-      description="Manage users in your organization."
-    >
+    <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-text-secondary">
           {users?.length ?? 0} member{users?.length === 1 ? "" : "s"}
@@ -288,6 +290,6 @@ export function TeamMembersPage() {
         onConfirm={handleRevokeConfirm}
         isLoading={revokeInvite.isPending}
       />
-    </OrgAdminLayout>
+    </>
   );
 }

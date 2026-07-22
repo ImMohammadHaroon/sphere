@@ -1,5 +1,5 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { BurndownChart } from "@/features/reports/BurndownChart";
 import { VelocityChart } from "@/features/reports/VelocityChart";
 import { WorkloadChart } from "@/features/reports/WorkloadChart";
@@ -9,8 +9,8 @@ import {
   useWorkloadReport,
 } from "@/features/reports/hooks/useProjectReports";
 import { useProjects } from "@/features/projects/hooks/useProjects";
+import { ProjectPicker } from "@/components/projects/ProjectPicker";
 import { Button } from "@/components/ui/Button";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -32,6 +32,14 @@ export function ProjectManagerReportsPage() {
   const [searchParams] = useSearchParams();
   const projectId =
     routeProjectId || id || searchParams.get("projectId") || "";
+
+  useDashboardPageMeta({
+    title: "Reports",
+    description: "Progress, velocity, and workload across your projects.",
+    showBack: Boolean(projectId),
+    backLabel: projectId ? "All projects" : undefined,
+    backTo: projectId ? "/dashboard/reports" : undefined,
+  });
 
   const { data: projects, isLoading: projectsLoading } = useProjects();
 
@@ -65,47 +73,23 @@ export function ProjectManagerReportsPage() {
   }
 
   return (
-    <ProjectManagerLayout
-      title="Reports"
-      description="Progress, velocity, and workload across your projects."
-    >
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        {projectId ? (
-          <ButtonLink
-            to={`/dashboard/projects/${projectId}`}
-            variant="ghost"
-            size="sm"
-          >
-            ← Back to project
-          </ButtonLink>
-        ) : null}
+    <>
+      {projectsLoading && !projectId ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-16" />
+          ))}
+        </div>
+      ) : null}
 
-        <label className="flex items-center gap-2 text-sm text-text-secondary">
-          <span className="shrink-0">Project</span>
-          <select
-            value={projectId}
-            onChange={(e) => handleProjectChange(e.target.value)}
-            disabled={projectsLoading}
-            className="h-10 min-w-[12rem] rounded-lg border border-border bg-surface-raised px-3 text-sm text-text-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-          >
-            <option value="">
-              {projectsLoading ? "Loading…" : "Select a project"}
-            </option>
-            {(projects ?? []).map((project) => (
-              <option key={project._id} value={project._id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      {!projectId ? (
-        <Card className="p-8 text-center">
-          <p className="text-text-secondary">
-            Select a project to view burndown, velocity, and workload.
-          </p>
-        </Card>
+      {!projectsLoading && !projectId ? (
+        <ProjectPicker
+          projects={projects ?? []}
+          getProjectHref={(project) => `/dashboard/projects/${project._id}/reports`}
+          actionLabel="Open report"
+          emptyTitle="No projects yet"
+          emptyDescription="Create a project to view burndown, velocity, and workload."
+        />
       ) : null}
 
       {isLoading ? <ReportsSkeleton /> : null}
@@ -139,6 +123,6 @@ export function ProjectManagerReportsPage() {
           </div>
         </div>
       ) : null}
-    </ProjectManagerLayout>
+    </>
   );
 }

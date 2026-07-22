@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
-import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
-import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { TaskStatusBadge } from "@/features/tasks/components/TaskStatusBadge";
 import { useProjectMembers } from "@/features/tasks/hooks/useProjectMembers";
 import { useTask } from "@/features/tasks/hooks/useTask";
@@ -29,7 +27,6 @@ import { Label } from "@/components/ui/Label";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TaskComments } from "@/features/tasks/components/TaskComments";
 import { TaskAttachments } from "@/features/tasks/components/TaskAttachments";
-
 const selectClassName =
   "flex h-10 w-full rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20";
 
@@ -111,13 +108,6 @@ export function TaskDetailPage() {
   const { user } = useAuth();
   const role = user?.role ?? "project_manager";
 
-  const Layout =
-    role === "team_member"
-      ? TeamMemberLayout
-      : role === "org_admin"
-        ? OrgAdminLayout
-        : ProjectManagerLayout;
-
   const { data: task, isLoading, isError, error, refetch, isFetching } =
     useTask(taskId);
 
@@ -144,6 +134,7 @@ export function TaskDetailPage() {
   const canEditStatus = isElevated || isAssignee;
   const canEditDescription = isElevated;
   const canSave = canEditAll || canEditStatus;
+  const canUploadAttachments = isElevated || isAssignee;
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -225,15 +216,15 @@ export function TaskDetailPage() {
   const notFound =
     isError && error instanceof ApiError && error.status === 404;
 
+  useDashboardPageMeta({
+    title: task?.title ?? "Task detail",
+    description: task
+      ? `Task in project ${projectId}`
+      : "View and update task details.",
+  });
+
   return (
-    <Layout
-      title={task?.title ?? "Task detail"}
-      description={
-        task
-          ? `Task in project ${projectId}`
-          : "View and update task details."
-      }
-    >
+    <>
       <div className="mb-4">
         <ButtonLink to={getBackPath(role, projectId)} variant="ghost" size="sm">
           ← Back to project
@@ -408,10 +399,17 @@ export function TaskDetailPage() {
             </div>
           </Card>
 
+          <Card className="p-6">
+            <TaskAttachments
+              taskId={taskId}
+              projectId={projectId}
+              canUpload={canUploadAttachments}
+            />
+          </Card>
+
           <TaskComments taskId={taskId} projectId={projectId} />
-          <TaskAttachments taskId={taskId} projectId={projectId} />
         </div>
       ) : null}
-    </Layout>
+    </>
   );
 }

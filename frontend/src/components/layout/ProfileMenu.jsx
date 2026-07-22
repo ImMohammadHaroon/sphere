@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export function ProfileMenu({ user, onLogout, roleLabel }) {
   const [open, setOpen] = useState(false);
@@ -13,7 +12,6 @@ export function ProfileMenu({ user, onLogout, roleLabel }) {
   const { pathname } = useLocation();
 
   const displayName = user?.name?.trim() || null;
-  const buttonLabel = displayName || "Profile";
 
   useEffect(() => {
     setOpen(false);
@@ -56,34 +54,36 @@ export function ProfileMenu({ user, onLogout, roleLabel }) {
         variant="outline"
         size="sm"
         onClick={() => setOpen((prev) => !prev)}
-        className="gap-1"
+        className="h-9 w-9 rounded-full p-0"
         aria-expanded={open}
         aria-haspopup="true"
+        aria-label={displayName ? `${displayName} menu` : "Profile menu"}
       >
-        <span className="max-w-[120px] truncate sm:max-w-[180px]">
-          {buttonLabel}
-        </span>
-        <ChevronDown
-          className={cn(
-            "h-4 w-4 shrink-0 text-text-secondary transition-transform",
-            open && "rotate-180"
-          )}
-        />
+        <UserAvatar user={user} size="sm" />
       </Button>
 
       {open ? (
         <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-lg border border-border bg-surface-raised py-2 shadow-sm">
-          <div className="px-4 py-2">
-            <p className="truncate font-semibold text-text-primary">
-              {displayName || roleLabel}
-            </p>
-            {user?.email ? (
-              <p className="mt-0.5 truncate text-sm text-text-secondary">
-                {user.email}
+          <div className="flex items-center gap-3 px-4 py-2">
+            <UserAvatar user={user} size="md" />
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-text-primary">
+                {displayName || roleLabel}
               </p>
-            ) : null}
+              {user?.email ? (
+                <p className="mt-0.5 truncate text-sm text-text-secondary">
+                  {user.email}
+                </p>
+              ) : null}
+            </div>
           </div>
           <hr className="border-border" />
+          <Link
+            to="/profile"
+            className="block w-full px-4 py-2 text-left text-sm text-text-primary hover:bg-surface"
+          >
+            Settings
+          </Link>
           <button
             type="button"
             onClick={handleSignOutClick}

@@ -30,12 +30,8 @@ import { MyTasksPage } from "@/pages/team-member/MyTasksPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { TeamMemberKanbanBoardPage } from "@/pages/team-member/KanbanBoardPage";
 import { TeamMemberTaskDetailPage } from "@/pages/team-member/TaskDetailPage";
-import { NotificationsPage as TeamMemberNotificationsPage } from "@/pages/team-member/NotificationsPage";
-import { NotificationsPage as PmNotificationsPage } from "@/pages/project-manager/NotificationsPage";
-import { NotificationsPage as OrgAdminNotificationsPage } from "@/pages/admin/NotificationsPage";
-import { NotificationsPage as SuperAdminNotificationsPage } from "@/pages/super-admin/NotificationsPage";
-import { NotificationsPage as ClientNotificationsPage } from "@/pages/client-portal/NotificationsPage";
-import { ProfilePage } from "@/pages/DashboardPages";
+import { NotificationsPage } from "@/pages/NotificationsPage";
+import { ProfilePage } from "@/pages/ProfilePage";
 import { PlatformOverviewPage } from "@/pages/super-admin/PlatformOverviewPage";
 import { OrganizationsPage } from "@/pages/super-admin/OrganizationsPage";
 import { OrganizationDetailPage } from "@/pages/super-admin/OrganizationDetailPage";
@@ -47,7 +43,11 @@ import { TeamMembersPage } from "@/pages/admin/TeamMembersPage";
 import { UserDetailPage } from "@/pages/admin/UserDetailPage";
 import { AllProjectsPage } from "@/pages/admin/AllProjectsPage";
 import { ReportsPage } from "@/pages/admin/ReportsPage";
-import { SettingsPage } from "@/pages/admin/SettingsPage";
+import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
+import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
+import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
+import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
+import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
 
 const queryClient = new QueryClient();
 
@@ -77,303 +77,127 @@ function AppRoutes() {
         path="/dashboard"
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
-            <MyProjectsOverviewPage />
+            <ProjectManagerLayout />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/dashboard/projects/:id"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <ProjectDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/projects/:id/board"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <PmKanbanBoardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/projects/:id/calendar"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <CalendarViewPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/projects/:id/milestones"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <PmMilestonesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/projects/:id/reports"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <ProjectManagerReportsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/kanban"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <PmKanbanBoardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/projects/:projectId/tasks/:taskId"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <TaskDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/calendar"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <CalendarViewPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/reports"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <ProjectManagerReportsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/milestones"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <PmMilestonesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/notifications"
-        element={
-          <ProtectedRoute allowedRoles={["project_manager"]}>
-            <PmNotificationsPage />
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route index element={<MyProjectsOverviewPage />} />
+        <Route path="projects/:id" element={<ProjectDetailPage />} />
+        <Route path="projects/:id/board" element={<PmKanbanBoardPage />} />
+        <Route path="projects/:id/calendar" element={<CalendarViewPage />} />
+        <Route path="projects/:id/milestones" element={<PmMilestonesPage />} />
+        <Route path="projects/:id/reports" element={<ProjectManagerReportsPage />} />
+        <Route path="kanban" element={<PmKanbanBoardPage />} />
+        <Route
+          path="projects/:projectId/tasks/:taskId"
+          element={<TaskDetailPage />}
+        />
+        <Route path="calendar" element={<CalendarViewPage />} />
+        <Route path="reports" element={<ProjectManagerReportsPage />} />
+        <Route path="milestones" element={<PmMilestonesPage />} />
+        <Route
+          path="notifications"
+          element={<Navigate to="/notifications" replace />}
+        />
+      </Route>
       <Route
         path="/member"
         element={
           <ProtectedRoute allowedRoles={["team_member"]}>
-            <DashboardPage />
+            <TeamMemberLayout />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/member/tasks"
-        element={
-          <ProtectedRoute allowedRoles={["team_member"]}>
-            <MyTasksPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/member/projects/:projectId/board"
-        element={
-          <ProtectedRoute allowedRoles={["team_member"]}>
-            <TeamMemberKanbanBoardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/member/projects/:projectId/tasks/:taskId"
-        element={
-          <ProtectedRoute allowedRoles={["team_member"]}>
-            <TeamMemberTaskDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/member/notifications"
-        element={
-          <ProtectedRoute allowedRoles={["team_member"]}>
-            <TeamMemberNotificationsPage />
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route index element={<DashboardPage />} />
+        <Route path="tasks" element={<MyTasksPage />} />
+        <Route
+          path="projects/:projectId/board"
+          element={<TeamMemberKanbanBoardPage />}
+        />
+        <Route
+          path="projects/:projectId/tasks/:taskId"
+          element={<TeamMemberTaskDetailPage />}
+        />
+        <Route
+          path="notifications"
+          element={<Navigate to="/notifications" replace />}
+        />
+      </Route>
       <Route
         path="/super-admin"
         element={
           <ProtectedRoute allowedRoles={["super_admin"]}>
-            <PlatformOverviewPage />
+            <SuperAdminLayout />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/super-admin/organizations"
-        element={
-          <ProtectedRoute allowedRoles={["super_admin"]}>
-            <OrganizationsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/super-admin/organizations/pending"
-        element={<Navigate to="/super-admin/organizations" replace />}
-      />
-      <Route
-        path="/super-admin/organizations/:id"
-        element={
-          <ProtectedRoute allowedRoles={["super_admin"]}>
-            <OrganizationDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/super-admin/users"
-        element={
-          <ProtectedRoute allowedRoles={["super_admin"]}>
-            <UsersPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/super-admin/reports"
-        element={
-          <ProtectedRoute allowedRoles={["super_admin"]}>
-            <SuperAdminReportsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/super-admin/notifications"
-        element={
-          <ProtectedRoute allowedRoles={["super_admin"]}>
-            <SuperAdminNotificationsPage />
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route index element={<PlatformOverviewPage />} />
+        <Route path="organizations" element={<OrganizationsPage />} />
+        <Route
+          path="organizations/pending"
+          element={<Navigate to="/super-admin/organizations" replace />}
+        />
+        <Route path="organizations/:id" element={<OrganizationDetailPage />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="reports" element={<SuperAdminReportsPage />} />
+        <Route
+          path="notifications"
+          element={<Navigate to="/notifications" replace />}
+        />
+      </Route>
       <Route
         path="/admin"
         element={
           <ProtectedRoute allowedRoles={["org_admin"]}>
-            <OrgOverviewPage />
+            <OrgAdminLayout />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/admin/users"
-        element={
-          <ProtectedRoute allowedRoles={["org_admin"]}>
-            <TeamMembersPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/users/invite"
-        element={<Navigate to="/admin/users" replace />}
-      />
-      <Route
-        path="/admin/users/:id"
-        element={
-          <ProtectedRoute allowedRoles={["org_admin"]}>
-            <UserDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/projects"
-        element={
-          <ProtectedRoute allowedRoles={["org_admin"]}>
-            <AllProjectsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/projects/:id"
-        element={
-          <ProtectedRoute allowedRoles={["org_admin"]}>
-            <ProjectDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/projects/:projectId/tasks/:taskId"
-        element={
-          <ProtectedRoute allowedRoles={["org_admin"]}>
-            <TaskDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/reports"
-        element={
-          <ProtectedRoute allowedRoles={["org_admin"]}>
-            <ReportsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/settings"
-        element={
-          <ProtectedRoute allowedRoles={["org_admin"]}>
-            <SettingsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/notifications"
-        element={
-          <ProtectedRoute allowedRoles={["org_admin"]}>
-            <OrgAdminNotificationsPage />
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route index element={<OrgOverviewPage />} />
+        <Route path="users" element={<TeamMembersPage />} />
+        <Route
+          path="users/invite"
+          element={<Navigate to="/admin/users" replace />}
+        />
+        <Route path="users/:id" element={<UserDetailPage />} />
+        <Route path="projects" element={<AllProjectsPage />} />
+        <Route path="projects/:id" element={<ProjectDetailPage />} />
+        <Route
+          path="projects/:projectId/tasks/:taskId"
+          element={<TaskDetailPage />}
+        />
+        <Route path="reports" element={<ReportsPage />} />
+        <Route
+          path="settings"
+          element={<Navigate to="/profile?tab=organization" replace />}
+        />
+        <Route
+          path="notifications"
+          element={<Navigate to="/notifications" replace />}
+        />
+      </Route>
       <Route
         path="/portal"
         element={
           <ProtectedRoute allowedRoles={["client"]}>
-            <ClientMyProjectsPage />
+            <ClientPortalLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<ClientMyProjectsPage />} />
+        <Route path="progress" element={<ProjectProgressPage />} />
+        <Route path="milestones" element={<ClientMilestonesPage />} />
+        <Route path="reports" element={<ClientReportsPage />} />
+        <Route
+          path="notifications"
+          element={<Navigate to="/notifications" replace />}
+        />
+      </Route>
       <Route
-        path="/portal/progress"
+        path="/notifications"
         element={
-          <ProtectedRoute allowedRoles={["client"]}>
-            <ProjectProgressPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/portal/milestones"
-        element={
-          <ProtectedRoute allowedRoles={["client"]}>
-            <ClientMilestonesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/portal/reports"
-        element={
-          <ProtectedRoute allowedRoles={["client"]}>
-            <ClientReportsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/portal/notifications"
-        element={
-          <ProtectedRoute allowedRoles={["client"]}>
-            <ClientNotificationsPage />
+          <ProtectedRoute>
+            <NotificationsPage />
           </ProtectedRoute>
         }
       />

@@ -14,13 +14,13 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { useProject, useProjects } from "@/features/projects/hooks/useProjects";
 import { useProjectCalendar } from "@/features/projects/hooks/useProjectCalendar";
+import { ProjectPicker } from "@/components/projects/ProjectPicker";
 import { getStatusColor } from "@/lib/taskStatusConfig";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import {
   Dialog,
@@ -57,6 +57,14 @@ export function CalendarViewPage() {
   const [searchParams] = useSearchParams();
   const projectId =
     routeProjectId || id || searchParams.get("projectId") || "";
+
+  useDashboardPageMeta({
+    title: "Calendar view",
+    description: "See deadlines and milestones on a calendar.",
+    showBack: Boolean(projectId),
+    backLabel: projectId ? "All projects" : undefined,
+    backTo: projectId ? "/dashboard/calendar" : undefined,
+  });
 
   const [visibleMonth, setVisibleMonth] = useState(() =>
     startOfMonth(new Date())
@@ -123,83 +131,59 @@ export function CalendarViewPage() {
   }
 
   return (
-    <ProjectManagerLayout
-      title="Calendar view"
-      description="See deadlines and milestones on a calendar."
-    >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          {projectId ? (
-            <ButtonLink
-              to={`/dashboard/projects/${projectId}`}
-              variant="ghost"
-              size="sm"
-            >
-              ← Back to project
-            </ButtonLink>
-          ) : null}
-
-          <label className="flex items-center gap-2 text-sm text-text-secondary">
-            <span className="shrink-0">Project</span>
-            <select
-              value={projectId}
-              onChange={(e) => handleProjectChange(e.target.value)}
-              disabled={projectsLoading}
-              className="h-10 min-w-[12rem] rounded-lg border border-border bg-surface-raised px-3 text-sm text-text-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-            >
-              <option value="">
-                {projectsLoading ? "Loading…" : "Select a project"}
-              </option>
-              {(projects ?? []).map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
+    <>
+      {projectId ? (
+        <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-label="Previous month"
+            onClick={() => setVisibleMonth((m) => startOfMonth(subMonths(m, 1)))}
+          >
+            <Icon icon="lucide:chevron-left" className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setVisibleMonth(startOfMonth(new Date()))}
+          >
+            Today
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-label="Next month"
+            onClick={() => setVisibleMonth((m) => startOfMonth(addMonths(m, 1)))}
+          >
+            <Icon icon="lucide:chevron-right" className="h-4 w-4" />
+          </Button>
+          <h2 className="min-w-[9rem] text-center text-sm font-medium text-text-primary sm:text-base">
+            {format(visibleMonth, "MMMM yyyy")}
+          </h2>
         </div>
+      ) : null}
 
-        {projectId ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              aria-label="Previous month"
-              onClick={() => setVisibleMonth((m) => startOfMonth(subMonths(m, 1)))}
-            >
-              <Icon icon="lucide:chevron-left" className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setVisibleMonth(startOfMonth(new Date()))}
-            >
-              Today
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              aria-label="Next month"
-              onClick={() => setVisibleMonth((m) => startOfMonth(addMonths(m, 1)))}
-            >
-              <Icon icon="lucide:chevron-right" className="h-4 w-4" />
-            </Button>
-            <h2 className="min-w-[9rem] text-center text-sm font-medium text-text-primary sm:text-base">
-              {format(visibleMonth, "MMMM yyyy")}
-            </h2>
-          </div>
-        ) : null}
-      </div>
+      {projectsLoading && !projectId ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-16" />
+          ))}
+        </div>
+      ) : null}
 
-      {!projectId ? (
-        <Card className="p-8 text-center">
-          <p className="text-text-secondary">
-            Select a project to view its task deadlines and milestones.
-          </p>
-        </Card>
+      {!projectsLoading && !projectId ? (
+        <ProjectPicker
+          projects={projects ?? []}
+          getProjectHref={(project) =>
+            `/dashboard/projects/${project._id}/calendar`
+          }
+          actionLabel="Open calendar"
+          emptyTitle="No projects yet"
+          emptyDescription="Create a project to view its task deadlines and milestones."
+        />
       ) : null}
 
       {isLoading ? (
@@ -391,6 +375,6 @@ export function CalendarViewPage() {
           )}
         </DialogContent>
       </Dialog>
-    </ProjectManagerLayout>
+    </>
   );
 }

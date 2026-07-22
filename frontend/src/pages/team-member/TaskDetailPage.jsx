@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { TaskStatusBadge } from "@/features/tasks/components/TaskStatusBadge";
 import { useProjectMembers } from "@/features/tasks/hooks/useProjectMembers";
 import { useTask } from "@/features/tasks/hooks/useTask";
@@ -22,7 +22,6 @@ import { Label } from "@/components/ui/Label";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TaskComments } from "@/features/tasks/components/TaskComments";
 import { TaskAttachments } from "@/features/tasks/components/TaskAttachments";
-
 function formatDate(value) {
   if (!value) return "—";
   return new Date(value).toLocaleDateString(undefined, {
@@ -158,15 +157,15 @@ export function TeamMemberTaskDetailPage() {
   const notFound =
     isError && error instanceof ApiError && error.status === 404;
 
+  useDashboardPageMeta({
+    title: task?.title ?? "Task detail",
+    description: task
+      ? `Task in project ${projectId}`
+      : "View and update task details.",
+  });
+
   return (
-    <TeamMemberLayout
-      title={task?.title ?? "Task detail"}
-      description={
-        task
-          ? `Task in project ${projectId}`
-          : "View and update task details."
-      }
-    >
+    <>
       <div className="mb-4">
         <ButtonLink to="/member" variant="ghost" size="sm">
           ← Back to dashboard
@@ -290,10 +289,17 @@ export function TeamMemberTaskDetailPage() {
             </div>
           </Card>
 
+          <Card className="p-6">
+            <TaskAttachments
+              taskId={taskId}
+              projectId={projectId}
+              canUpload={isAssignee}
+            />
+          </Card>
+
           <TaskComments taskId={taskId} projectId={projectId} />
-          <TaskAttachments taskId={taskId} projectId={projectId} />
         </div>
       ) : null}
-    </TeamMemberLayout>
+    </>
   );
 }

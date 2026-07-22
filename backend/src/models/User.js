@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     passwordResetToken: { type: String, select: false },
     passwordResetExpires: { type: Date, select: false },
+    avatar: {
+      mimeType: { type: String, default: null },
+      size: { type: Number, default: null },
+      data: { type: Buffer, select: false, default: null },
+      updatedAt: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );

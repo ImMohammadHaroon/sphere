@@ -77,3 +77,16 @@ export const resetPasswordSchema = z.object({
       .regex(/[0-9]/, "Must contain number"),
   }),
 });
+
+export const updateProfileSchema = z.object({
+  body: z.object({
+    name: z.string().min(2).max(100),
+  }),
+});
+
+export const changePasswordSchema = z.object({
+  body: z.object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(8),
+  }),
+});

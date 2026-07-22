@@ -12,12 +12,20 @@ import {
   taskCommentRouter,
 } from "./routes/comment.routes.js";
 import {
+  projectTaskCommentAttachmentRouter,
+  taskCommentAttachmentRouter,
+} from "./routes/commentAttachment.routes.js";
+import {
   projectTaskAttachmentRouter,
   taskAttachmentRouter,
 } from "./routes/attachment.routes.js";
 import milestoneRoutes, {
   projectMilestoneRouter,
 } from "./routes/milestone.routes.js";
+import {
+  projectMilestoneAttachmentRouter,
+  milestoneAttachmentRouter,
+} from "./routes/milestoneAttachment.routes.js";
 import platformRoutes from "./routes/platform.routes.js";
 import orgRoutes from "./routes/org.routes.js";
 import orgSettingsRoutes from "./routes/orgSettings.routes.js";
@@ -96,6 +104,12 @@ app.use(
   projectTaskCommentRouter
 );
 app.use(
+  "/api/v1/projects/:projectId/tasks/:taskId/comments/:commentId/attachments",
+  authenticate,
+  tenantScope,
+  projectTaskCommentAttachmentRouter
+);
+app.use(
   "/api/v1/projects/:projectId/tasks/:taskId/attachments",
   authenticate,
   tenantScope,
@@ -106,6 +120,12 @@ app.use(
   authenticate,
   tenantScope,
   taskCommentRouter
+);
+app.use(
+  "/api/v1/tasks/:taskId/comments/:commentId/attachments",
+  authenticate,
+  tenantScope,
+  taskCommentAttachmentRouter
 );
 app.use(
   "/api/v1/tasks/:taskId/attachments",
@@ -119,6 +139,18 @@ app.use(
   authenticate,
   tenantScope,
   projectMilestoneRouter
+);
+app.use(
+  "/api/v1/projects/:projectId/milestones/:milestoneId/attachments",
+  authenticate,
+  tenantScope,
+  projectMilestoneAttachmentRouter
+);
+app.use(
+  "/api/v1/milestones/:milestoneId/attachments",
+  authenticate,
+  tenantScope,
+  milestoneAttachmentRouter
 );
 app.use("/api/v1/milestones", authenticate, tenantScope, milestoneRoutes);
 

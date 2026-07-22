@@ -11,7 +11,18 @@ export function getDoneColumnKey(project) {
   const columns = project?.columns?.length
     ? project.columns
     : DEFAULT_BOARD_COLUMNS;
-  return columns.find((column) => column.isDone === true)?.key ?? null;
+
+  const sorted = [...columns].sort((a, b) => a.order - b.order);
+  if (sorted.length === 0) {
+    return null;
+  }
+
+  const doneColumn = sorted.find((column) => column.isDone === true);
+  if (doneColumn) {
+    return doneColumn.key;
+  }
+
+  return sorted[sorted.length - 1]?.key ?? null;
 }
 
 export function isDoneColumn(project, statusKey) {

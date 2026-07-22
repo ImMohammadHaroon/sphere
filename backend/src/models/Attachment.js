@@ -12,7 +12,19 @@ const attachmentSchema = new mongoose.Schema(
     taskId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Task",
-      required: true,
+      default: null,
+      index: true,
+    },
+    milestoneId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Milestone",
+      default: null,
+      index: true,
+    },
+    commentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment",
+      default: null,
       index: true,
     },
     uploaderId: {
@@ -31,7 +43,35 @@ const attachmentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+function hasValidAttachmentParent() {
+  const hasTask = this.taskId != null;
+  const hasMilestone = this.milestoneId != null;
+  const hasComment = this.commentId != null;
+
+  if (hasMilestone) {
+    return !hasTask && !hasComment;
+  }
+
+  if (hasComment) {
+    return hasTask && !hasMilestone;
+  }
+
+  return hasTask && !hasMilestone && !hasComment;
+}
+
+const parentRefMessage = "Attachment must belong to a task, milestone, or comment";
+
+attachmentSchema.path("taskId").validate(hasValidAttachmentParent, parentRefMessage);
+attachmentSchema
+  .path("milestoneId")
+  .validate(hasValidAttachmentParent, parentRefMessage);
+attachmentSchema
+  .path("commentId")
+  .validate(hasValidAttachmentParent, parentRefMessage);
+
 attachmentSchema.index({ organizationId: 1, taskId: 1 });
+attachmentSchema.index({ organizationId: 1, milestoneId: 1 });
+attachmentSchema.index({ organizationId: 1, commentId: 1 });
 
 export const Attachment = mongoose.model(
   "Attachment",

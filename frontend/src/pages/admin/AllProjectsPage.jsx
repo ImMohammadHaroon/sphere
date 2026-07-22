@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { CreateProjectDialog } from "@/features/projects/components/CreateProjectDialog";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { Badge } from "@/components/ui/Badge";
@@ -27,15 +27,17 @@ function formatDate(value) {
 }
 
 export function AllProjectsPage() {
+  useDashboardPageMeta({
+    title: "All projects",
+    description: "Organization-wide project management view.",
+  });
+
   const navigate = useNavigate();
   const [createOpen, setCreateOpen] = useState(false);
   const { data, isLoading, isError, error, refetch, isFetching } = useProjects();
 
   return (
-    <OrgAdminLayout
-      title="All projects"
-      description="Organization-wide project management view."
-    >
+    <>
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -115,6 +117,6 @@ export function AllProjectsPage() {
       ) : null}
 
       <CreateProjectDialog open={createOpen} onOpenChange={setCreateOpen} />
-    </OrgAdminLayout>
+    </>
   );
 }

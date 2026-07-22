@@ -66,6 +66,7 @@ export async function downloadAttachment(taskId, attachmentId) {
     method: "GET",
     headers,
     credentials: "include",
+    cache: "no-store",
   });
 
   if (!response.ok) {

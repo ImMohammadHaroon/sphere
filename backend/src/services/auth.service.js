@@ -21,9 +21,10 @@ import {
 } from "./token.service.js";
 import { uniqueOrgSlug } from "../utils/slug.js";
 import { env } from "../config/env.js";
-import { sendMail } from "./email/transporter.js";
+import { sendMail, sendMailInBackground } from "./email/transporter.js";
 import { buildPasswordResetEmail } from "./email/passwordResetEmail.js";
 import { buildOrgVerificationEmail } from "./email/orgVerificationEmail.js";
+import { buildOrgRegistrationAdminEmail } from "./email/orgRegistrationAdminEmail.js";
 import { createNotification } from "./notification.service.js";
 
 const ORG_VERIFICATION_TTL_MS = 15 * 60 * 1000;
@@ -41,6 +42,8 @@ function sanitizeUser(user) {
     role: user.role,
     organizationId: user.organizationId?.toString() ?? null,
     isActive: user.isActive,
+    hasAvatar: Boolean(user.avatar?.mimeType),
+    avatarUpdatedAt: user.avatar?.updatedAt?.toISOString?.() ?? null,
   };
 }
 
@@ -240,6 +243,20 @@ export async function verifyOrganizationRegistration({
     console.error("Failed to create org_registered notifications:", notifyErr);
   }
 
+  const reviewUrl = `${env.CLIENT_URL}/super-admin/organizations/${organization._id}`;
+  const { subject, html, text } = buildOrgRegistrationAdminEmail({
+    orgName: organization.name,
+    adminName: user.name,
+    adminEmail: user.email,
+    reviewUrl,
+  });
+  sendMailInBackground({
+    to: env.PLATFORM_ADMIN_EMAIL,
+    subject,
+    html,
+    text,
+  });
+
   return issueSession(res, user, deviceId || generateDeviceId());
 }
 
@@ -382,6 +399,106 @@ export async function getCurrentUser(userId) {
     err.status = 404;
     throw err;
   }
+  return enrichUserWithOrgContext(user);
+}
+
+export async function updateProfile(userId, { name }) {
+  const user = await User.findById(userId);
+  if (!user || !user.isActive) {
+    const err = new Error("User not found");
+    err.status = 404;
+    throw err;
+  }
+
+  user.name = name.trim();
+  await user.save();
+
+  return enrichUserWithOrgContext(user);
+}
+
+export async function changePassword(userId, { currentPassword, newPassword }) {
+  const user = await User.findById(userId).select("+passwordHash");
+  if (!user || !user.isActive) {
+    const err = new Error("User not found");
+    err.status = 404;
+    throw err;
+  }
+
+  const valid = await verifyPassword(currentPassword, user.passwordHash);
+  if (!valid) {
+    const err = new Error("Current password is incorrect");
+    err.status = 400;
+    throw err;
+  }
+
+  user.passwordHash = await hashPassword(newPassword);
+  await user.save();
+
+  return { message: "Password updated successfully" };
+}
+
+const ALLOWED_AVATAR_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];
+
+export async function uploadAvatar(userId, file) {
+  if (!file) {
+    const err = new Error("No image uploaded");
+    err.status = 400;
+    throw err;
+  }
+
+  if (!ALLOWED_AVATAR_TYPES.includes(file.mimetype)) {
+    const err = new Error("Only JPEG, PNG, WebP, and GIF images are allowed");
+    err.status = 400;
+    throw err;
+  }
+
+  const user = await User.findById(userId);
+  if (!user || !user.isActive) {
+    const err = new Error("User not found");
+    err.status = 404;
+    throw err;
+  }
+
+  user.avatar = {
+    mimeType: file.mimetype,
+    size: file.size,
+    data: file.buffer,
+    updatedAt: new Date(),
+  };
+  await user.save();
+
+  return enrichUserWithOrgContext(user);
+}
+
+export async function getAvatar(userId) {
+  const user = await User.findById(userId).select("+avatar.data");
+  if (!user || !user.isActive || !user.avatar?.data) {
+    return null;
+  }
+
+  return {
+    mimeType: user.avatar.mimeType,
+    data: user.avatar.data,
+    updatedAt: user.avatar.updatedAt,
+  };
+}
+
+export async function deleteAvatar(userId) {
+  const user = await User.findById(userId);
+  if (!user || !user.isActive) {
+    const err = new Error("User not found");
+    err.status = 404;
+    throw err;
+  }
+
+  user.avatar = undefined;
+  await user.save();
+
   return enrichUserWithOrgContext(user);
 }
 

@@ -1,15 +1,33 @@
+import { Outlet } from "react-router-dom";
 import { DashboardShell } from "./DashboardShell";
 import { SuperAdminSidebar } from "./SuperAdminSidebar";
+import {
+  DashboardPageMetaProvider,
+  useDashboardPageMetaState,
+} from "./dashboardPageMeta";
 
-export function SuperAdminLayout({ title, description, children }) {
+function SuperAdminLayoutShell() {
+  const pageMeta = useDashboardPageMetaState();
+
   return (
     <DashboardShell
       sidebar={<SuperAdminSidebar />}
-      title={title}
-      description={description}
-      showPageHeader={Boolean(title)}
+      title={pageMeta.title}
+      description={pageMeta.description}
+      showPageHeader={pageMeta.showPageHeader ?? Boolean(pageMeta.title)}
+      showBack={pageMeta.showBack}
+      backLabel={pageMeta.backLabel}
+      backTo={pageMeta.backTo}
     >
-      {children}
+      <Outlet />
     </DashboardShell>
+  );
+}
+
+export function SuperAdminLayout() {
+  return (
+    <DashboardPageMetaProvider>
+      <SuperAdminLayoutShell />
+    </DashboardPageMetaProvider>
   );
 }

@@ -37,12 +37,28 @@ export async function apiClient(path, options = {}) {
     requestHeaders["X-Device-Id"] = deviceId;
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
-    method,
-    headers: requestHeaders,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-    credentials: "include",
-  });
+  let response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method,
+      headers: requestHeaders,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      credentials: "include",
+    });
+  } catch (err) {
+    const isNetworkError =
+      err instanceof TypeError ||
+      (err instanceof Error && /failed to fetch|network/i.test(err.message));
+
+    throw new ApiError(
+      isNetworkError
+        ? "Could not reach the server. Check that the API is running and try again."
+        : err instanceof Error
+          ? err.message
+          : "Request failed",
+      0
+    );
+  }
 
   const data = await response.json().catch(() => ({}));
 

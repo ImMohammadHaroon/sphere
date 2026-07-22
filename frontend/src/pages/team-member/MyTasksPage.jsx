@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { useMyTasks } from "@/features/tasks/hooks/useMyTasks";
 import { TaskStatusBadge } from "@/features/tasks/components/TaskStatusBadge";
 import { getTaskProjectColumns } from "@/lib/taskStatusConfig";
@@ -47,14 +47,16 @@ function groupTasksByProject(tasks) {
 }
 
 export function MyTasksPage() {
+  useDashboardPageMeta({
+    title: "My tasks",
+    description: "Tasks assigned to you across all projects.",
+  });
+
   const { data, isLoading, isError, error, refetch, isFetching } = useMyTasks();
   const grouped = useMemo(() => groupTasksByProject(data ?? []), [data]);
 
   return (
-    <TeamMemberLayout
-      title="My tasks"
-      description="Tasks assigned to you across all projects."
-    >
+    <>
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -130,6 +132,6 @@ export function MyTasksPage() {
           </div>
         )
       ) : null}
-    </TeamMemberLayout>
+    </>
   );
 }

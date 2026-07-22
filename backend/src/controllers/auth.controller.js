@@ -79,6 +79,57 @@ export async function me(req, res, next) {
   }
 }
 
+export async function updateProfile(req, res, next) {
+  try {
+    const user = await authService.updateProfile(req.user.userId, req.body);
+    res.json({ user });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function changePassword(req, res, next) {
+  try {
+    const result = await authService.changePassword(req.user.userId, req.body);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function uploadAvatar(req, res, next) {
+  try {
+    const user = await authService.uploadAvatar(req.user.userId, req.file);
+    res.json({ user });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getAvatar(req, res, next) {
+  try {
+    const avatar = await authService.getAvatar(req.user.userId);
+    if (!avatar) {
+      return res.status(404).json({ message: "Avatar not found" });
+    }
+
+    res.set("Content-Type", avatar.mimeType);
+    res.set("Cache-Control", "private, max-age=3600");
+    res.send(avatar.data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteAvatar(req, res, next) {
+  try {
+    const user = await authService.deleteAvatar(req.user.userId);
+    res.json({ user });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function invite(req, res, next) {
   try {
     const result = await authService.createInvite({

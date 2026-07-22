@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { ClientProgressBar } from "@/features/client-portal/ClientProgressBar";
 import { useClientProjects } from "@/features/client-portal/hooks/useClientProjects";
+import { ProjectPicker } from "@/components/projects/ProjectPicker";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -19,42 +20,6 @@ function formatDate(value) {
     month: "short",
     day: "numeric",
   });
-}
-
-function ProjectPicker({ projects }) {
-  if (projects.length === 0) {
-    return (
-      <Card className="p-8 text-center">
-        <p className="text-text-secondary">
-          No projects have been shared with you yet
-        </p>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="overflow-hidden p-0">
-      <ul className="divide-y divide-border">
-        {projects.map((project) => (
-          <li key={project._id}>
-            <Link
-              to={`/portal/progress?project=${project._id}`}
-              className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 transition-colors hover:bg-surface"
-            >
-              <div>
-                <p className="font-medium text-text-primary">{project.name}</p>
-                <p className="text-sm text-text-secondary">
-                  {project.doneTasks} of {project.totalTasks} tasks complete{" "}
-                  {project.percentComplete}%
-                </p>
-              </div>
-              <span className="text-sm font-medium text-primary">View</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Card>
-  );
 }
 
 function ColumnBreakdown({ project }) {
@@ -105,12 +70,6 @@ function ProjectProgressDetail({ project }) {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <Link
-          to="/portal/progress"
-          className="text-sm font-medium text-primary hover:underline"
-        >
-          ← All projects
-        </Link>
         <h2 className="text-xl font-semibold text-text-primary">{project.name}</h2>
         {project.description ? (
           <p className="text-text-secondary">{project.description}</p>
@@ -136,6 +95,16 @@ function ProjectProgressDetail({ project }) {
 function ProjectProgressContent() {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("project");
+
+  useDashboardPageMeta({
+    title: "Project progress",
+    description:
+      "Read-only view of status, completion, and timeline for your projects.",
+    showBack: Boolean(projectId),
+    backLabel: projectId ? "All projects" : undefined,
+    backTo: projectId ? "/portal/progress" : undefined,
+  });
+
   const {
     projects,
     isLoading,
@@ -174,7 +143,20 @@ function ProjectProgressContent() {
   }
 
   if (!projectId) {
-    return <ProjectPicker projects={projects} />;
+    return (
+      <ProjectPicker
+        projects={projects}
+        getProjectHref={(project) => `/portal/progress?project=${project._id}`}
+        actionLabel="View"
+        emptyTitle="No projects have been shared with you yet"
+        renderSubtitle={(project) => (
+          <p className="mt-1 text-sm text-text-secondary">
+            {project.doneTasks} of {project.totalTasks} tasks complete{" "}
+            {project.percentComplete}%
+          </p>
+        )}
+      />
+    );
   }
 
   if (!selectedProject) {
@@ -195,12 +177,5 @@ function ProjectProgressContent() {
 }
 
 export function ProjectProgressPage() {
-  return (
-    <ClientPortalLayout
-      title="Project progress"
-      description="Read-only view of status, completion, and timeline for your projects."
-    >
-      <ProjectProgressContent />
-    </ClientPortalLayout>
-  );
+  return <ProjectProgressContent />;
 }

@@ -1,8 +1,10 @@
 import { Comment } from "../models/Comment.js";
+import { Attachment } from "../models/Attachment.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
 import { isProjectMember } from "../utils/projectAccess.js";
 import { emitToProject } from "../sockets/index.js";
+import { listAttachmentsForComments } from "./commentAttachment.controller.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -29,7 +31,7 @@ function formatAuthor(author) {
   };
 }
 
-export function formatComment(comment) {
+export function formatComment(comment, attachments = []) {
   const author = formatAuthor(comment.authorId);
 
   return {
@@ -41,6 +43,7 @@ export function formatComment(comment) {
     updatedAt: comment.updatedAt,
     authorId: author?.id ?? null,
     author,
+    attachments,
   };
 }
 
@@ -87,7 +90,19 @@ export async function listComments(req, res, next) {
       .sort({ createdAt: 1 })
       .lean();
 
-    res.json({ comments: comments.map(formatComment) });
+    const attachmentMap = await listAttachmentsForComments(
+      req,
+      comments.map((comment) => comment._id)
+    );
+
+    res.json({
+      comments: comments.map((comment) =>
+        formatComment(
+          comment,
+          attachmentMap.get(comment._id.toString()) ?? []
+        )
+      ),
+    });
   } catch (err) {
     next(err);
   }
@@ -113,7 +128,7 @@ export async function createComment(req, res, next) {
       .populate("authorId", "name email role")
       .lean();
 
-    const commentPayload = formatComment(comment);
+    const commentPayload = formatComment(comment, []);
 
     emitToProject(task.projectId.toString(), "comment:new", commentPayload);
 
@@ -136,6 +151,8 @@ export async function deleteComment(req, res, next) {
     if (comment.taskId.toString() !== req.params.taskId) {
       throw notFound();
     }
+
+    await Attachment.deleteMany({ commentId: comment._id });
 
     const task = await req
       .scopedFindOne(Task, { _id: comment.taskId })

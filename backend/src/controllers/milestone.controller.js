@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { Attachment } from "../models/Attachment.js";
 import { Milestone } from "../models/Milestone.js";
 import { Project } from "../models/Project.js";
 import { User } from "../models/User.js";
@@ -270,6 +271,8 @@ export async function deleteMilestone(req, res, next) {
     if (existing.status !== "pending") {
       throw conflict("Cannot delete an already-approved or rejected milestone");
     }
+
+    await Attachment.deleteMany({ milestoneId: existing._id });
 
     const milestone = await req
       .scopedFindOneAndDelete(Milestone, { _id: req.params.id })

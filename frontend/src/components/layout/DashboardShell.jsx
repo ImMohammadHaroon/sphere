@@ -3,10 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { ProfileMenu } from "@/components/layout/ProfileMenu";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
-import {
-  getNotificationsPath,
-  getTaskDetailPath,
-} from "@/features/notifications/notificationPaths";
+import { getTaskDetailPath } from "@/features/notifications/notificationPaths";
 import { authApi } from "@/lib/authApi";
 import { setAccessToken } from "@/lib/apiClient";
 import { syncLogout } from "@/lib/authSync";
@@ -25,6 +22,9 @@ export function DashboardShell({
   description,
   children,
   showPageHeader = true,
+  showBack,
+  backLabel,
+  backTo,
 }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -38,6 +38,16 @@ export function DashboardShell({
     "/portal",
   ];
   const isRootPage = DASHBOARD_ROOT_PATHS.includes(location.pathname);
+  const shouldShowBack =
+    showBack ?? (!isRootPage && Boolean(title));
+
+  function handleBack() {
+    if (backTo) {
+      navigate(backTo);
+      return;
+    }
+    navigate(-1);
+  }
 
   async function handleLogout() {
     try {
@@ -52,9 +62,11 @@ export function DashboardShell({
   return (
     <div className="min-h-screen bg-surface">
       <div className="flex">
-        <div className="sticky top-0 z-30 h-screen w-16 shrink-0 lg:w-64">
-          {sidebar}
-        </div>
+        {sidebar ? (
+          <div className="sticky top-0 z-30 h-screen w-16 shrink-0 lg:w-64">
+            {sidebar}
+          </div>
+        ) : null}
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 border-b border-border bg-surface-raised">
@@ -68,7 +80,7 @@ export function DashboardShell({
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <NotificationBell
-                  viewAllPath={getNotificationsPath(user?.role)}
+                  viewAllPath="/notifications"
                   buildTaskPath={(payload) => getTaskDetailPath(user?.role, payload)}
                 />
                 <ProfileMenu
@@ -83,16 +95,16 @@ export function DashboardShell({
           <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10">
             {showPageHeader && title ? (
               <>
-                {!isRootPage && (
+                {shouldShowBack ? (
                   <button
                     type="button"
-                    onClick={() => navigate(-1)}
+                    onClick={handleBack}
                     className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
                   >
                     <Icon icon="lucide:arrow-left" className="h-4 w-4" />
-                    <span>Back</span>
+                    <span>{backLabel ?? "Back"}</span>
                   </button>
-                )}
+                ) : null}
                 <div className="mb-6 sm:mb-8">
                   <h1 className="text-2xl font-semibold sm:text-3xl">{title}</h1>
                   {description ? (

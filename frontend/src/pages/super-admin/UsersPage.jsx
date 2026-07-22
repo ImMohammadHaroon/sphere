@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { useAllUsers } from "@/features/platform/hooks/useAllUsers";
 import { useOrganizations } from "@/features/platform/hooks/useOrganizations";
 import { Badge } from "@/components/ui/Badge";
@@ -55,6 +55,11 @@ function roleBadgeVariant(role) {
 }
 
 export function UsersPage() {
+  useDashboardPageMeta({
+    title: "Users",
+    description: "Cross-organization user search and read-only oversight.",
+  });
+
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [role, setRole] = useState("");
@@ -109,10 +114,7 @@ export function UsersPage() {
   const totalPages = data?.totalPages ?? 1;
 
   return (
-    <SuperAdminLayout
-      title="Users"
-      description="Cross-organization user search and read-only oversight."
-    >
+    <>
       <Card className="mb-6 p-4 sm:p-6">
         <form
           onSubmit={applyFilters}
@@ -281,6 +283,6 @@ export function UsersPage() {
           </>
         )
       ) : null}
-    </SuperAdminLayout>
+    </>
   );
 }

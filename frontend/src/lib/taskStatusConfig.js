@@ -41,12 +41,23 @@ export function getStatusColor(columns, key) {
 }
 
 export function getDoneKey(columns) {
-  return columns?.find((c) => c.isDone)?.key ?? null;
+  const sorted = getSortedColumns(columns);
+  if (sorted.length === 0) {
+    return null;
+  }
+
+  const doneColumn = sorted.find((column) => column.isDone === true);
+  if (doneColumn) {
+    return doneColumn.key;
+  }
+
+  // Match backend kanban rules: last column is treated as done when unset.
+  return sorted[sorted.length - 1]?.key ?? null;
 }
 
 export function isDoneStatus(columns, statusKey) {
-  const column = columns?.find((c) => c.key === statusKey);
-  return column?.isDone === true;
+  const doneKey = getDoneKey(columns);
+  return doneKey != null && doneKey === statusKey;
 }
 
 export function getTaskProjectColumns(task) {

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { OverviewSkeleton } from "@/components/overview/OverviewSkeleton";
 import { TasksByStatusChart } from "@/components/overview/TasksByStatusChart";
 import { useOrgOverview } from "@/features/org/hooks/useOrgOverview";
@@ -29,6 +29,11 @@ function formatDate(value) {
 }
 
 export function OrgOverviewPage() {
+  useDashboardPageMeta({
+    title: "Org overview",
+    description: "Active projects, team size, and organization KPIs.",
+  });
+
   const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch, isFetching } =
     useOrgOverview();
@@ -36,10 +41,7 @@ export function OrgOverviewPage() {
   const totalTasks = data ? totalTaskCountFromProjects(data.tasksByProject) : 0;
 
   return (
-    <OrgAdminLayout
-      title="Org overview"
-      description="Active projects, team size, and organization KPIs."
-    >
+    <>
       {isLoading ? (
         <OverviewSkeleton metricCount={3} showSecondaryPanel={false} />
       ) : null}
@@ -149,6 +151,6 @@ export function OrgOverviewPage() {
           </div>
         )
       ) : null}
-    </OrgAdminLayout>
+    </>
   );
 }

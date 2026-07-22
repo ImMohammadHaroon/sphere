@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { format, parseISO } from "date-fns";
-import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { BurndownChart } from "@/features/reports/BurndownChart";
 import { useBurndownReport } from "@/features/reports/hooks/useProjectReports";
 import { useProjectMilestones } from "@/features/milestones/hooks/useMilestones";
@@ -9,6 +9,7 @@ import {
   milestoneStatusBadgeVariant,
 } from "@/features/milestones/milestoneStatus";
 import { useProjects } from "@/features/projects/hooks/useProjects";
+import { ProjectPicker } from "@/components/projects/ProjectPicker";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -24,53 +25,6 @@ function formatDate(value) {
   } catch {
     return "—";
   }
-}
-
-function ProjectPicker({ projects }) {
-  if (projects.length === 0) {
-    return (
-      <Card className="p-8 text-center">
-        <p className="font-medium text-text-primary">No shared projects yet</p>
-        <p className="mt-2 text-sm text-text-secondary">
-          When a project is shared with you, burndown and milestone progress will
-          appear here.
-        </p>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="overflow-hidden p-0">
-      <div className="border-b border-border px-4 py-4 sm:px-6">
-        <h2 className="font-display text-lg font-semibold">Choose a project</h2>
-        <p className="mt-1 text-sm text-text-secondary">
-          View burndown progress and milestone delivery status.
-        </p>
-      </div>
-      <ul className="divide-y divide-border">
-        {projects.map((project) => (
-          <li key={project._id}>
-            <Link
-              to={`/portal/reports?project=${project._id}`}
-              className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 transition-colors hover:bg-surface sm:px-6"
-            >
-              <div className="min-w-0">
-                <p className="font-medium text-text-primary">{project.name}</p>
-                {project.description ? (
-                  <p className="mt-1 line-clamp-1 text-sm text-text-secondary">
-                    {project.description}
-                  </p>
-                ) : null}
-              </div>
-              <span className="shrink-0 text-sm font-medium text-primary">
-                Open report
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Card>
-  );
 }
 
 function ReportsSkeleton() {
@@ -198,6 +152,15 @@ export function ClientReportsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const projectId = searchParams.get("project") || "";
 
+  useDashboardPageMeta({
+    title: "Reports",
+    description:
+      "Track delivery progress and milestone status for shared projects.",
+    showBack: Boolean(projectId),
+    backLabel: projectId ? "All projects" : undefined,
+    backTo: projectId ? "/portal/reports" : undefined,
+  });
+
   const {
     data: projects = [],
     isLoading: projectsLoading,
@@ -238,44 +201,7 @@ export function ClientReportsPage() {
     (burndown.isError || milestones.isError);
 
   return (
-    <ClientPortalLayout
-      title="Reports"
-      description="Track delivery progress and milestone status for shared projects."
-    >
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        {projectId ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => handleProjectChange("")}
-          >
-            ← All projects
-          </Button>
-        ) : null}
-
-        {(projects.length > 0 || projectsLoading) && (
-          <label className="flex items-center gap-2 text-sm text-text-secondary">
-            <span className="shrink-0">Project</span>
-            <select
-              value={projectId}
-              onChange={(e) => handleProjectChange(e.target.value)}
-              disabled={projectsLoading}
-              className="h-10 min-w-[12rem] rounded-lg border border-border bg-surface-raised px-3 text-sm text-text-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-            >
-              <option value="">
-                {projectsLoading ? "Loading…" : "Select a project"}
-              </option>
-              {projects.map((project) => (
-                <option key={project._id} value={project._id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-      </div>
-
+    <>
       {projectsLoading && !projectId ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -302,7 +228,13 @@ export function ClientReportsPage() {
       ) : null}
 
       {!projectsLoading && !projectsError && !projectId ? (
-        <ProjectPicker projects={projects} />
+        <ProjectPicker
+          projects={projects}
+          getProjectHref={(project) => `/portal/reports?project=${project._id}`}
+          actionLabel="Open report"
+          emptyTitle="No shared projects yet"
+          emptyDescription="When a project is shared with you, burndown and milestone progress will appear here."
+        />
       ) : null}
 
       {projectId && !selectedProject && !projectsLoading ? (
@@ -370,6 +302,6 @@ export function ClientReportsPage() {
           </div>
         </div>
       ) : null}
-    </ClientPortalLayout>
+    </>
   );
 }

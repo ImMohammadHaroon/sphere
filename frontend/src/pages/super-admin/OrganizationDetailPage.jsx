@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { useOrganizationDetail } from "@/features/platform/hooks/useOrganizationDetail";
 import { useOrganizationActions } from "@/features/platform/hooks/useOrganizationActions";
 import { ConfirmSlugDialog } from "@/pages/admin/settings/ConfirmSlugDialog";
@@ -93,6 +93,13 @@ export function OrganizationDetailPage() {
   const projects = data?.projects ?? [];
   const stats = data?.stats;
 
+  useDashboardPageMeta({
+    title: organization?.name ?? "Organization detail",
+    description: organization
+      ? `Read-only oversight for ${organization.slug}.`
+      : "Organization members, projects, and status.",
+  });
+
   async function handleSuspendConfirm() {
     try {
       await suspend.mutateAsync();
@@ -128,14 +135,7 @@ export function OrganizationDetailPage() {
   const isMutating = suspend.isPending || activate.isPending || remove.isPending;
 
   return (
-    <SuperAdminLayout
-      title={organization?.name ?? "Organization detail"}
-      description={
-        organization
-          ? `Read-only oversight for ${organization.slug}.`
-          : "Organization members, projects, and status."
-      }
-    >
+    <>
       {toast ? <Toast toast={toast} onDismiss={dismissToast} /> : null}
 
       {isLoading ? <DetailSkeleton /> : null}
@@ -328,6 +328,6 @@ export function OrganizationDetailPage() {
           />
         </div>
       ) : null}
-    </SuperAdminLayout>
+    </>
   );
 }

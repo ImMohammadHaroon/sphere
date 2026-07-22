@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { OverviewSkeleton } from "@/components/overview/OverviewSkeleton";
 import { TasksByStatusChart } from "@/components/overview/TasksByStatusChart";
 import { usePlatformOverview } from "@/features/platform/hooks/usePlatformOverview";
@@ -27,11 +27,16 @@ function formatDate(value) {
 }
 
 export function PlatformOverviewPage() {
+  useDashboardPageMeta({
+    title: "Platform overview",
+    showPageHeader: false,
+  });
+
   const { data, isLoading, isError, error, refetch, isFetching } =
     usePlatformOverview();
 
   return (
-    <SuperAdminLayout>
+    <>
       <h1 className="font-display text-xl font-semibold sm:text-2xl">Platform overview</h1>
 
       {isLoading ? <OverviewSkeleton /> : null}
@@ -153,6 +158,6 @@ export function PlatformOverviewPage() {
           </div>
         )
       ) : null}
-    </SuperAdminLayout>
+    </>
   );
 }

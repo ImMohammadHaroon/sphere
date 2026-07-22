@@ -1,9 +1,12 @@
 import { useRef, useState } from "react";
 import { Paperclip, X } from "lucide-react";
+import { FilePreviewDialog } from "@/components/attachments/FilePreviewDialog";
 import { useCreateTask } from "@/features/tasks/hooks/useCreateTask";
 import { useProjectMembers } from "@/features/tasks/hooks/useProjectMembers";
+import { useFilePreview } from "@/hooks/useFilePreview";
 import { uploadAttachment } from "@/lib/attachmentsApi";
 import { dateInputToIso } from "@/lib/dateFormHelpers";
+import { formatFileSize, MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -17,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = MAX_ATTACHMENT_SIZE;
 
 const emptyForm = {
   title: "",
@@ -40,12 +43,6 @@ function formatRoleLabel(role) {
   return labels[role] ?? role?.replaceAll("_", " ") ?? "";
 }
 
-function formatFileSize(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 export function CreateTaskModal({ open, onOpenChange, projectId }) {
   const createTask = useCreateTask(projectId);
   const { data: members, isLoading: membersLoading } = useProjectMembers(
@@ -56,6 +53,7 @@ export function CreateTaskModal({ open, onOpenChange, projectId }) {
   const [files, setFiles] = useState([]);
   const [error, setError] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const filePreview = useFilePreview();
 
   const isSubmitting = createTask.isPending || isUploading;
 
@@ -264,12 +262,18 @@ export function CreateTaskModal({ open, onOpenChange, projectId }) {
                     key={`${file.name}-${file.size}-${file.lastModified}`}
                     className="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm"
                   >
-                    <span className="min-w-0 truncate text-text-primary">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        filePreview.openPreview(file, { type: "local", file })
+                      }
+                      className="min-w-0 truncate text-left text-primary hover:underline"
+                    >
                       {file.name}
                       <span className="ml-2 text-text-muted">
                         {formatFileSize(file.size)}
                       </span>
-                    </span>
+                    </button>
                     <button
                       type="button"
                       className="shrink-0 rounded p-1 text-text-muted hover:bg-surface hover:text-text-primary"
@@ -300,6 +304,7 @@ export function CreateTaskModal({ open, onOpenChange, projectId }) {
           </DialogFooter>
         </form>
       </DialogContent>
+      <FilePreviewDialog {...filePreview.dialogProps} />
     </Dialog>
   );
 }

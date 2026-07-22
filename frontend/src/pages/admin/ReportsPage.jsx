@@ -1,4 +1,4 @@
-import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { OverviewSkeleton } from "@/components/overview/OverviewSkeleton";
 import { CompletionTrendChart } from "@/features/reports/CompletionTrendChart";
 import { useOrgReportsOverview } from "@/features/reports/hooks/useOverviewReports";
@@ -39,14 +39,16 @@ function HintMetricCard({ label, value, hint }) {
 }
 
 export function ReportsPage() {
+  useDashboardPageMeta({
+    title: "Reports",
+    description: "Org-wide analytics and workload and velocity across projects.",
+  });
+
   const { data, isLoading, isError, error, refetch, isFetching } =
     useOrgReportsOverview();
 
   return (
-    <OrgAdminLayout
-      title="Reports"
-      description="Org-wide analytics and workload and velocity across projects."
-    >
+    <>
       {isLoading ? (
         <OverviewSkeleton metricCount={4} showSecondaryPanel={false} />
       ) : null}
@@ -94,6 +96,6 @@ export function ReportsPage() {
           />
         </div>
       ) : null}
-    </OrgAdminLayout>
+    </>
   );
 }

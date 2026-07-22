@@ -43,6 +43,19 @@ describe("fileEncryption", () => {
 
     assert.throws(() => decryptBuffer(tampered, iv, authTag));
   });
+
+  it("decrypts BSON-like binary objects from lean queries", () => {
+    const original = Buffer.from("lean binary payload");
+    const { ciphertext, iv, authTag } = encryptBuffer(original);
+
+    const leanBinary = {
+      type: "Buffer",
+      data: [...ciphertext],
+    };
+
+    const decrypted = decryptBuffer(leanBinary, iv, authTag);
+    assert.equal(decrypted.equals(original), true);
+  });
 });
 
 describe("formatAttachment metadata sanitization", () => {

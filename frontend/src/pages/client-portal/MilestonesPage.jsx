@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
-import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import {
   formatMilestoneStatus,
   milestoneStatusBadgeVariant,
 } from "@/features/milestones/milestoneStatus";
 import { useApproveMilestone } from "@/features/milestones/hooks/useMilestones";
+import { MilestoneAttachments } from "@/features/milestones/components/MilestoneAttachments";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { listMilestones } from "@/lib/milestonesApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +33,11 @@ function sortByDueDate(milestones) {
 }
 
 export function ClientMilestonesPage() {
+  useDashboardPageMeta({
+    title: "Milestones",
+    description: "Review deliverables and approve completed milestones.",
+  });
+
   const { user } = useAuth();
   const {
     data: projects = [],
@@ -101,10 +107,7 @@ export function ClientMilestonesPage() {
   }
 
   return (
-    <ClientPortalLayout
-      title="Milestones"
-      description="Review deliverables and approve completed milestones."
-    >
+    <>
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -172,6 +175,16 @@ export function ClientMilestonesPage() {
                           <p className="mt-1 text-sm text-text-muted">
                             Due {formatDueDate(milestone.dueDate)}
                           </p>
+                          {milestone.description ? (
+                            <p className="mt-1 text-sm text-text-secondary">
+                              {milestone.description}
+                            </p>
+                          ) : null}
+                          <MilestoneAttachments
+                            milestoneId={milestone._id}
+                            canUpload={false}
+                            compact
+                          />
                         </div>
 
                         {isPending ? (
@@ -235,6 +248,6 @@ export function ClientMilestonesPage() {
         onConfirm={handleDecisionConfirm}
         isLoading={approveMilestone.isPending}
       />
-    </ClientPortalLayout>
+    </>
   );
 }

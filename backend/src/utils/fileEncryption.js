@@ -5,6 +5,35 @@ const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12; // 96-bit IV recommended for GCM
 const KEY_LENGTH = 32;
 
+function toBuffer(value) {
+  if (Buffer.isBuffer(value)) {
+    return value;
+  }
+
+  if (value == null) {
+    throw new TypeError("decryptBuffer expects a Buffer ciphertext");
+  }
+
+  // Mongoose lean() may return mongodb.Binary or a serialized buffer object.
+  if (typeof value === "object") {
+    if (value.type === "Buffer" && Array.isArray(value.data)) {
+      return Buffer.from(value.data);
+    }
+
+    if (value.buffer != null) {
+      return Buffer.isBuffer(value.buffer)
+        ? value.buffer
+        : Buffer.from(value.buffer);
+    }
+  }
+
+  if (value instanceof Uint8Array) {
+    return Buffer.from(value);
+  }
+
+  throw new TypeError("decryptBuffer expects a Buffer ciphertext");
+}
+
 function getMasterKey() {
   const key = Buffer.from(env.FILE_ENCRYPTION_KEY, "base64");
   if (key.length !== KEY_LENGTH) {
@@ -45,9 +74,7 @@ export function encryptBuffer(buffer) {
  * @returns {Buffer}
  */
 export function decryptBuffer(ciphertext, iv, authTag) {
-  if (!Buffer.isBuffer(ciphertext)) {
-    throw new TypeError("decryptBuffer expects a Buffer ciphertext");
-  }
+  const ciphertextBuffer = toBuffer(ciphertext);
 
   const decipher = crypto.createDecipheriv(
     ALGORITHM,
@@ -56,5 +83,8 @@ export function decryptBuffer(ciphertext, iv, authTag) {
   );
   decipher.setAuthTag(Buffer.from(authTag, "base64"));
 
-  return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  return Buffer.concat([
+    decipher.update(ciphertextBuffer),
+    decipher.final(),
+  ]);
 }

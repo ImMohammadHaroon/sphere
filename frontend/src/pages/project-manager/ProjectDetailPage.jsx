@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
-import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useAddMember,
@@ -193,7 +192,6 @@ export function ProjectDetailPage() {
   const { user } = useAuth();
   const isOrgAdmin = user?.role === "org_admin";
   const projectsPath = isOrgAdmin ? "/admin/projects" : "/dashboard";
-  const Layout = isOrgAdmin ? OrgAdminLayout : ProjectManagerLayout;
   const { data: project, isLoading, isError, error, refetch, isFetching } =
     useProject(id);
   const updateProject = useUpdateProject();
@@ -212,6 +210,11 @@ export function ProjectDetailPage() {
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [removeMemberTarget, setRemoveMemberTarget] = useState(null);
   const [actionError, setActionError] = useState("");
+
+  useDashboardPageMeta({
+    title: project?.name ?? "Project",
+    description: project?.description || "Project details and team.",
+  });
 
   function startEditing() {
     if (!project) return;
@@ -272,10 +275,7 @@ export function ProjectDetailPage() {
   }
 
   return (
-    <Layout
-      title={project?.name ?? "Project"}
-      description={project?.description || "Project details and team."}
-    >
+    <>
       <div className="mb-4">
         <ButtonLink to={projectsPath} variant="ghost" size="sm">
           ← Back to projects
@@ -576,6 +576,6 @@ export function ProjectDetailPage() {
         onConfirm={handleArchive}
         isLoading={archiveProject.isPending}
       />
-    </Layout>
+    </>
   );
 }

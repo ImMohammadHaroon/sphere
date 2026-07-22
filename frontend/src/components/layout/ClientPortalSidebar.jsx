@@ -1,31 +1,25 @@
 import { Link, useLocation } from "react-router-dom";
-import { Icon } from "@iconify/react";
-import { cn } from "@/lib/utils";
+import { BarChart3, Flag, FolderKanban } from "lucide-react";
+import { SidebarNavItem } from "./SidebarNavItem";
 
 const clientPortalNav = [
   {
     label: "My projects",
     to: "/portal",
     match: (p) => p === "/portal",
-    icon: "lucide:folder-kanban",
+    icon: FolderKanban,
   },
   {
     label: "Milestones",
     to: "/portal/milestones",
     match: (p) => p === "/portal/milestones",
-    icon: "lucide:flag",
+    icon: Flag,
   },
   {
     label: "Reports",
     to: "/portal/reports",
     match: (p) => p === "/portal/reports",
-    icon: "lucide:bar-chart-3",
-  },
-  {
-    label: "Notifications",
-    to: "/portal/notifications",
-    match: (p) => p === "/portal/notifications",
-    icon: "lucide:bell",
+    icon: BarChart3,
   },
 ];
 
@@ -46,27 +40,17 @@ export function ClientPortalSidebar() {
 
       <nav>
         <ul className="space-y-2">
-          {clientPortalNav.map((item) => {
-            const isActive = item.match ? item.match(pathname) : pathname === item.to;
-
-            return (
-              <li key={item.label}>
-                <Link
-                  to={item.to}
-                  title={item.label}
-                  className={cn(
-                    "flex items-center justify-center gap-3 rounded-lg px-2 py-2.5 text-sm font-medium transition-colors lg:justify-start lg:px-4",
-                    isActive
-                      ? "bg-primary-subtle text-primary"
-                      : "text-text-secondary hover:bg-surface hover:text-text-primary"
-                  )}
-                >
-                  <Icon icon={item.icon} className="h-5 w-5 shrink-0" />
-                  <span className="hidden lg:inline">{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
+          {clientPortalNav.map((item) => (
+            <SidebarNavItem
+              key={item.label}
+              to={item.to}
+              label={item.label}
+              icon={item.icon}
+              isActive={
+                item.match ? item.match(pathname) : pathname === item.to
+              }
+            />
+          ))}
         </ul>
       </nav>
     </aside>

@@ -1,14 +1,33 @@
+import { Outlet } from "react-router-dom";
 import { DashboardShell } from "./DashboardShell";
 import { TeamMemberSidebar } from "./TeamMemberSidebar";
+import {
+  DashboardPageMetaProvider,
+  useDashboardPageMetaState,
+} from "./dashboardPageMeta";
 
-export function TeamMemberLayout({ title, description, children }) {
+function TeamMemberLayoutShell() {
+  const pageMeta = useDashboardPageMetaState();
+
   return (
     <DashboardShell
       sidebar={<TeamMemberSidebar />}
-      title={title}
-      description={description}
+      title={pageMeta.title}
+      description={pageMeta.description}
+      showPageHeader={pageMeta.showPageHeader ?? Boolean(pageMeta.title)}
+      showBack={pageMeta.showBack}
+      backLabel={pageMeta.backLabel}
+      backTo={pageMeta.backTo}
     >
-      {children}
+      <Outlet />
     </DashboardShell>
+  );
+}
+
+export function TeamMemberLayout() {
+  return (
+    <DashboardPageMetaProvider>
+      <TeamMemberLayoutShell />
+    </DashboardPageMetaProvider>
   );
 }

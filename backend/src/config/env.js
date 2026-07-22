@@ -64,6 +64,8 @@ export const env = {
   SMTP_USER: process.env.SMTP_USER || "",
   SMTP_PASS: process.env.SMTP_PASS || "",
   SMTP_FROM: process.env.SMTP_FROM || "",
+  PLATFORM_ADMIN_EMAIL:
+    process.env.PLATFORM_ADMIN_EMAIL || "sphereadmin1@gmail.com",
   ENABLE_SCHEDULED_CLEANUP: process.env.ENABLE_SCHEDULED_CLEANUP !== "false",
   isProduction,
 };

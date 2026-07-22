@@ -24,5 +24,27 @@ export async function loadAttachment(req) {
   if (req.params.taskId) {
     filter.taskId = req.params.taskId;
   }
+  if (req.params.milestoneId) {
+    filter.milestoneId = req.params.milestoneId;
+  }
+  return req.scopedFindOne(Attachment, filter);
+}
+
+export async function loadCommentAttachment(req) {
+  const filter = { _id: req.params.id };
+  if (req.params.commentId) {
+    filter.commentId = req.params.commentId;
+  }
+  if (req.params.taskId) {
+    filter.taskId = req.params.taskId;
+  }
+  return req.scopedFindOne(Attachment, filter);
+}
+
+export async function loadMilestoneAttachment(req) {
+  const filter = { _id: req.params.id };
+  if (req.params.milestoneId) {
+    filter.milestoneId = req.params.milestoneId;
+  }
   return req.scopedFindOne(Attachment, filter);
 }

@@ -1,44 +1,37 @@
 import { Link, useLocation } from "react-router-dom";
-import { Icon } from "@iconify/react";
-import { cn } from "@/lib/utils";
+import {
+  BarChart3,
+  Building2,
+  FolderKanban,
+  Users,
+} from "lucide-react";
+import { SidebarNavItem } from "./SidebarNavItem";
 
 const orgAdminNav = [
   {
     label: "Org overview",
     to: "/admin",
     match: (p) => p === "/admin",
-    icon: "lucide:building-2",
+    icon: Building2,
   },
   {
     label: "Team members",
     to: "/admin/users",
     match: (p) =>
       p === "/admin/users" || /^\/admin\/users\/[^/]+$/.test(p),
-    icon: "lucide:users",
+    icon: Users,
   },
   {
     label: "All projects",
     to: "/admin/projects",
     match: (p) => p === "/admin/projects" || /^\/admin\/projects\/[^/]+$/.test(p),
-    icon: "lucide:folder-kanban",
+    icon: FolderKanban,
   },
   {
     label: "Reports",
     to: "/admin/reports",
     match: (p) => p === "/admin/reports",
-    icon: "lucide:bar-chart-3",
-  },
-  {
-    label: "Settings",
-    to: "/admin/settings",
-    match: (p) => p === "/admin/settings",
-    icon: "lucide:settings",
-  },
-  {
-    label: "Notifications",
-    to: "/admin/notifications",
-    match: (p) => p === "/admin/notifications",
-    icon: "lucide:bell",
+    icon: BarChart3,
   },
 ];
 
@@ -59,29 +52,17 @@ export function OrgAdminSidebar() {
 
       <nav>
         <ul className="space-y-2">
-          {orgAdminNav.map((item) => {
-            const isActive = item.match
-              ? item.match(pathname)
-              : pathname === item.to;
-
-            return (
-              <li key={item.label}>
-                <Link
-                  to={item.to}
-                  title={item.label}
-                  className={cn(
-                    "flex items-center justify-center gap-3 rounded-lg px-2 py-2.5 text-sm font-medium transition-colors lg:justify-start lg:px-4",
-                    isActive
-                      ? "bg-primary-subtle text-primary"
-                      : "text-text-secondary hover:bg-surface hover:text-text-primary"
-                  )}
-                >
-                  <Icon icon={item.icon} className="h-5 w-5 shrink-0" />
-                  <span className="hidden lg:inline">{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
+          {orgAdminNav.map((item) => (
+            <SidebarNavItem
+              key={item.label}
+              to={item.to}
+              label={item.label}
+              icon={item.icon}
+              isActive={
+                item.match ? item.match(pathname) : pathname === item.to
+              }
+            />
+          ))}
         </ul>
       </nav>
     </aside>

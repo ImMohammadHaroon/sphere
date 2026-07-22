@@ -1,4 +1,4 @@
-import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { OverviewSkeleton } from "@/components/overview/OverviewSkeleton";
 import { OrgGrowthChart } from "@/features/reports/OrgGrowthChart";
 import { UsersByRoleBreakdown } from "@/features/reports/UsersByRoleBreakdown";
@@ -26,14 +26,16 @@ function PercentMetricCard({ label, value }) {
 }
 
 export function SuperAdminReportsPage() {
+  useDashboardPageMeta({
+    title: "Reports",
+    description: "Platform-wide analytics and growth.",
+  });
+
   const { data, isLoading, isError, error, refetch, isFetching } =
     usePlatformReportsOverview();
 
   return (
-    <SuperAdminLayout
-      title="Reports"
-      description="Platform-wide analytics and growth."
-    >
+    <>
       {isLoading ? <OverviewSkeleton metricCount={5} /> : null}
 
       {isError ? (
@@ -88,6 +90,6 @@ export function SuperAdminReportsPage() {
           </div>
         )
       ) : null}
-    </SuperAdminLayout>
+    </>
   );
 }

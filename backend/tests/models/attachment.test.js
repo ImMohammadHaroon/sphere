@@ -57,4 +57,47 @@ describe("Attachment model validation", () => {
       /authTag/i
     );
   });
+
+  it("requires a valid attachment parent", () => {
+    const neither = { ...baseFields(), taskId: null, milestoneId: null };
+    const neitherErr = new Attachment(neither).validateSync();
+    assert.ok(neitherErr);
+    assert.match(String(neitherErr.message), /task, milestone, or comment/i);
+
+    const taskAndMilestone = { ...baseFields(), milestoneId: oid() };
+    const taskAndMilestoneErr = new Attachment(taskAndMilestone).validateSync();
+    assert.ok(taskAndMilestoneErr);
+    assert.match(
+      String(taskAndMilestoneErr.message),
+      /task, milestone, or comment/i
+    );
+  });
+
+  it("accepts milestone-only attachments", () => {
+    const fields = baseFields();
+    delete fields.taskId;
+    fields.milestoneId = oid();
+    const doc = new Attachment(fields);
+    assert.equal(doc.validateSync(), undefined);
+  });
+
+  it("accepts comment attachments linked to a task", () => {
+    const fields = {
+      ...baseFields(),
+      commentId: oid(),
+    };
+    const doc = new Attachment(fields);
+    assert.equal(doc.validateSync(), undefined);
+  });
+
+  it("rejects comment attachments without a task", () => {
+    const fields = {
+      ...baseFields(),
+      taskId: null,
+      commentId: oid(),
+    };
+    const err = new Attachment(fields).validateSync();
+    assert.ok(err);
+    assert.match(String(err.message), /task, milestone, or comment/i);
+  });
 });

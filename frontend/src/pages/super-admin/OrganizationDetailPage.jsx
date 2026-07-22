@@ -37,7 +37,7 @@ function formatRole(role) {
 
 function MetricCard({ label, value }) {
   return (
-    <Card className="bg-primary-subtle/60 p-5">
+    <Card className="bg-dashboard-accent-subtle p-5">
       <p className="text-sm font-medium text-text-secondary">{label}</p>
       <p className="mt-2 font-display text-2xl font-semibold text-primary sm:text-3xl">
         {value.toLocaleString()}

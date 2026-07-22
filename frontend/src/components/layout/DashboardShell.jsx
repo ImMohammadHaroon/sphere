@@ -25,6 +25,7 @@ export function DashboardShell({
   showBack,
   backLabel,
   backTo,
+  dashboardRole,
 }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -60,7 +61,10 @@ export function DashboardShell({
   }
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div
+      className="min-h-screen bg-background"
+      data-dashboard={dashboardRole ?? undefined}
+    >
       <div className="flex">
         {sidebar ? (
           <div className="sticky top-0 z-30 h-screen w-16 shrink-0 lg:w-64">
@@ -69,7 +73,7 @@ export function DashboardShell({
         ) : null}
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 border-b border-border bg-surface-raised">
+          <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-sm">
             <div className="flex items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="min-w-0">

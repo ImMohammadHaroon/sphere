@@ -48,7 +48,7 @@ export function TasksByStatusChart({
                 borderRadius: "0.5rem",
                 color: "hsl(var(--text-primary))",
               }}
-              cursor={{ fill: "hsl(var(--primary-subtle))" }}
+              cursor={{ fill: "hsl(var(--dashboard-accent-subtle))" }}
             />
             <Bar dataKey="count" radius={[6, 6, 0, 0]}>
               {data.map((entry) => (

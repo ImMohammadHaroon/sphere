@@ -23,7 +23,7 @@ export function AssignedProjectsList() {
       <div className="border-b border-border px-4 py-3">
         <h2 className="font-medium text-text-primary">Assigned projects</h2>
       </div>
-      <ul className="divide-y divide-border">
+      <ul className="divide-hover">
         {assignedProjects.map((project) => (
           <li key={project._id}>
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">

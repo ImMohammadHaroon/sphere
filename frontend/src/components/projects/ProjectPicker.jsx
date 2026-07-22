@@ -22,12 +22,12 @@ export function ProjectPicker({
 
   return (
     <Card className="overflow-hidden p-0">
-      <ul className="divide-y divide-border">
+      <ul className="divide-hover">
         {projects.map((project) => (
           <li key={project._id}>
             <Link
               to={getProjectHref(project)}
-              className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 transition-colors hover:bg-surface sm:px-6"
+              className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6"
             >
               <div className="min-w-0">
                 <p className="font-medium text-text-primary">{project.name}</p>

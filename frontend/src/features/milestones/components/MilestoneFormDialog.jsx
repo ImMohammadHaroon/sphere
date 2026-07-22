@@ -99,7 +99,7 @@ function PendingFilesField({ files, onAdd, onRemove, onPreview, disabled = false
             return (
               <li
                 key={`${file.name}-${file.size}-${index}`}
-                className="flex items-center gap-3 rounded-lg border border-border bg-surface-raised/50 px-3 py-2"
+                className="container-item flex items-center gap-3 rounded-lg border border-border bg-surface-raised/50 px-3 py-2"
               >
                 <Icon className="h-4 w-4 shrink-0 text-text-muted" />
                 <div className="min-w-0 flex-1">

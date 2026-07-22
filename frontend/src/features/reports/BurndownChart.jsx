@@ -92,7 +92,7 @@ export function BurndownChart({
               type="monotone"
               dataKey="actual"
               name="Actual"
-              stroke="hsl(var(--primary))"
+              stroke="hsl(var(--dashboard-accent))"
               strokeWidth={2}
               dot={false}
               isAnimationActive={false}

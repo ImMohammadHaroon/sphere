@@ -80,14 +80,14 @@ export function ProfileMenu({ user, onLogout, roleLabel }) {
           <hr className="border-border" />
           <Link
             to="/profile"
-            className="block w-full px-4 py-2 text-left text-sm text-text-primary hover:bg-surface"
+            className="block w-full px-4 py-2 text-left text-sm text-text-primary hover:bg-card-hover"
           >
             Settings
           </Link>
           <button
             type="button"
             onClick={handleSignOutClick}
-            className="w-full px-4 py-2 text-left text-sm text-text-primary hover:bg-surface"
+            className="w-full px-4 py-2 text-left text-sm text-text-primary hover:bg-card-hover"
           >
             Sign out
           </button>

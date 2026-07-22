@@ -99,12 +99,12 @@ export function MyTasksPage() {
                     </ButtonLink>
                   ) : null}
                 </div>
-                <ul className="divide-y divide-border">
+                <ul className="divide-hover">
                   {group.tasks.map((task) => (
                     <li key={task._id}>
                       <Link
                         to={`/member/projects/${group.projectId}/tasks/${task._id}`}
-                        className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface"
+                        className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
                       >
                         <div>
                           <p className="font-medium text-text-primary">

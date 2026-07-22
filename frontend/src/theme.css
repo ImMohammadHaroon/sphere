@@ -1,39 +1,89 @@
-/* ProjectSphere  Theme Stylesheet (from theme.css) */
+/* ProjectSphere — Light SaaS theme (forest emerald brand) */
 
 :root {
-  --background: 0 0% 100%;
-  --surface: 45 20% 96%;
-  --surface-raised: 0 0% 100%;
-  --border: 44 16% 87%;
-  --border-strong: 44 14% 78%;
-  --text-primary: 108 7% 13%;
-  --text-secondary: 97 4% 38%;
-  --text-muted: 87 4% 54%;
-  --primary: 160 56% 28%;
-  --primary-hover: 161 59% 22%;
-  --primary-subtle: 150 26% 93%;
+  /* Core surfaces */
+  --background: 140 20% 98%;
+  --sidebar: 145 59% 6%;
+  --sidebar-border: 146 43% 20%;
+  --sidebar-text: 0 0% 100%;
+  --sidebar-text-hover: 0 0% 100%;
+  --sidebar-hover: 144 48% 14%;
+  --sidebar-active-bg: 151 45% 38% / 0.15;
+  --sidebar-active-text: 0 0% 100%;
+  --surface: 0 0% 100%;
+  --surface-raised: 140 15% 96%;
+  --card: 0 0% 100%;
+  --card-hover: 151 60% 32% / 0.08;
+  --hover: 151 60% 32% / 0.08;
+  --border: 140 18% 90%;
+  --border-strong: 140 12% 85%;
+
+  /* Text */
+  --text-primary: 145 59% 6%;
+  --text-secondary: 145 15% 34%;
+  --text-muted: 145 13% 61%;
+
+  /* Brand / primary actions — deep forest emerald, not neon */
+  --primary: 151 60% 32%;
+  --primary-hover: 151 65% 28%;
+  --primary-dark: 151 70% 22%;
+  --primary-subtle: 151 60% 32% / 0.1;
   --primary-foreground: 0 0% 100%;
-  --accent: 33 57% 51%;
-  --accent-subtle: 37 74% 92%;
-  --accent-foreground: 108 7% 13%;
-  --success: 142 39% 40%;
-  --warning: 38 70% 51%;
-  --danger: 9 53% 51%;
-  --info: 93 4% 46%;
-  --kanban-gray: 51 7% 58%;
-  --kanban-amber: 38 70% 51%;
-  --kanban-orange: 23 53% 51%;
-  --kanban-green: 160 56% 28%;
-  --kanban-blue: 210 45% 45%;
-  --kanban-purple: 270 35% 50%;
-  --kanban-red: 9 53% 51%;
-  --kanban-todo: 51 7% 58%;
-  --kanban-progress: 38 70% 51%;
-  --kanban-review: 23 53% 51%;
-  --kanban-done: 160 56% 28%;
+
+  /* Legacy accent (amber) — used sparingly */
+  --accent: 36 90% 50%;
+  --accent-subtle: 36 90% 50% / 0.1;
+  --accent-foreground: 145 59% 6%;
+
+  /* Semantic status */
+  --success: 151 60% 32%;
+  --warning: 40 90% 45%;
+  --danger: 0 72% 51%;
+  --info: 206 90% 45%;
+  --neutral: 145 13% 50%;
+
+  /* Dashboard default accent (non-neon emerald) */
+  --dashboard-accent: 151 60% 32%;
+  --dashboard-accent-subtle: 151 60% 32% / 0.1;
+
+  /* Kanban palette */
+  --kanban-gray: 145 13% 50%;
+  --kanban-amber: 40 90% 45%;
+  --kanban-orange: 36 90% 50%;
+  --kanban-green: 151 60% 32%;
+  --kanban-blue: 206 90% 45%;
+  --kanban-purple: 258 60% 55%;
+  --kanban-red: 0 72% 51%;
+  --kanban-todo: 145 13% 50%;
+  --kanban-progress: 206 90% 45%;
+  --kanban-review: 40 90% 45%;
+  --kanban-done: 151 60% 32%;
+
   --radius: 0.5rem;
 }
 
-.dark {
-  /* intentionally left empty */
+/* Per-dashboard accent overrides */
+[data-dashboard="super_admin"] {
+  --dashboard-accent: 213 90% 55%;
+  --dashboard-accent-subtle: 213 90% 55% / 0.1;
+}
+
+[data-dashboard="org_admin"] {
+  --dashboard-accent: 258 60% 55%;
+  --dashboard-accent-subtle: 258 60% 55% / 0.1;
+}
+
+[data-dashboard="project_manager"] {
+  --dashboard-accent: 36 90% 50%;
+  --dashboard-accent-subtle: 36 90% 50% / 0.1;
+}
+
+[data-dashboard="team_member"] {
+  --dashboard-accent: 206 90% 45%;
+  --dashboard-accent-subtle: 206 90% 45% / 0.1;
+}
+
+[data-dashboard="client"] {
+  --dashboard-accent: 273 55% 60%;
+  --dashboard-accent-subtle: 273 55% 60% / 0.1;
 }

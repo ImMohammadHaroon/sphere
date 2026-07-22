@@ -40,7 +40,7 @@ function ColumnBreakdown({ project }) {
       <div className="border-b border-border px-4 py-3">
         <h2 className="font-medium text-text-primary">Tasks by status</h2>
       </div>
-      <ul className="divide-y divide-border">
+      <ul className="divide-hover">
         {columnCounts.map((column) => (
           <li
             key={column.key}

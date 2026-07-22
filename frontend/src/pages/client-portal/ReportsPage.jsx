@@ -111,7 +111,7 @@ function MilestoneProgressCard({ milestones, isLoading }) {
             </div>
           </div>
 
-          <ul className="flex-1 divide-y divide-border">
+          <ul className="divide-hover flex-1">
             {upcoming.map((milestone) => (
               <li
                 key={milestone._id}

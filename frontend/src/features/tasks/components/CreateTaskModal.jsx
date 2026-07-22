@@ -260,7 +260,7 @@ export function CreateTaskModal({ open, onOpenChange, projectId }) {
                 {files.map((file, index) => (
                   <li
                     key={`${file.name}-${file.size}-${file.lastModified}`}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm"
+                    className="container-item flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm"
                   >
                     <button
                       type="button"
@@ -276,7 +276,7 @@ export function CreateTaskModal({ open, onOpenChange, projectId }) {
                     </button>
                     <button
                       type="button"
-                      className="shrink-0 rounded p-1 text-text-muted hover:bg-surface hover:text-text-primary"
+                      className="shrink-0 rounded p-1 text-text-muted hover:bg-card-hover hover:text-text-primary"
                       onClick={() => removeFile(index)}
                       disabled={isSubmitting}
                       aria-label={`Remove ${file.name}`}

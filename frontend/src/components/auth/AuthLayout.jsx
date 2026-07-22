@@ -7,7 +7,7 @@ export function AuthLayout({
   footer,
 }) {
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen bg-background">
       <main className="mx-auto flex min-h-screen max-w-lg items-center justify-center p-4 sm:p-6">
         <div className="w-full">
           <div className="mb-6 text-center sm:mb-8">
@@ -21,7 +21,7 @@ export function AuthLayout({
             <p className="mt-2 text-sm text-text-secondary sm:text-base">{description}</p>
           </div>
 
-          <div className="rounded-lg border border-border bg-surface-raised p-4 shadow-sm sm:p-6">
+          <div className="rounded-lg border border-border bg-surface p-4 shadow-sm sm:p-6">
             {children}
           </div>
 

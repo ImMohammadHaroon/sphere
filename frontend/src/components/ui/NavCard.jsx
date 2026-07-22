@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 const accentStyles = {
   primary: "border-primary/20 hover:border-primary/40 hover:bg-primary-subtle",
   accent: "border-accent/30 hover:border-accent/50 hover:bg-accent-subtle",
-  neutral: "border-border hover:border-border-strong hover:bg-surface",
+  neutral: "border-border hover:border-border-strong hover:bg-card-hover",
 };
 
 const badgeStyles = {

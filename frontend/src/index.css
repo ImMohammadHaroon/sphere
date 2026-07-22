@@ -7,9 +7,20 @@
   --font-body: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
+  /* Semantic tokens */
   --color-background: hsl(var(--background));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-text: hsl(var(--sidebar-text));
+  --color-sidebar-text-hover: hsl(var(--sidebar-text-hover));
+  --color-sidebar-hover: hsl(var(--sidebar-hover));
+  --color-sidebar-active-bg: hsl(var(--sidebar-active-bg));
+  --color-sidebar-active-text: hsl(var(--sidebar-active-text));
   --color-surface: hsl(var(--surface));
   --color-surface-raised: hsl(var(--surface-raised));
+  --color-card: hsl(var(--card));
+  --color-card-hover: hsl(var(--card-hover));
+  --color-hover: hsl(var(--hover));
   --color-border: hsl(var(--border));
   --color-border-strong: hsl(var(--border-strong));
   --color-text-primary: hsl(var(--text-primary));
@@ -17,6 +28,7 @@
   --color-text-muted: hsl(var(--text-muted));
   --color-primary: hsl(var(--primary));
   --color-primary-hover: hsl(var(--primary-hover));
+  --color-primary-dark: hsl(var(--primary-dark));
   --color-primary-subtle: hsl(var(--primary-subtle));
   --color-primary-foreground: hsl(var(--primary-foreground));
   --color-accent: hsl(var(--accent));
@@ -26,11 +38,61 @@
   --color-warning: hsl(var(--warning));
   --color-danger: hsl(var(--danger));
   --color-info: hsl(var(--info));
+  --color-neutral: hsl(var(--neutral));
+  --color-dashboard-accent: hsl(var(--dashboard-accent));
+  --color-dashboard-accent-subtle: hsl(var(--dashboard-accent-subtle));
+
+  /* Brand scale — muted forest emerald */
+  --color-brand-50: #f0f7f3;
+  --color-brand-100: #dceee4;
+  --color-brand-200: #b8dcc8;
+  --color-brand-300: #8fc4a8;
+  --color-brand-400: #5fa882;
+  --color-brand-500: #1b7a52;
+  --color-brand-600: #166b47;
+  --color-brand-700: #125a3a;
+  --color-brand-800: #0d693e;
+  --color-brand-900: #084329;
+  --color-brand-950: #06170d;
+
+  /* Surface scale (light) */
+  --color-surface-50: #ffffff;
+  --color-surface-100: #f8faf9;
+  --color-surface-200: #f3f7f5;
+  --color-surface-300: #eef4f0;
+  --color-surface-400: #e2ebe6;
+  --color-surface-500: #d4ded8;
+
+  /* Dashboard accent aliases */
+  --color-dashboard-admin: #62a8ff;
+  --color-dashboard-organization: #b99cff;
+  --color-dashboard-project: #ffb84d;
+  --color-dashboard-team: #5cb8ff;
+  --color-dashboard-client: #d8a7ff;
+
   --radius-lg: var(--radius);
 }
 
 body {
   @apply bg-background text-text-primary font-body antialiased;
+}
+
+@layer components {
+  .hover-surface {
+    @apply bg-card transition-colors hover:bg-card-hover;
+  }
+
+  .divide-hover {
+    @apply divide-y divide-border;
+  }
+
+  .divide-hover > * {
+    @apply bg-card transition-colors hover:bg-card-hover;
+  }
+
+  .container-item {
+    @apply bg-card transition-colors hover:bg-card-hover;
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {

@@ -129,7 +129,7 @@ export function NotificationBell({ viewAllPath, buildTaskPath }) {
                     type="button"
                     onClick={() => handleNotificationClick(notification)}
                     className={cn(
-                      "w-full px-4 py-3 text-left transition-colors hover:bg-surface",
+                      "w-full bg-card px-4 py-3 text-left transition-colors hover:bg-card-hover",
                       !notification.read && "bg-primary-subtle/40"
                     )}
                   >

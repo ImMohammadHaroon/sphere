@@ -12,6 +12,7 @@ function SuperAdminLayoutShell() {
   return (
     <DashboardShell
       sidebar={<SuperAdminSidebar />}
+      dashboardRole="super_admin"
       title={pageMeta.title}
       description={pageMeta.description}
       showPageHeader={pageMeta.showPageHeader ?? Boolean(pageMeta.title)}

@@ -103,7 +103,7 @@ export function NotificationsPageContent({ buildTaskPath }) {
           <p className="text-sm text-text-secondary">You&apos;re all caught up</p>
         </div>
       ) : (
-        <ul className="divide-y divide-border">
+        <ul className="divide-hover">
           {notifications.map((notification) => (
             <li
               key={notification.id}

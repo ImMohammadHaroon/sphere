@@ -118,7 +118,7 @@ function PendingCommentFiles({
             return (
               <li
                 key={`${file.name}-${file.size}-${index}`}
-                className="flex items-center gap-3 rounded-lg border border-border bg-surface-raised/50 px-3 py-2"
+                className="container-item flex items-center gap-3 rounded-lg border border-border bg-surface-raised/50 px-3 py-2"
               >
                 <Icon className="h-4 w-4 shrink-0 text-text-muted" />
                 <div className="min-w-0 flex-1">
@@ -340,7 +340,7 @@ export function TaskComments({ taskId, projectId }) {
                 {comments.map((comment) => (
                   <li
                     key={comment._id}
-                    className="flex gap-3 rounded-lg border border-border bg-surface-raised/50 p-4"
+                    className="container-item flex gap-3 rounded-lg border border-border bg-surface-raised/50 p-4"
                   >
                     <UserAvatar user={comment.author} size="md" />
                     <div className="min-w-0 flex-1">

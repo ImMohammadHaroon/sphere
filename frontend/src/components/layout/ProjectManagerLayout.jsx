@@ -14,6 +14,7 @@ function ProjectManagerLayoutShell() {
   return (
     <DashboardShell
       sidebar={<ProjectManagerSidebar userRole={user?.role} />}
+      dashboardRole="project_manager"
       title={pageMeta.title}
       description={pageMeta.description}
       showPageHeader={pageMeta.showPageHeader ?? Boolean(pageMeta.title)}

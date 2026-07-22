@@ -27,15 +27,15 @@ export function ClientPortalSidebar() {
   const { pathname } = useLocation();
 
   return (
-    <aside className="flex h-full w-full flex-col border-r border-border bg-surface-raised p-3 lg:p-8">
+    <aside className="flex h-full w-full flex-col border-r border-sidebar-border bg-sidebar p-3 lg:p-8">
       <Link
         to="/portal"
         className="mb-6 flex items-center justify-center lg:justify-start"
       >
-        <span className="hidden font-display text-lg font-semibold text-text-primary hover:text-primary lg:inline">
+        <span className="hidden font-display text-lg font-semibold text-sidebar-text hover:opacity-90 lg:inline">
           ProjectSphere
         </span>
-        <span className="text-lg font-bold text-primary lg:hidden">PS</span>
+        <span className="text-lg font-bold text-sidebar-text lg:hidden">PS</span>
       </Link>
 
       <nav>

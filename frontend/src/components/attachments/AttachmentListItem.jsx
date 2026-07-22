@@ -19,7 +19,7 @@ export function AttachmentListItem({
   return (
     <li
       className={cn(
-        "flex items-center gap-3 rounded-lg border border-border bg-surface-raised/50 px-3 py-2 transition-colors",
+        "container-item flex items-center gap-3 rounded-lg border border-border px-3 py-2",
         isLoading && "border-primary/30 bg-primary/5",
         className
       )}

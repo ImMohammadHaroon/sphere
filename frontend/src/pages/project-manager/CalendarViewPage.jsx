@@ -239,7 +239,7 @@ export function CalendarViewPage() {
                   type="button"
                   onClick={() => setSelectedDay(day)}
                   className={cn(
-                    "min-h-[5.5rem] border-b border-r border-border p-2 text-left transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30",
+                    "min-h-[5.5rem] border-b border-r border-border bg-card p-2 text-left transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30",
                     !inMonth && "bg-surface/50 text-text-muted",
                     isToday(day) && "bg-primary-subtle/40"
                   )}
@@ -317,12 +317,12 @@ export function CalendarViewPage() {
                   <h3 className="mb-2 text-sm font-medium text-text-primary">
                     Tasks
                   </h3>
-                  <ul className="divide-y divide-border rounded-lg border border-border">
+                  <ul className="divide-hover rounded-lg border border-border">
                     {selectedEvents.tasks.map((task) => (
                       <li key={task._id}>
                         <Link
                           to={`/dashboard/projects/${projectId}/tasks/${task._id}`}
-                          className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-surface"
+                          className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm"
                           onClick={() => setSelectedDay(null)}
                         >
                           <span className="font-medium text-text-primary">
@@ -349,12 +349,12 @@ export function CalendarViewPage() {
                   <h3 className="mb-2 text-sm font-medium text-text-primary">
                     Milestones
                   </h3>
-                  <ul className="divide-y divide-border rounded-lg border border-border">
+                  <ul className="divide-hover rounded-lg border border-border">
                     {selectedEvents.milestones.map((milestone) => (
                       <li key={milestone._id}>
                         <Link
                           to={`/dashboard/projects/${projectId}/milestones?highlight=${milestone._id}`}
-                          className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-surface"
+                          className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm"
                           onClick={() => setSelectedDay(null)}
                         >
                           <span className="flex items-center gap-2 font-medium text-text-primary">

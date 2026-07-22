@@ -53,7 +53,7 @@ export function TabsTrigger({ value, className, children }) {
               "shrink-0 rounded-lg px-3 py-2 sm:w-full sm:text-left",
               isActive
                 ? "bg-primary-subtle text-primary"
-                : "text-text-secondary hover:bg-surface hover:text-text-primary"
+                : "text-text-secondary hover:bg-card-hover hover:text-text-primary"
             )
           : cn(
               "rounded-t-lg px-4 py-2",

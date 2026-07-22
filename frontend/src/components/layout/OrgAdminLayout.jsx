@@ -12,6 +12,7 @@ function OrgAdminLayoutShell() {
   return (
     <DashboardShell
       sidebar={<OrgAdminSidebar />}
+      dashboardRole="org_admin"
       title={pageMeta.title}
       description={pageMeta.description}
       showPageHeader={pageMeta.showPageHeader ?? Boolean(pageMeta.title)}

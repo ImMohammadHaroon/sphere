@@ -12,6 +12,7 @@ function TeamMemberLayoutShell() {
   return (
     <DashboardShell
       sidebar={<TeamMemberSidebar />}
+      dashboardRole="team_member"
       title={pageMeta.title}
       description={pageMeta.description}
       showPageHeader={pageMeta.showPageHeader ?? Boolean(pageMeta.title)}

@@ -211,7 +211,7 @@ export function MilestonesPage() {
           </Card>
         ) : (
           <Card className="overflow-hidden p-0">
-            <ul className="divide-y divide-border">
+            <ul className="divide-hover">
               {milestones.map((milestone) => {
                 const canEdit = milestone.status === "pending";
 

@@ -8,11 +8,11 @@ export function SidebarNavItem({ to, label, icon: Icon, isActive, badge }) {
         to={to}
         title={label}
         className={cn(
-          "flex items-center justify-center gap-3 rounded-lg px-2 py-2.5 text-sm font-medium transition-colors lg:px-4",
+          "flex items-center justify-center gap-3 border-l-[3px] py-2.5 pl-[calc(0.5rem-3px)] pr-2 text-sm font-medium transition-colors lg:pl-[calc(1rem-3px)] lg:pr-4",
           badge ? "lg:justify-between" : "lg:justify-start",
           isActive
-            ? "bg-primary-subtle text-primary"
-            : "text-text-secondary hover:bg-surface hover:text-text-primary"
+            ? "border-l-primary bg-sidebar-active-bg text-sidebar-active-text"
+            : "border-l-transparent text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-hover"
         )}
       >
         <span className="flex items-center justify-center gap-3 lg:justify-start">
@@ -20,7 +20,7 @@ export function SidebarNavItem({ to, label, icon: Icon, isActive, badge }) {
             <Icon className="h-5 w-5 shrink-0" aria-hidden />
             {badge ? (
               <span
-                className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary lg:hidden"
+                className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-dashboard-accent lg:hidden"
                 aria-hidden
               />
             ) : null}
@@ -32,8 +32,8 @@ export function SidebarNavItem({ to, label, icon: Icon, isActive, badge }) {
             className={cn(
               "hidden min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold lg:inline-flex",
               isActive
-                ? "bg-primary text-white"
-                : "bg-surface text-text-secondary"
+                ? "bg-primary text-primary-foreground"
+                : "bg-sidebar-hover text-sidebar-text"
             )}
           >
             {badge > 99 ? "99+" : badge}

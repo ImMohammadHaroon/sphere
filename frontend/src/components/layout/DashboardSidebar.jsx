@@ -36,11 +36,11 @@ export function DashboardSidebar({ userRole }) {
   ];
 
   return (
-    <aside className="flex h-full w-full flex-col border-r border-border bg-surface-raised p-5 lg:h-screen lg:p-8">
+    <aside className="flex h-full w-full flex-col border-r border-sidebar-border bg-sidebar p-5 lg:h-screen lg:p-8">
       <div className="pb-6">
         <Link
           to="/"
-          className="font-display text-lg font-semibold text-text-primary hover:text-primary"
+          className="font-display text-lg font-semibold text-sidebar-text hover:opacity-90"
         >
           ProjectSphere
         </Link>
@@ -70,8 +70,8 @@ function SidebarLink({ to, label, active }) {
       className={cn(
         "block rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
         active
-          ? "bg-primary-subtle text-primary"
-          : "text-text-secondary hover:bg-surface hover:text-text-primary"
+          ? "border-l-[3px] border-l-primary bg-sidebar-active-bg pl-[calc(1rem-3px)] text-sidebar-active-text"
+          : "border-l-[3px] border-l-transparent text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-hover"
       )}
     >
       {label}

@@ -139,7 +139,7 @@ export function AssignedTasksPreview() {
           <p className="text-sm text-text-secondary">No tasks assigned to you yet.</p>
         </div>
       ) : (
-        <ul className="divide-y divide-border">
+        <ul className="divide-hover">
           {previewTasks.map((task) => {
             const projectId = task.projectId?.id ?? task.projectId;
             const projectName = task.projectId?.name ?? "Unknown project";

@@ -10,7 +10,7 @@ function SummaryCard({ label, value, variant = "default" }) {
         : "text-primary";
 
   return (
-    <Card className="bg-primary-subtle/60 p-5">
+    <Card className="bg-dashboard-accent-subtle p-5">
       <p className="text-sm font-medium text-text-secondary">{label}</p>
       <p className={`mt-2 font-display text-2xl font-semibold sm:text-3xl ${valueClass}`}>
         {value.toLocaleString()}

@@ -12,6 +12,7 @@ function ClientPortalLayoutShell() {
   return (
     <DashboardShell
       sidebar={<ClientPortalSidebar />}
+      dashboardRole="client"
       title={pageMeta.title}
       description={pageMeta.description}
       showPageHeader={pageMeta.showPageHeader ?? Boolean(pageMeta.title)}

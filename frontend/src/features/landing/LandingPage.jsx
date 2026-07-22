@@ -10,7 +10,7 @@ import { SecuritySection } from "./SecuritySection";
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-surface text-text-primary">
+    <div className="min-h-screen bg-background text-text-primary">
       <PublicHeader />
 
       <main>

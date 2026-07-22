@@ -72,12 +72,12 @@ export function CompletionTrendChart({
                 borderRadius: "0.5rem",
                 color: "hsl(var(--text-primary))",
               }}
-              cursor={{ fill: "hsl(var(--primary-subtle))" }}
+              cursor={{ fill: "hsl(var(--dashboard-accent-subtle))" }}
             />
             <Bar
               dataKey="tasksCompleted"
               name="Completed"
-              fill="hsl(var(--primary))"
+              fill="hsl(var(--dashboard-accent))"
               radius={[4, 4, 0, 0]}
               isAnimationActive={false}
             />

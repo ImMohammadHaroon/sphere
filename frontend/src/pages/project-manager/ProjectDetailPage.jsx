@@ -489,7 +489,7 @@ export function ProjectDetailPage() {
                 return (
                   <li
                     key={memberId}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-border px-4 py-3"
+                    className="container-item flex items-center justify-between gap-3 rounded-lg border border-border px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
                       <UserAvatar user={memberUser} size="md" />

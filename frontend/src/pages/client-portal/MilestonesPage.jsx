@@ -147,7 +147,7 @@ export function ClientMilestonesPage() {
                     {project.name}
                   </h2>
                 </div>
-                <ul className="divide-y divide-border">
+                <ul className="divide-hover">
                   {milestones.map((milestone) => {
                     const isPending = milestone.status === "pending";
 

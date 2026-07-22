@@ -6,7 +6,7 @@ export function ProblemSection() {
     useLandingMotion(0.1);
 
   return (
-    <section className="border-y border-border bg-surface-raised/60 py-16 sm:py-20">
+    <section className="border-y border-border bg-surface py-16 sm:py-20">
       <motion.div
         className="mx-auto max-w-3xl text-center"
         variants={staggerContainer}

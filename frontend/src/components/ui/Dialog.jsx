@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -24,7 +25,7 @@ export function Dialog({ open, onOpenChange, children }) {
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 overflow-y-auto p-4">
       <div className="flex min-h-full items-center justify-center">
         <button
@@ -35,7 +36,8 @@ export function Dialog({ open, onOpenChange, children }) {
         />
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

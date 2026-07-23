@@ -5,6 +5,7 @@ import {
   rejectOrganization,
 } from "@/lib/platformApi";
 import { useAuth } from "@/hooks/useAuth";
+import { withMutationToasts } from "@/lib/mutationToasts";
 
 export function usePendingOrganizations(filters) {
   const { isAuthenticated, user } = useAuth();
@@ -21,31 +22,41 @@ export function usePendingOrganizations(filters) {
 export function useApproveOrganization() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (id) => approveOrganization(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["platform", "organizations", "pending"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["platform", "organizations"],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: (id) => approveOrganization(id),
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["platform", "organizations", "pending"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["platform", "organizations"],
+          });
+        },
+      },
+      { success: "Organization approved." }
+    )
+  );
 }
 
 export function useRejectOrganization() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({ id, reason }) => rejectOrganization(id, reason),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["platform", "organizations", "pending"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["platform", "organizations"],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: ({ id, reason }) => rejectOrganization(id, reason),
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["platform", "organizations", "pending"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["platform", "organizations"],
+          });
+        },
+      },
+      { success: "Organization rejected." }
+    )
+  );
 }

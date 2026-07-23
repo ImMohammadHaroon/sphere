@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listOrgUsers, removeOrgUser } from "@/lib/orgApi";
 import { useAuth } from "@/hooks/useAuth";
+import { withMutationToasts } from "@/lib/mutationToasts";
 
 export function useOrgUsers() {
   const { isAuthenticated, user } = useAuth();
@@ -22,12 +23,17 @@ export function useRemoveOrgUser() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: removeOrgUser,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["org", "users", user?.organizationId],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: removeOrgUser,
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["org", "users", user?.organizationId],
+          });
+        },
+      },
+      { success: "Team member removed." }
+    )
+  );
 }

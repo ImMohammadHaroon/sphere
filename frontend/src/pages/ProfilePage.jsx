@@ -8,12 +8,10 @@ import {
   useDeleteAvatar,
 } from "@/hooks/useAccount";
 import { useOrgSettings } from "@/features/settings/hooks/useOrgSettings";
-import { useToast } from "@/hooks/useToast";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { Toast } from "@/components/ui/Toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { ProfileAccountTab } from "@/features/profile/tabs/ProfileAccountTab";
 import { ProfilePasswordTab } from "@/features/profile/tabs/ProfilePasswordTab";
@@ -76,7 +74,6 @@ export function ProfilePage() {
       ? tabParam
       : DEFAULT_PROFILE_TAB;
 
-  const { toast, showToast, dismissToast } = useToast();
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
   const uploadAvatar = useUploadAvatar();
@@ -118,7 +115,6 @@ export function ProfilePage() {
     setProfileError("");
     try {
       await updateProfile.mutateAsync({ name });
-      showToast("Profile updated");
     } catch (err) {
       setProfileError(err instanceof Error ? err.message : "Failed to save profile");
     }
@@ -128,7 +124,6 @@ export function ProfilePage() {
     setAvatarError("");
     try {
       await uploadAvatar.mutateAsync(file);
-      showToast("Profile photo updated");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to upload photo";
       setAvatarError(message);
@@ -140,7 +135,6 @@ export function ProfilePage() {
     setAvatarError("");
     try {
       await deleteAvatar.mutateAsync();
-      showToast("Profile photo removed");
     } catch (err) {
       setAvatarError(err instanceof Error ? err.message : "Failed to remove photo");
     }
@@ -159,7 +153,6 @@ export function ProfilePage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      showToast("Password updated");
     } catch (err) {
       setPasswordError(err instanceof Error ? err.message : "Failed to change password");
     }
@@ -199,12 +192,12 @@ export function ProfilePage() {
 
     if (activeTab === "organization") {
       return (
-        <GeneralSettingsTab organization={organization} onSuccess={showToast} />
+        <GeneralSettingsTab organization={organization} />
       );
     }
 
     if (activeTab === "kanban") {
-      return <KanbanTemplatesSettingsTab onSuccess={showToast} />;
+      return <KanbanTemplatesSettingsTab />;
     }
 
     if (activeTab === "danger") {
@@ -278,8 +271,6 @@ export function ProfilePage() {
           ) : null}
         </Tabs>
       </div>
-
-      <Toast toast={toast} onDismiss={dismissToast} />
 
       <ConfirmDialog
         open={logoutAllOpen}

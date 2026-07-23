@@ -6,6 +6,7 @@ import {
   updateTemplate,
 } from "@/lib/kanbanTemplatesApi";
 import { useAuth } from "@/hooks/useAuth";
+import { withMutationToasts } from "@/lib/mutationToasts";
 
 function templatesQueryKey(organizationId) {
   return ["kanban-templates", organizationId];
@@ -31,40 +32,55 @@ export function useCreateKanbanTemplate() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: createTemplate,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: templatesQueryKey(user?.organizationId),
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: createTemplate,
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: templatesQueryKey(user?.organizationId),
+          });
+        },
+      },
+      { success: "Kanban template created." }
+    )
+  );
 }
 
 export function useUpdateKanbanTemplate() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: ({ id, data }) => updateTemplate(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: templatesQueryKey(user?.organizationId),
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: ({ id, data }) => updateTemplate(id, data),
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: templatesQueryKey(user?.organizationId),
+          });
+        },
+      },
+      { success: "Kanban template updated." }
+    )
+  );
 }
 
 export function useDeleteKanbanTemplate() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: deleteTemplate,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: templatesQueryKey(user?.organizationId),
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: deleteTemplate,
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: templatesQueryKey(user?.organizationId),
+          });
+        },
+      },
+      { success: "Kanban template deleted." }
+    )
+  );
 }

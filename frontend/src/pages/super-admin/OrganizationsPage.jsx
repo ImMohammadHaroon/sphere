@@ -21,7 +21,6 @@ import {
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { Toast } from "@/components/ui/Toast";
 import {
   Table,
   TableBody,
@@ -31,7 +30,6 @@ import {
   TableRow,
   TableScrollArea,
 } from "@/components/ui/Table";
-import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/utils";
 
 const STATUS_OPTIONS = [
@@ -74,7 +72,6 @@ export function OrganizationsPage() {
   const [pendingFilters, setPendingFilters] = useState({ page: 1, limit: 20 });
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
-  const { toast, showToast, dismissToast } = useToast();
 
   const { data, isLoading, isError, error, refetch, isFetching } =
     useOrganizations(filters);
@@ -127,13 +124,9 @@ export function OrganizationsPage() {
   async function handleApprove(org) {
     try {
       await approve.mutateAsync(org.id);
-      showToast(`${org.name} approved`, "success");
       refetch();
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Failed to approve organization",
-        "error"
-      );
+    } catch {
+      // Mutation hook shows the error toast.
     }
   }
 
@@ -145,14 +138,10 @@ export function OrganizationsPage() {
         id: rejectTarget.id,
         reason: rejectReason.trim() || undefined,
       });
-      showToast(`${rejectTarget.name} rejected`, "success");
       setRejectTarget(null);
       setRejectReason("");
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Failed to reject organization",
-        "error"
-      );
+    } catch {
+      // Mutation hook shows the error toast.
     }
   }
 
@@ -169,8 +158,6 @@ export function OrganizationsPage() {
 
   return (
     <>
-      {toast ? <Toast toast={toast} onDismiss={dismissToast} /> : null}
-
       {showPendingSection ? (
         <section className="mb-8">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">

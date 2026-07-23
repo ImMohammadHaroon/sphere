@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import { invitesApi } from "@/lib/invitesApi";
+import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 const ROLE_OPTIONS = [
@@ -60,6 +61,7 @@ export function InviteMemberDialog({ open, onOpenChange }) {
     try {
       await invitesApi.createInvite(data);
       queryClient.invalidateQueries({ queryKey: ["invites"] });
+      toast.success(`Invitation sent to ${data.email}`);
       setSuccessEmail(data.email);
       reset({ email: "", role: "team_member" });
     } catch (err) {

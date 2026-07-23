@@ -48,6 +48,7 @@ import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
 import { ProjectManagerLayout } from "@/components/layout/ProjectManagerLayout";
 import { TeamMemberLayout } from "@/components/layout/TeamMemberLayout";
 import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
+import { ToastProvider } from "@/components/providers/ToastProvider";
 
 const queryClient = new QueryClient();
 
@@ -220,9 +221,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

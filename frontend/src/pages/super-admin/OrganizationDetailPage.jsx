@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { Toast } from "@/components/ui/Toast";
 import {
   Table,
   TableBody,
@@ -21,7 +20,6 @@ import {
   TableScrollArea,
 } from "@/components/ui/Table";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import { useToast } from "@/hooks/useToast";
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString(undefined, {
@@ -81,7 +79,6 @@ function DetailSkeleton() {
 export function OrganizationDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast, showToast, dismissToast } = useToast();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [suspendOpen, setSuspendOpen] = useState(false);
 
@@ -104,32 +101,18 @@ export function OrganizationDetailPage() {
   async function handleSuspendConfirm() {
     try {
       await suspend.mutateAsync();
-      showToast("Organization suspended.");
       setSuspendOpen(false);
     } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Action failed",
-        "error"
-      );
       throw err;
     }
   }
 
   async function handleActivate() {
-    try {
-      await activate.mutateAsync();
-      showToast("Organization activated.");
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Action failed",
-        "error"
-      );
-    }
+    await activate.mutateAsync();
   }
 
   async function handleDelete(confirmSlug) {
     await remove.mutateAsync(confirmSlug);
-    showToast("Organization deleted.");
     navigate("/super-admin/organizations", { replace: true });
   }
 
@@ -137,8 +120,6 @@ export function OrganizationDetailPage() {
 
   return (
     <>
-      {toast ? <Toast toast={toast} onDismiss={dismissToast} /> : null}
-
       {isLoading ? <DetailSkeleton /> : null}
 
       {isError ? (

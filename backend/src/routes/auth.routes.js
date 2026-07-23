@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as authController from "../controllers/auth.controller.js";
-import { authenticate, requireRole } from "../middleware/auth.middleware.js";
+import { authenticate } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 import { authRateLimiter } from "../middleware/rateLimit.middleware.js";
 import { avatarUpload } from "../config/upload.js";
@@ -9,8 +9,6 @@ import {
   verifyOrgRegistrationSchema,
   resendOrgVerificationSchema,
   loginSchema,
-  inviteSchema,
-  acceptInviteSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
   updateProfileSchema,
@@ -343,87 +341,6 @@ router.post(
 );
 router.get("/avatar", authenticate, authController.getAvatar);
 router.delete("/avatar", authenticate, authController.deleteAvatar);
-
-/**
- * @openapi
- * /auth/invite:
- *   post:
- *     summary: Invite a user to the organization
- *     tags: [Auth]
- *     security: [{ bearerAuth: [] }]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email, role]
- *             properties:
- *               email: { type: string, format: email }
- *               role:
- *                 type: string
- *                 enum: [org_admin, project_manager, team_member, client]
- *     responses:
- *       201:
- *         description: Invite created
- *       403:
- *         description: Org Admin or Project Manager required
- */
-router.post(
-  "/invite",
-  authenticate,
-  requireRole(["org_admin", "project_manager"]),
-  validate(inviteSchema),
-  authController.invite
-);
-
-/**
- * @openapi
- * /auth/accept-invite:
- *   post:
- *     summary: Complete signup via invite token
- *     tags: [Auth]
- *     security: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [token, name, password]
- *             properties:
- *               token: { type: string }
- *               name: { type: string, minLength: 2, maxLength: 100 }
- *               password: { type: string, format: password, minLength: 8 }
- *               deviceId: { type: string, format: uuid }
- *     responses:
- *       201:
- *         description: Account created and session issued
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 accessToken: { type: string }
- *                 user:
- *                   type: object
- *                   properties:
- *                     id: { type: string }
- *                     name: { type: string }
- *                     email: { type: string }
- *                     role: { type: string }
- *                     organizationId: { type: string }
- *       400:
- *         description: Invite expired or already used
- *       404:
- *         description: Invalid invite token
- */
-router.post(
-  "/accept-invite",
-  authRateLimiter,
-  validate(acceptInviteSchema),
-  authController.acceptInvite
-);
 
 /**
  * @openapi

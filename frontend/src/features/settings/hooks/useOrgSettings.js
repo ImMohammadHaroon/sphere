@@ -1,13 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  deactivateOrg,
   deleteOrg,
   getSettings,
   updateGeneralSettings,
-  updateInvitePolicy,
-  updateSecuritySettings,
 } from "@/lib/orgSettingsApi";
 import { useAuth } from "@/hooks/useAuth";
+import { withMutationToasts } from "@/lib/mutationToasts";
 
 const SETTINGS_KEY = ["org", "settings"];
 
@@ -33,38 +31,24 @@ function useInvalidateSettings() {
 export function useUpdateGeneralSettings() {
   const invalidate = useInvalidateSettings();
 
-  return useMutation({
-    mutationFn: updateGeneralSettings,
-    onSuccess: invalidate,
-  });
-}
-
-export function useUpdateSecuritySettings() {
-  const invalidate = useInvalidateSettings();
-
-  return useMutation({
-    mutationFn: updateSecuritySettings,
-    onSuccess: invalidate,
-  });
-}
-
-export function useUpdateInvitePolicy() {
-  const invalidate = useInvalidateSettings();
-
-  return useMutation({
-    mutationFn: updateInvitePolicy,
-    onSuccess: invalidate,
-  });
-}
-
-export function useDeactivateOrg() {
-  return useMutation({
-    mutationFn: deactivateOrg,
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: updateGeneralSettings,
+        onSuccess: invalidate,
+      },
+      { success: "Organization settings saved." }
+    )
+  );
 }
 
 export function useDeleteOrg() {
-  return useMutation({
-    mutationFn: deleteOrg,
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: deleteOrg,
+      },
+      { success: "Organization deleted." }
+    )
+  );
 }

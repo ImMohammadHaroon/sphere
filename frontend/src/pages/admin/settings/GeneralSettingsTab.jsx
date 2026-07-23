@@ -25,7 +25,7 @@ function DetailItem({ label, children }) {
   );
 }
 
-export function GeneralSettingsTab({ organization, onSuccess }) {
+export function GeneralSettingsTab({ organization }) {
   const updateGeneral = useUpdateGeneralSettings();
 
   const [name, setName] = useState("");
@@ -48,7 +48,6 @@ export function GeneralSettingsTab({ organization, onSuccess }) {
           primaryColor: organization.branding?.primaryColor ?? "160 56% 28%",
         },
       });
-      onSuccess("Organization details saved");
     } catch (err) {
       setDetailsError(err instanceof Error ? err.message : "Failed to save");
     }

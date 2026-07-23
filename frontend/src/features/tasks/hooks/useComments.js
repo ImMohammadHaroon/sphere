@@ -4,6 +4,7 @@ import {
   deleteComment,
   getComments,
 } from "@/lib/commentsApi";
+import { withMutationToasts } from "@/lib/mutationToasts";
 import { useTaskOrgContext } from "./useTaskOrgContext";
 
 export function useComments(taskId) {
@@ -23,21 +24,31 @@ export function useComments(taskId) {
 export function useCreateComment(taskId) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (body) => createComment(taskId, body),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["comments", taskId] });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: (body) => createComment(taskId, body),
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["comments", taskId] });
+        },
+      },
+      { success: "Comment added." }
+    )
+  );
 }
 
 export function useDeleteComment(taskId) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (commentId) => deleteComment(taskId, commentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["comments", taskId] });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: (commentId) => deleteComment(taskId, commentId),
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["comments", taskId] });
+        },
+      },
+      { success: "Comment deleted." }
+    )
+  );
 }

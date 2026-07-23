@@ -9,6 +9,7 @@ import {
   updateProject,
 } from "@/lib/projectsApi";
 import { useAuth } from "@/hooks/useAuth";
+import { withMutationToasts } from "@/lib/mutationToasts";
 
 function useOrgContext() {
   const { isAuthenticated, user } = useAuth();
@@ -50,77 +51,102 @@ export function useCreateProject() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: createProject,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["projects", user?.organizationId],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: createProject,
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["projects", user?.organizationId],
+          });
+        },
+      },
+      { success: "Project created." }
+    )
+  );
 }
 
 export function useUpdateProject() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: ({ id, data }) => updateProject(id, data),
-    onSuccess: (_result, { id }) => {
-      queryClient.invalidateQueries({
-        queryKey: ["projects", user?.organizationId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["projects", user?.organizationId, id],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: ({ id, data }) => updateProject(id, data),
+        onSuccess: (_result, { id }) => {
+          queryClient.invalidateQueries({
+            queryKey: ["projects", user?.organizationId],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["projects", user?.organizationId, id],
+          });
+        },
+      },
+      { success: "Project updated." }
+    )
+  );
 }
 
 export function useArchiveProject() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: archiveProject,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["projects", user?.organizationId],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: archiveProject,
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["projects", user?.organizationId],
+          });
+        },
+      },
+      { success: "Project archived." }
+    )
+  );
 }
 
 export function useAddMember() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: ({ id, userId }) => addMember(id, userId),
-    onSuccess: (_result, { id }) => {
-      queryClient.invalidateQueries({
-        queryKey: ["projects", user?.organizationId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["projects", user?.organizationId, id],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: ({ id, userId }) => addMember(id, userId),
+        onSuccess: (_result, { id }) => {
+          queryClient.invalidateQueries({
+            queryKey: ["projects", user?.organizationId],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["projects", user?.organizationId, id],
+          });
+        },
+      },
+      { success: "Member added." }
+    )
+  );
 }
 
 export function useRemoveMember() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: ({ id, userId }) => removeMember(id, userId),
-    onSuccess: (_result, { id }) => {
-      queryClient.invalidateQueries({
-        queryKey: ["projects", user?.organizationId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["projects", user?.organizationId, id],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: ({ id, userId }) => removeMember(id, userId),
+        onSuccess: (_result, { id }) => {
+          queryClient.invalidateQueries({
+            queryKey: ["projects", user?.organizationId],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["projects", user?.organizationId, id],
+          });
+        },
+      },
+      { success: "Member removed." }
+    )
+  );
 }

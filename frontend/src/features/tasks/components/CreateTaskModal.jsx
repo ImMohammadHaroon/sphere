@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Paperclip, X } from "lucide-react";
 import { FilePreviewDialog } from "@/components/attachments/FilePreviewDialog";
 import { useCreateTask } from "@/features/tasks/hooks/useCreateTask";
@@ -43,7 +43,12 @@ function formatRoleLabel(role) {
   return labels[role] ?? role?.replaceAll("_", " ") ?? "";
 }
 
-export function CreateTaskModal({ open, onOpenChange, projectId }) {
+export function CreateTaskModal({
+  open,
+  onOpenChange,
+  projectId,
+  defaultDueDate = "",
+}) {
   const createTask = useCreateTask(projectId);
   const { data: members, isLoading: membersLoading } = useProjectMembers(
     open ? projectId : undefined
@@ -57,8 +62,14 @@ export function CreateTaskModal({ open, onOpenChange, projectId }) {
 
   const isSubmitting = createTask.isPending || isUploading;
 
+  useEffect(() => {
+    if (open && defaultDueDate) {
+      setForm((current) => ({ ...current, dueDate: defaultDueDate }));
+    }
+  }, [open, defaultDueDate]);
+
   function resetForm() {
-    setForm(emptyForm);
+    setForm({ ...emptyForm, dueDate: defaultDueDate || "" });
     setFiles([]);
     setError("");
     setIsUploading(false);
@@ -157,9 +168,13 @@ export function CreateTaskModal({ open, onOpenChange, projectId }) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent onClose={() => handleOpenChange(false)}>
         <DialogHeader>
-          <DialogTitle>Create task</DialogTitle>
+          <DialogTitle>
+            {defaultDueDate ? "Add to schedule" : "Create task"}
+          </DialogTitle>
           <DialogDescription>
-            Add a new task to this project.
+            {defaultDueDate
+              ? "Schedule a task for the selected day."
+              : "Add a new task to this project."}
           </DialogDescription>
         </DialogHeader>
 

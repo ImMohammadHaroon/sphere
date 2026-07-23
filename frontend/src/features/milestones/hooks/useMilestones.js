@@ -7,6 +7,7 @@ import {
   updateMilestone,
 } from "@/lib/milestonesApi";
 import { useAuth } from "@/hooks/useAuth";
+import { withMutationToasts } from "@/lib/mutationToasts";
 
 function useOrgContext() {
   const { isAuthenticated, user } = useAuth();
@@ -43,51 +44,76 @@ export function useCreateMilestone(projectId) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: (data) => createMilestone(projectId, data),
-    onSuccess: () => {
-      invalidateMilestoneQueries(queryClient, user, projectId);
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: (data) => createMilestone(projectId, data),
+        onSuccess: () => {
+          invalidateMilestoneQueries(queryClient, user, projectId);
+        },
+      },
+      { success: "Milestone created." }
+    )
+  );
 }
 
 export function useUpdateMilestone(projectId) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: ({ id, data }) => updateMilestone(id, data),
-    onSuccess: () => {
-      invalidateMilestoneQueries(queryClient, user, projectId);
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: ({ id, data }) => updateMilestone(id, data),
+        onSuccess: () => {
+          invalidateMilestoneQueries(queryClient, user, projectId);
+        },
+      },
+      { success: "Milestone updated." }
+    )
+  );
 }
 
 export function useDeleteMilestone(projectId) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: (id) => deleteMilestone(id),
-    onSuccess: () => {
-      invalidateMilestoneQueries(queryClient, user, projectId);
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: (id) => deleteMilestone(id),
+        onSuccess: () => {
+          invalidateMilestoneQueries(queryClient, user, projectId);
+        },
+      },
+      { success: "Milestone deleted." }
+    )
+  );
 }
 
 export function useApproveMilestone() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: ({ id, decision }) => approveMilestone(id, decision),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["milestones", user?.organizationId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["calendar", user?.organizationId],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: ({ id, decision }) => approveMilestone(id, decision),
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["milestones", user?.organizationId],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["calendar", user?.organizationId],
+          });
+        },
+      },
+      {
+        success: (_result, { decision }) =>
+          decision === "approve"
+            ? "Milestone approved."
+            : "Milestone rejected.",
+      }
+    )
+  );
 }

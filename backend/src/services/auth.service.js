@@ -1,7 +1,6 @@
 import crypto from "crypto";
 import { User } from "../models/User.js";
 import { Organization } from "../models/Organization.js";
-import { InviteToken } from "../models/InviteToken.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 import { OrgRegistrationPending } from "../models/OrgRegistrationPending.js";
 import { PlatformSettings } from "../models/PlatformSettings.js";
@@ -541,72 +540,6 @@ export async function deleteAvatar(userId) {
   await user.save();
 
   return enrichUserWithOrgContext(user);
-}
-
-export async function createInvite({
-  organizationId,
-  email,
-  role,
-  invitedBy,
-}) {
-  const existing = await User.findOne({ email, organizationId });
-  if (existing) {
-    const err = new Error("User already in organization");
-    err.status = 409;
-    throw err;
-  }
-
-  const rawToken = generateOpaqueToken();
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-  await InviteToken.create({
-    organizationId,
-    email,
-    role,
-    tokenHash: InviteToken.hashToken(rawToken),
-    invitedBy,
-    expiresAt,
-  });
-
-  return { token: rawToken, expiresAt };
-}
-
-export async function acceptInvite({
-  res,
-  token,
-  name,
-  password,
-  deviceId,
-}) {
-  const tokenHash = InviteToken.hashToken(token);
-  const invite = await InviteToken.findOne({ tokenHash });
-
-  if (!invite || invite.acceptedAt || invite.expiresAt < new Date()) {
-    const err = new Error("Invalid or expired invite");
-    err.status = 400;
-    throw err;
-  }
-
-  const existing = await User.findOne({ email: invite.email });
-  if (existing) {
-    const err = new Error("Email already registered");
-    err.status = 409;
-    throw err;
-  }
-
-  const passwordHash = await hashPassword(password);
-  const user = await User.create({
-    organizationId: invite.organizationId,
-    name,
-    email: invite.email,
-    passwordHash,
-    role: invite.role,
-  });
-
-  invite.acceptedAt = new Date();
-  await invite.save();
-
-  return issueSession(res, user, deviceId || generateDeviceId());
 }
 
 export async function forgotPassword(email) {

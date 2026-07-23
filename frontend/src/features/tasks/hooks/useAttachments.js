@@ -4,6 +4,7 @@ import {
   getAttachments,
   uploadAttachment,
 } from "@/lib/attachmentsApi";
+import { withMutationToasts } from "@/lib/mutationToasts";
 import { useTaskOrgContext } from "./useTaskOrgContext";
 
 export function useAttachments(taskId) {
@@ -23,21 +24,31 @@ export function useAttachments(taskId) {
 export function useUploadAttachment(taskId) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (file) => uploadAttachment(taskId, file),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attachments", taskId] });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: (file) => uploadAttachment(taskId, file),
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["attachments", taskId] });
+        },
+      },
+      { success: "File attached." }
+    )
+  );
 }
 
 export function useDeleteAttachment(taskId) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (attachmentId) => deleteAttachment(taskId, attachmentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attachments", taskId] });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: (attachmentId) => deleteAttachment(taskId, attachmentId),
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["attachments", taskId] });
+        },
+      },
+      { success: "Attachment removed." }
+    )
+  );
 }

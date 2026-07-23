@@ -14,7 +14,7 @@ import {
   useUpdateKanbanTemplate,
 } from "@/features/kanban-templates/hooks/useKanbanTemplates";
 
-export function KanbanTemplatesSettingsTab({ onSuccess }) {
+export function KanbanTemplatesSettingsTab() {
   const { data: templates, isLoading, isError, error, refetch, isFetching } =
     useKanbanTemplates();
   const createTemplate = useCreateKanbanTemplate();
@@ -41,7 +41,6 @@ export function KanbanTemplatesSettingsTab({ onSuccess }) {
 
   async function handleCreate({ name, columns }) {
     await createTemplate.mutateAsync({ name, columns });
-    onSuccess("Kanban template created");
   }
 
   async function handleUpdate({ name, columns }) {
@@ -49,7 +48,6 @@ export function KanbanTemplatesSettingsTab({ onSuccess }) {
       id: editingTemplate._id,
       data: { name, columns },
     });
-    onSuccess("Kanban template updated");
   }
 
   async function handleDelete() {
@@ -57,7 +55,6 @@ export function KanbanTemplatesSettingsTab({ onSuccess }) {
 
     try {
       await deleteTemplate.mutateAsync(deleteTarget._id);
-      onSuccess("Kanban template deleted");
       setDeleteTarget(null);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {

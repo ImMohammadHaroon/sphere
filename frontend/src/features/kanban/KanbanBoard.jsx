@@ -8,7 +8,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/useToast";
+import { toast } from "@/lib/toast";
 import { useProject } from "@/features/projects/hooks/useProjects";
 import {
   DEFAULT_BOARD_COLUMNS,
@@ -17,7 +17,6 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { Toast } from "@/components/ui/Toast";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanTaskCardContent } from "./KanbanTaskCard";
 import { useKanbanTasks } from "./useKanbanTasks";
@@ -53,7 +52,6 @@ function PresenceAvatars({ viewers, currentUserId }) {
 
 export function KanbanBoard({ projectId, canMoveTask }) {
   const { user } = useAuth();
-  const { toast, showToast, dismissToast } = useToast();
   const [activeId, setActiveId] = useState(null);
 
   const {
@@ -85,7 +83,7 @@ export function KanbanBoard({ projectId, canMoveTask }) {
     refetch: refetchTasks,
     handleDragEnd,
   } = useKanbanTasks(projectId, columns, {
-    onError: (err) => showToast(err.message, "error"),
+    onError: (err) => toast.error(err.message),
   });
 
   const sensors = useSensors(
@@ -199,8 +197,6 @@ export function KanbanBoard({ projectId, canMoveTask }) {
           ) : null}
         </DragOverlay>
       </DndContext>
-
-      <Toast toast={toast} onDismiss={dismissToast} />
     </>
   );
 }

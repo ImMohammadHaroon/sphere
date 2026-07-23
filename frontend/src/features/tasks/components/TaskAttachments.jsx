@@ -4,11 +4,10 @@ import { Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Alert } from "@/components/ui/Alert";
-import { Toast } from "@/components/ui/Toast";
 import { AttachmentListItem } from "@/components/attachments/AttachmentListItem";
 import { FilePreviewDialog } from "@/components/attachments/FilePreviewDialog";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/useToast";
+import { toast } from "@/lib/toast";
 import { useFilePreview } from "@/hooks/useFilePreview";
 import { attachmentMeta, MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
 import { useTaskCollaborationSocket } from "@/features/tasks/hooks/useTaskCollaborationSocket";
@@ -33,7 +32,6 @@ export function TaskAttachments({ taskId, projectId, canUpload = true }) {
   const isElevated = role === "org_admin" || role === "project_manager";
   const fileInputRef = useRef(null);
   const [loadingId, setLoadingId] = useState(null);
-  const { toast, showToast, dismissToast } = useToast();
   const filePreview = useFilePreview();
 
   useTaskCollaborationSocket(projectId, taskId);
@@ -68,18 +66,14 @@ export function TaskAttachments({ taskId, projectId, canUpload = true }) {
     }
 
     if (file.size > MAX_ATTACHMENT_SIZE) {
-      showToast("File too large. Max size is 5MB.", "error");
+      toast.error("File too large. Max size is 5MB.");
       return;
     }
 
     try {
       await uploadAttachment.mutateAsync(file);
-      showToast("File attached.", "success");
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Failed to upload file.",
-        "error"
-      );
+    } catch {
+      // Mutation hook shows the error toast.
     }
   }
 
@@ -97,10 +91,7 @@ export function TaskAttachments({ taskId, projectId, canUpload = true }) {
         attachmentId: attachment._id,
       });
     } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Failed to open file.",
-        "error"
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to open file.");
     } finally {
       setLoadingId(null);
     }
@@ -109,12 +100,8 @@ export function TaskAttachments({ taskId, projectId, canUpload = true }) {
   async function handleDelete(attachmentId) {
     try {
       await deleteAttachment.mutateAsync(attachmentId);
-      showToast("Attachment removed.", "success");
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Failed to delete attachment.",
-        "error"
-      );
+    } catch {
+      // Mutation hook shows the error toast.
     }
   }
 
@@ -200,7 +187,6 @@ export function TaskAttachments({ taskId, projectId, canUpload = true }) {
       </div>
 
       <FilePreviewDialog {...filePreview.dialogProps} />
-      <Toast toast={toast} onDismiss={dismissToast} />
     </>
   );
 }

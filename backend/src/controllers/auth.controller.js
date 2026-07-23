@@ -130,33 +130,6 @@ export async function deleteAvatar(req, res, next) {
   }
 }
 
-export async function invite(req, res, next) {
-  try {
-    const result = await authService.createInvite({
-      organizationId: req.user.organizationId,
-      email: req.body.email,
-      role: req.body.role,
-      invitedBy: req.user.userId,
-    });
-    res.status(201).json({
-      message: "Invite created",
-      inviteToken: process.env.NODE_ENV === "development" ? result.token : undefined,
-      expiresAt: result.expiresAt,
-    });
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function acceptInvite(req, res, next) {
-  try {
-    const result = await authService.acceptInvite({ res, ...req.body });
-    res.status(201).json(result);
-  } catch (err) {
-    next(err);
-  }
-}
-
 export async function forgotPassword(req, res, next) {
   try {
     const result = await authService.forgotPassword(req.body.email);

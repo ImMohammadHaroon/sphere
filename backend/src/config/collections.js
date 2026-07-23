@@ -1,6 +1,5 @@
 export const COLLECTIONS = {
   INVITES: "invites",
-  INVITE_TOKENS: "invitetokens",
   ORGANIZATIONS: "organizations",
   PROJECTS: "projects",
   REFRESH_TOKENS: "refreshtokens",

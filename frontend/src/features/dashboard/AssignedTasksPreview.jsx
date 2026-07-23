@@ -13,6 +13,7 @@ import {
   getStatusLabel,
 } from "@/lib/taskStatusConfig";
 import { useAuth } from "@/hooks/useAuth";
+import { withMutationToasts } from "@/lib/mutationToasts";
 import { cn } from "@/lib/utils";
 
 function formatDate(value) {
@@ -97,25 +98,30 @@ export function AssignedTasksPreview() {
     ])
   );
 
-  const updateStatus = useMutation({
-    mutationFn: ({ taskId, status }) => updateTaskStatus(taskId, status),
-    onMutate: async ({ taskId, status }) => {
-      await queryClient.cancelQueries({ queryKey });
-      const previous = queryClient.getQueryData(queryKey);
-      queryClient.setQueryData(queryKey, (old) =>
-        old?.map((task) => (task._id === taskId ? { ...task, status } : task))
-      );
-      return { previous };
-    },
-    onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
-    },
-  });
+  const updateStatus = useMutation(
+    withMutationToasts(
+      {
+        mutationFn: ({ taskId, status }) => updateTaskStatus(taskId, status),
+        onMutate: async ({ taskId, status }) => {
+          await queryClient.cancelQueries({ queryKey });
+          const previous = queryClient.getQueryData(queryKey);
+          queryClient.setQueryData(queryKey, (old) =>
+            old?.map((task) => (task._id === taskId ? { ...task, status } : task))
+          );
+          return { previous };
+        },
+        onError: (_err, _vars, context) => {
+          if (context?.previous) {
+            queryClient.setQueryData(queryKey, context.previous);
+          }
+        },
+        onSettled: () => {
+          queryClient.invalidateQueries({ queryKey });
+        },
+      },
+      { success: "Task status updated." }
+    )
+  );
 
   const previewTasks = sortTasksByUrgency(tasks).slice(0, 5);
 

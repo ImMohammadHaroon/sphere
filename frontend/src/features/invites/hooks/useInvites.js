@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { invitesApi } from "@/lib/invitesApi";
 import { useAuth } from "@/hooks/useAuth";
+import { withMutationToasts } from "@/lib/mutationToasts";
 
 export function useInvites() {
   const { isAuthenticated, user } = useAuth();
@@ -23,12 +24,17 @@ export function useRevokeInvite() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
-    mutationFn: (id) => invitesApi.revokeInvite(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["invites", user?.organizationId],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: (id) => invitesApi.revokeInvite(id),
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["invites", user?.organizationId],
+          });
+        },
+      },
+      { success: "Invite revoked." }
+    )
+  );
 }

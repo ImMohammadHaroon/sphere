@@ -118,13 +118,6 @@ export const authApi = {
 
   deleteAvatar: () => apiClient("/auth/avatar", { method: "DELETE" }),
 
-  acceptInvite: (data) =>
-    apiClient("/auth/accept-invite", {
-      method: "POST",
-      body: { ...data, deviceId: getDeviceId() },
-      skipAuth: true,
-    }),
-
   forgotPassword: (email) =>
     apiClient("/auth/forgot-password", {
       method: "POST",

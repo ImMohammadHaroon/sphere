@@ -1,6 +1,7 @@
 import { Milestone } from "../models/Milestone.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
+import { getDoneColumnKey } from "../services/reportAggregation.service.js";
 import { isProjectMember } from "../utils/projectAccess.js";
 import { formatTask } from "./task.controller.js";
 import { formatMilestone } from "./milestone.controller.js";
@@ -78,13 +79,21 @@ function resolveRange(query = {}) {
 
 export async function getProjectCalendar(req, res, next) {
   try {
-    await assertProjectReadable(req, req.params.id);
+    const project = await assertProjectReadable(req, req.params.id);
 
     const { start, end } = resolveRange(req.validatedQuery);
     const dueDateFilter = { $gte: start, $lte: end, $ne: null };
+    const completedAtFilter = { $gte: start, $lte: end };
     const projectId = req.params.id;
+    const doneKey = getDoneColumnKey(project);
 
-    const [tasks, milestones] = await Promise.all([
+    const completedTaskFilter = {
+      projectId,
+      updatedAt: completedAtFilter,
+      ...(doneKey ? { status: doneKey } : {}),
+    };
+
+    const [tasks, milestones, completedTasks] = await Promise.all([
       req
         .scopedQuery(Task, { projectId, dueDate: dueDateFilter })
         .populate("assigneeId", USER_PUBLIC_FIELDS)
@@ -94,11 +103,19 @@ export async function getProjectCalendar(req, res, next) {
         .scopedQuery(Milestone, { projectId, dueDate: dueDateFilter })
         .sort({ dueDate: 1 })
         .lean(),
+      doneKey
+        ? req
+            .scopedQuery(Task, completedTaskFilter)
+            .populate("assigneeId", USER_PUBLIC_FIELDS)
+            .sort({ updatedAt: -1 })
+            .lean()
+        : Promise.resolve([]),
     ]);
 
     res.json({
       tasks: tasks.map(formatTask),
       milestones: milestones.map(formatMilestone),
+      completedTasks: completedTasks.map(formatTask),
     });
   } catch (err) {
     next(err);

@@ -5,6 +5,7 @@ import {
   uploadMilestoneAttachment,
 } from "@/lib/milestoneAttachmentsApi";
 import { useAuth } from "@/hooks/useAuth";
+import { withMutationToasts } from "@/lib/mutationToasts";
 
 function useOrgContext() {
   const { isAuthenticated, user } = useAuth();
@@ -31,26 +32,36 @@ export function useMilestoneAttachments(milestoneId) {
 export function useUploadMilestoneAttachment(milestoneId) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (file) => uploadMilestoneAttachment(milestoneId, file),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["milestone-attachments", milestoneId],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: (file) => uploadMilestoneAttachment(milestoneId, file),
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["milestone-attachments", milestoneId],
+          });
+        },
+      },
+      { success: "File attached." }
+    )
+  );
 }
 
 export function useDeleteMilestoneAttachment(milestoneId) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (attachmentId) =>
-      deleteMilestoneAttachment(milestoneId, attachmentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["milestone-attachments", milestoneId],
-      });
-    },
-  });
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: (attachmentId) =>
+          deleteMilestoneAttachment(milestoneId, attachmentId),
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["milestone-attachments", milestoneId],
+          });
+        },
+      },
+      { success: "Attachment removed." }
+    )
+  );
 }

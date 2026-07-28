@@ -29,7 +29,6 @@ import { MilestonesPage as PmMilestonesPage } from "@/pages/project-manager/Mile
 import { MyTasksPage } from "@/pages/team-member/MyTasksPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { TeamMemberKanbanBoardPage } from "@/pages/team-member/KanbanBoardPage";
-import { TeamMemberTaskDetailPage } from "@/pages/team-member/TaskDetailPage";
 import { NotificationsPage } from "@/pages/NotificationsPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { PlatformOverviewPage } from "@/pages/super-admin/PlatformOverviewPage";
@@ -114,10 +113,6 @@ function AppRoutes() {
         <Route
           path="projects/:projectId/board"
           element={<TeamMemberKanbanBoardPage />}
-        />
-        <Route
-          path="projects/:projectId/tasks/:taskId"
-          element={<TeamMemberTaskDetailPage />}
         />
         <Route
           path="notifications"

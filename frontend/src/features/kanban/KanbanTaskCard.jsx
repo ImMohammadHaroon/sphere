@@ -26,7 +26,14 @@ function priorityBadgeVariant(priority) {
   }
 }
 
-export function KanbanTaskCardContent({ task, columns, taskDetailPath, className }) {
+export function KanbanTaskCardContent({
+  task,
+  columns,
+  taskDetailPath,
+  onTaskClick,
+  isSelected,
+  className,
+}) {
   const assignee = task.assignee ?? null;
   const assigneeName = assignee?.name ?? null;
   const dueLabel = formatDate(task.dueDate);
@@ -52,6 +59,22 @@ export function KanbanTaskCardContent({ task, columns, taskDetailPath, className
     </>
   );
 
+  if (onTaskClick) {
+    return (
+      <button
+        type="button"
+        onClick={() => onTaskClick(task._id)}
+        className={cn(
+          "block w-full space-y-2 rounded-md text-left transition-colors hover:bg-primary-subtle/20",
+          isSelected && "bg-primary-subtle/10",
+          className
+        )}
+      >
+        {body}
+      </button>
+    );
+  }
+
   if (taskDetailPath) {
     return (
       <Link to={taskDetailPath} className={cn("block space-y-2", className)}>
@@ -63,7 +86,14 @@ export function KanbanTaskCardContent({ task, columns, taskDetailPath, className
   return <div className={cn("space-y-2", className)}>{body}</div>;
 }
 
-export function KanbanTaskCard({ task, columns, canMove, taskDetailPath }) {
+export function KanbanTaskCard({
+  task,
+  columns,
+  canMove,
+  taskDetailPath,
+  onTaskClick,
+  isSelected,
+}) {
   const {
     attributes,
     listeners,
@@ -87,8 +117,11 @@ export function KanbanTaskCard({ task, columns, canMove, taskDetailPath }) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "rounded-lg border border-border bg-surface-raised p-3 shadow-sm",
-        isDragging && "opacity-50"
+        "rounded-lg border bg-surface-raised p-3 shadow-sm transition-all",
+        isDragging && "opacity-50",
+        isSelected
+          ? "border-primary bg-primary-subtle/30 shadow-md ring-2 ring-primary/20"
+          : "border-border hover:border-primary/30"
       )}
       {...attributes}
     >
@@ -109,6 +142,8 @@ export function KanbanTaskCard({ task, columns, canMove, taskDetailPath }) {
             task={task}
             columns={columns}
             taskDetailPath={taskDetailPath}
+            onTaskClick={onTaskClick}
+            isSelected={isSelected}
           />
         </div>
       </div>

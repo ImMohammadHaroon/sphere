@@ -3,6 +3,7 @@ import { TaskSummaryCards } from "@/features/dashboard/TaskSummaryCards";
 import { AssignedProjectsList } from "@/features/dashboard/AssignedProjectsList";
 import { AssignedTasksPreview } from "@/features/dashboard/AssignedTasksPreview";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -27,6 +28,8 @@ export function DashboardPage() {
     description: "Your work at a glance.",
   });
 
+  const { user } = useAuth();
+  const isTeamMember = user?.role === "team_member";
   const { isLoading, isError, error, refetch, isFetching } = useDashboardData();
 
   return (
@@ -47,10 +50,14 @@ export function DashboardPage() {
       {!isLoading && !isError ? (
         <div className="space-y-6">
           <TaskSummaryCards />
-          <div className="grid gap-6 lg:grid-cols-2">
-            <AssignedTasksPreview />
+          {isTeamMember ? (
             <AssignedProjectsList />
-          </div>
+          ) : (
+            <div className="grid gap-6 lg:grid-cols-2">
+              <AssignedTasksPreview />
+              <AssignedProjectsList />
+            </div>
+          )}
         </div>
       ) : null}
     </>

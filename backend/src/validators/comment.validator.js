@@ -10,6 +10,7 @@ export const createCommentSchema = z.object({
   body: z
     .object({
       body: z.string().trim().max(5000),
+      parentId: objectId.optional().nullable(),
     })
     .strict(),
 });

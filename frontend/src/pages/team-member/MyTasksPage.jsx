@@ -92,7 +92,7 @@ export function MyTasksPage() {
                   {group.projectId !== "unknown" ? (
                     <ButtonLink
                       to={`/member/projects/${group.projectId}/board`}
-                      variant="outline"
+                      variant="primary"
                       size="sm"
                     >
                       Open board
@@ -103,8 +103,8 @@ export function MyTasksPage() {
                   {group.tasks.map((task) => (
                     <li key={task._id}>
                       <Link
-                        to={`/member/projects/${group.projectId}/tasks/${task._id}`}
-                        className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+                        to={`/member/projects/${group.projectId}/board?task=${task._id}`}
+                        className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-card-hover"
                       >
                         <div>
                           <p className="font-medium text-text-primary">

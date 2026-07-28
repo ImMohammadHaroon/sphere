@@ -24,6 +24,7 @@ export function formatComment(comment, attachments = []) {
     _id: comment._id.toString(),
     organizationId: comment.organizationId?.toString(),
     taskId: comment.taskId?.toString(),
+    parentId: comment.parentId?.toString?.() ?? null,
     body: comment.body,
     createdAt: comment.createdAt,
     updatedAt: comment.updatedAt,
@@ -102,10 +103,25 @@ export async function createComment(req, res, next) {
       req.params.projectId
     );
 
+    const parentId = req.body.parentId ?? null;
+
+    if (parentId) {
+      const parent = await req
+        .scopedFindOne(Comment, { _id: parentId, taskId: task._id })
+        .lean();
+
+      if (!parent) {
+        const err = new Error("Parent comment not found on this task");
+        err.status = 400;
+        throw err;
+      }
+    }
+
     const created = await Comment.create({
       organizationId: req.user.organizationId,
       taskId: task._id,
       authorId: req.user.userId,
+      parentId,
       body: req.body.body,
     });
 
@@ -124,10 +140,24 @@ export async function createComment(req, res, next) {
   }
 }
 
+async function deleteCommentTree(req, commentId) {
+  const replies = await req
+    .scopedQuery(Comment, { parentId: commentId })
+    .select("_id")
+    .lean();
+
+  for (const reply of replies) {
+    await deleteCommentTree(req, reply._id);
+  }
+
+  await Attachment.deleteMany({ commentId });
+  await req.scopedFindOneAndDelete(Comment, { _id: commentId });
+}
+
 export async function deleteComment(req, res, next) {
   try {
     const comment = await req
-      .scopedFindOneAndDelete(Comment, { _id: req.params.id })
+      .scopedFindOne(Comment, { _id: req.params.id })
       .lean();
 
     if (!comment) {
@@ -138,7 +168,7 @@ export async function deleteComment(req, res, next) {
       throw notFound();
     }
 
-    await Attachment.deleteMany({ commentId: comment._id });
+    await deleteCommentTree(req, comment._id);
 
     const task = await req
       .scopedFindOne(Task, { _id: comment.taskId })

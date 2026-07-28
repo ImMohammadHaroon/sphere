@@ -50,7 +50,12 @@ function PresenceAvatars({ viewers, currentUserId }) {
   );
 }
 
-export function KanbanBoard({ projectId, canMoveTask }) {
+export function KanbanBoard({
+  projectId,
+  canMoveTask,
+  selectedTaskId,
+  onTaskSelect,
+}) {
   const { user } = useAuth();
   const [activeId, setActiveId] = useState(null);
 
@@ -100,8 +105,11 @@ export function KanbanBoard({ projectId, canMoveTask }) {
   const error = projectError ?? tasksError;
 
   function taskDetailPathForTask(task) {
+    if (onTaskSelect) {
+      return undefined;
+    }
     if (user?.role === "team_member") {
-      return `/member/projects/${projectId}/tasks/${task._id}`;
+      return `/member/projects/${projectId}/board?task=${task._id}`;
     }
     return `/dashboard/projects/${projectId}/tasks/${task._id}`;
   }
@@ -185,6 +193,8 @@ export function KanbanBoard({ projectId, canMoveTask }) {
               tasks={tasksByStatus[column.key] ?? []}
               canMoveTask={canMove}
               taskDetailPathForTask={taskDetailPathForTask}
+              onTaskSelect={onTaskSelect}
+              selectedTaskId={selectedTaskId}
             />
           ))}
         </div>

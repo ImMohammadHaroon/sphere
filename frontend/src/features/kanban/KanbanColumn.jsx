@@ -13,6 +13,8 @@ export function KanbanColumn({
   tasks,
   canMoveTask,
   taskDetailPathForTask,
+  onTaskSelect,
+  selectedTaskId,
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
@@ -49,7 +51,11 @@ export function KanbanColumn({
               task={task}
               columns={columns}
               canMove={canMoveTask(task)}
-              taskDetailPath={taskDetailPathForTask(task)}
+              taskDetailPath={
+                onTaskSelect ? undefined : taskDetailPathForTask?.(task)
+              }
+              onTaskClick={onTaskSelect}
+              isSelected={selectedTaskId === task._id}
             />
           ))}
         </SortableContext>

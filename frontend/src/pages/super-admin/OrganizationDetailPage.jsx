@@ -7,7 +7,6 @@ import { ConfirmSlugDialog } from "@/pages/admin/settings/ConfirmSlugDialog";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
@@ -96,6 +95,9 @@ export function OrganizationDetailPage() {
     description: organization
       ? `Read-only oversight for ${organization.slug}.`
       : "Organization members, projects, and status.",
+    showBack: true,
+    backLabel: "Back to organizations",
+    backTo: "/super-admin/organizations",
   });
 
   async function handleSuspendConfirm() {
@@ -135,30 +137,24 @@ export function OrganizationDetailPage() {
 
       {!isLoading && !isError && organization ? (
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <ButtonLink to="/super-admin/organizations" variant="outline" size="sm">
-              Back to organizations
-            </ButtonLink>
-
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                onClick={() =>
-                  organization.isActive ? setSuspendOpen(true) : handleActivate()
-                }
-                isLoading={suspend.isPending || activate.isPending}
-                disabled={isMutating}
-              >
-                {organization.isActive ? "Suspend" : "Activate"}
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => setDeleteOpen(true)}
-                disabled={isMutating}
-              >
-                Delete organization
-              </Button>
-            </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() =>
+                organization.isActive ? setSuspendOpen(true) : handleActivate()
+              }
+              isLoading={suspend.isPending || activate.isPending}
+              disabled={isMutating}
+            >
+              {organization.isActive ? "Suspend" : "Activate"}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => setDeleteOpen(true)}
+              disabled={isMutating}
+            >
+              Delete organization
+            </Button>
           </div>
 
           <Card className="p-6">

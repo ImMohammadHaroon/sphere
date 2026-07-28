@@ -17,13 +17,15 @@ export function formatNotificationMessage(notification) {
         return `Milestone "${payload.milestoneName ?? "Untitled"}" was rejected for ${payload.projectName ?? "a project"}`;
       }
       return `Milestone "${payload.milestoneName ?? "Untitled"}" was approved for ${payload.projectName ?? "a project"}`;
+    case "comment_mention":
+      return `${payload.mentionedByName ?? "Someone"} mentioned you on ${payload.taskTitle ?? "a task"}`;
     default:
       return "New notification";
   }
 }
 
 export function isTaskNotification(type) {
-  return type === "task_assigned" || type === "task_moved";
+  return type === "task_assigned" || type === "task_moved" || type === "comment_mention";
 }
 
 export function isMilestoneNotification(type) {

@@ -26,6 +26,9 @@ function NavLink({ href, label, onClick, className }) {
   );
 }
 
+const signInButtonClassName =
+  "border-transparent bg-text-primary text-white hover:bg-text-primary/90 hover:text-white";
+
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -89,7 +92,11 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <ButtonLink to="/login" variant="ghost" size="sm">
+          <ButtonLink
+            to="/login"
+            size="sm"
+            className={signInButtonClassName}
+          >
             Sign in
           </ButtonLink>
           <ButtonLink to="/register" size="sm">
@@ -125,7 +132,10 @@ export function Navbar() {
               />
             ))}
             <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
-              <ButtonLink to="/login" variant="outline" className="w-full">
+              <ButtonLink
+                to="/login"
+                className={cn("w-full", signInButtonClassName)}
+              >
                 Sign in
               </ButtonLink>
               <ButtonLink to="/register" className="w-full">

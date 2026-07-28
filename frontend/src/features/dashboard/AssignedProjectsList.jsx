@@ -28,7 +28,7 @@ export function AssignedProjectsList() {
           <li key={project._id}>
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
               <Link
-                to={`/member/projects/${project._id}/board`}
+                to={`/member/projects/${project._id}`}
                 className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 transition-colors hover:text-primary"
               >
                 <p className="font-medium text-text-primary">{project.name}</p>
@@ -37,11 +37,11 @@ export function AssignedProjectsList() {
                 </Badge>
               </Link>
               <ButtonLink
-                to={`/member/projects/${project._id}/board`}
+                to={`/member/projects/${project._id}`}
                 variant="primary"
                 size="sm"
               >
-                View board
+                View project
               </ButtonLink>
             </div>
           </li>

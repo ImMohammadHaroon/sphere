@@ -82,17 +82,17 @@ export function NotificationBell({ viewAllPath, buildNotificationPath }) {
     <div className="relative" ref={containerRef}>
       <Button
         type="button"
-        variant="outline"
+        variant="ghost"
         size="sm"
         onClick={() => setOpen((prev) => !prev)}
-        className="relative px-2.5"
+        className="relative bg-text-primary px-2.5 text-white hover:bg-text-primary/90 hover:text-white"
         aria-expanded={open}
         aria-haspopup="true"
         aria-label="Notifications"
       >
         <Bell className="h-4 w-4 shrink-0" />
         {unreadCount > 0 ? (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-white">
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-accent-foreground">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         ) : null}

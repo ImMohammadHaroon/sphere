@@ -28,7 +28,10 @@ import { ProjectManagerReportsPage } from "@/pages/project-manager/ReportsPage";
 import { MilestonesPage as PmMilestonesPage } from "@/pages/project-manager/MilestonesPage";
 import { MyTasksPage } from "@/pages/team-member/MyTasksPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
-import { TeamMemberKanbanBoardPage } from "@/pages/team-member/KanbanBoardPage";
+import { TeamMemberProjectPage } from "@/pages/team-member/ProjectPage";
+import { TeamMemberBoardRedirect } from "@/pages/team-member/TeamMemberBoardRedirect";
+import { MilestoneDetailPage } from "@/pages/milestones/MilestoneDetailPage";
+import { ProjectTabRedirect } from "@/pages/projects/ProjectTabRedirect";
 import { NotificationsPage } from "@/pages/NotificationsPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { PlatformOverviewPage } from "@/pages/super-admin/PlatformOverviewPage";
@@ -41,6 +44,9 @@ import { AwaitingApprovalPage } from "@/pages/admin/AwaitingApprovalPage";
 import { TeamMembersPage } from "@/pages/admin/TeamMembersPage";
 import { UserDetailPage } from "@/pages/admin/UserDetailPage";
 import { AllProjectsPage } from "@/pages/admin/AllProjectsPage";
+import { OrgAdminBoardRedirect } from "@/pages/admin/OrgAdminBoardRedirect";
+import { OrgAdminProjectPage } from "@/pages/admin/OrgAdminProjectPage";
+import { OrgAdminTaskRedirect } from "@/pages/admin/OrgAdminTaskRedirect";
 import { ReportsPage } from "@/pages/admin/ReportsPage";
 import { OrgAdminLayout } from "@/components/layout/OrgAdminLayout";
 import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
@@ -83,9 +89,19 @@ function AppRoutes() {
       >
         <Route index element={<MyProjectsOverviewPage />} />
         <Route path="projects/:id" element={<ProjectDetailPage />} />
-        <Route path="projects/:id/board" element={<PmKanbanBoardPage />} />
+        <Route
+          path="projects/:id/board"
+          element={<ProjectTabRedirect tab="tasks" />}
+        />
         <Route path="projects/:id/calendar" element={<CalendarViewPage />} />
-        <Route path="projects/:id/milestones" element={<PmMilestonesPage />} />
+        <Route
+          path="projects/:id/milestones"
+          element={<ProjectTabRedirect tab="milestones" />}
+        />
+        <Route
+          path="projects/:projectId/milestones/:milestoneId"
+          element={<MilestoneDetailPage />}
+        />
         <Route path="projects/:id/reports" element={<ProjectManagerReportsPage />} />
         <Route path="kanban" element={<PmKanbanBoardPage />} />
         <Route
@@ -110,9 +126,14 @@ function AppRoutes() {
       >
         <Route index element={<DashboardPage />} />
         <Route path="tasks" element={<MyTasksPage />} />
+        <Route path="projects/:projectId" element={<TeamMemberProjectPage />} />
         <Route
           path="projects/:projectId/board"
-          element={<TeamMemberKanbanBoardPage />}
+          element={<TeamMemberBoardRedirect />}
+        />
+        <Route
+          path="projects/:projectId/milestones/:milestoneId"
+          element={<MilestoneDetailPage />}
         />
         <Route
           path="notifications"
@@ -157,10 +178,15 @@ function AppRoutes() {
         />
         <Route path="users/:id" element={<UserDetailPage />} />
         <Route path="projects" element={<AllProjectsPage />} />
-        <Route path="projects/:id" element={<ProjectDetailPage />} />
+        <Route path="projects/:id" element={<OrgAdminProjectPage />} />
+        <Route path="projects/:id/board" element={<OrgAdminBoardRedirect />} />
+        <Route
+          path="projects/:projectId/milestones/:milestoneId"
+          element={<MilestoneDetailPage />}
+        />
         <Route
           path="projects/:projectId/tasks/:taskId"
-          element={<TaskDetailPage />}
+          element={<OrgAdminTaskRedirect />}
         />
         <Route path="reports" element={<ReportsPage />} />
         <Route

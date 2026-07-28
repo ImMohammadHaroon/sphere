@@ -1,4 +1,8 @@
 import { getDashboardPath } from "@/lib/authHelpers";
+import {
+  getMilestoneDetailPath,
+  getProjectTasksPath,
+} from "@/lib/projectPaths";
 
 export const NOTIFICATIONS_PATH = "/notifications";
 
@@ -7,39 +11,24 @@ export function getNotificationsPath() {
 }
 
 export function getTaskDetailPath(role, payload) {
-  if (role === "team_member") {
-    return `/member/projects/${payload.projectId}/board?task=${payload.taskId}`;
-  }
-  if (role === "project_manager") {
-    return `/dashboard/projects/${payload.projectId}/tasks/${payload.taskId}`;
-  }
-  if (role === "org_admin") {
-    return `/admin/projects/${payload.projectId}/tasks/${payload.taskId}`;
-  }
-  return getNotificationsPath();
+  return getProjectTasksPath(role, payload.projectId, payload.taskId);
 }
 
-export function getMilestoneDetailPath(role, payload) {
+export function getMilestoneDetailPathForRole(role, payload) {
   if (role === "client") {
     return "/portal/milestones";
   }
-  if (role === "project_manager") {
-    return `/dashboard/projects/${payload.projectId}/milestones?highlight=${payload.milestoneId}`;
-  }
-  if (role === "org_admin") {
-    return `/admin/projects/${payload.projectId}`;
-  }
-  return getNotificationsPath();
+  return getMilestoneDetailPath(role, payload.projectId, payload.milestoneId);
 }
 
 export function getNotificationPath(role, notification) {
   const { type, payload } = notification;
 
-  if (type === "task_assigned" || type === "task_moved") {
+  if (type === "task_assigned" || type === "task_moved" || type === "comment_mention") {
     return getTaskDetailPath(role, payload);
   }
   if (type === "milestone_created" || type === "milestone_approved") {
-    return getMilestoneDetailPath(role, payload);
+    return getMilestoneDetailPathForRole(role, payload);
   }
   if (type === "invite_accepted") {
     if (role === "org_admin") {

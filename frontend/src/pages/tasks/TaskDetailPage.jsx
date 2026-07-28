@@ -56,9 +56,9 @@ function getBackPath(role, projectId) {
     return "/member";
   }
   if (role === "org_admin") {
-    return `/admin/projects/${projectId}`;
+    return `/admin/projects/${projectId}?tab=tasks`;
   }
-  return `/dashboard/projects/${projectId}`;
+  return `/dashboard/projects/${projectId}?tab=tasks`;
 }
 
 function TaskDetailSkeleton() {
@@ -213,16 +213,13 @@ export function TaskDetailPage() {
     description: task
       ? `Task in project ${projectId}`
       : "View and update task details.",
+    showBack: true,
+    backLabel: "Back to project",
+    backTo: getBackPath(role, projectId),
   });
 
   return (
     <>
-      <div className="mb-4">
-        <ButtonLink to={getBackPath(role, projectId)} variant="ghost" size="sm">
-          ← Back to project
-        </ButtonLink>
-      </div>
-
       {isLoading ? <TaskDetailSkeleton /> : null}
 
       {accessDenied ? <AccessDeniedCard /> : null}

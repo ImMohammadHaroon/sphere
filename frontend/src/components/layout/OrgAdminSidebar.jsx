@@ -24,7 +24,9 @@ const orgAdminNav = [
   {
     label: "All projects",
     to: "/admin/projects",
-    match: (p) => p === "/admin/projects" || /^\/admin\/projects\/[^/]+$/.test(p),
+    match: (p) =>
+      p === "/admin/projects" ||
+      /^\/admin\/projects\/[^/]+(\/milestones\/[^/]+)?$/.test(p),
     icon: FolderKanban,
   },
   {

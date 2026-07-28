@@ -1,0 +1,94 @@
+import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
+import { AddMemberDialog } from "@/features/projects/components/AddMemberDialog";
+import { ProjectWorkspace } from "@/features/projects/components/ProjectWorkspace";
+import { useAddMember, useProject } from "@/features/projects/hooks/useProjects";
+import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+
+export function OrgAdminProjectPage() {
+  const { id } = useParams();
+  const projectId = id ?? "";
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [memberDialogOpen, setMemberDialogOpen] = useState(false);
+
+  const { data: project, isLoading, isError, error, refetch, isFetching } =
+    useProject(projectId);
+  const addMember = useAddMember();
+
+  useDashboardPageMeta({
+    title: project?.name ?? "Project",
+    description: project?.description || "Tasks, milestones, and project activity.",
+    showBack: true,
+    backLabel: "Back to projects",
+    backTo: "/admin/projects",
+  });
+
+  async function handleAddMember(userId) {
+    await addMember.mutateAsync({ id: projectId, userId });
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-10 w-full" />
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-[24rem] w-72 shrink-0" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="p-6">
+        <p className="text-text-secondary">
+          {error instanceof Error ? error.message : "Failed to load project."}
+        </p>
+        <Button className="mt-4" onClick={() => refetch()} isLoading={isFetching}>
+          Retry
+        </Button>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <ProjectWorkspace
+        projectId={projectId}
+        role="org_admin"
+        canManageMilestones
+        toolbar={
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => setMemberDialogOpen(true)}>
+              Add member
+            </Button>
+            <Button type="button" onClick={() => setCreateTaskOpen(true)}>
+              Create task
+            </Button>
+          </div>
+        }
+      />
+
+      <AddMemberDialog
+        open={memberDialogOpen}
+        onOpenChange={setMemberDialogOpen}
+        project={project}
+        onAdd={handleAddMember}
+        isLoading={addMember.isPending}
+      />
+
+      <CreateTaskModal
+        open={createTaskOpen}
+        onOpenChange={setCreateTaskOpen}
+        projectId={projectId}
+      />
+    </>
+  );
+}

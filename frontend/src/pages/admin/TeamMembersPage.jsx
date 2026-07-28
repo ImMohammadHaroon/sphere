@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { useOrgUsers, useRemoveOrgUser } from "@/features/org/hooks/useOrgUsers";
 import { useInvites, useRevokeInvite } from "@/features/invites/hooks/useInvites";
@@ -165,12 +164,9 @@ export function TeamMembersPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <UserAvatar user={member} size="md" />
-                          <Link
-                            to={`/admin/users/${member.id}`}
-                            className="font-medium text-primary hover:underline"
-                          >
+                          <span className="font-medium text-text-primary">
                             {member.name}
-                          </Link>
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-text-secondary">

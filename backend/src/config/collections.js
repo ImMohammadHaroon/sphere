@@ -11,4 +11,5 @@ export const COLLECTIONS = {
   KANBAN_TEMPLATES: "kanbantemplates",
   COMMENTS: "comments",
   ATTACHMENTS: "attachments",
+  BILLING_ORDERS: "billingorders",
 };

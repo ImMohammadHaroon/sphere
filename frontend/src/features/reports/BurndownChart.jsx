@@ -19,13 +19,16 @@ function formatTick(value) {
   }
 }
 
-function ChartEmpty({ title, description }) {
+function ChartEmpty({ title, description, hint }) {
   return (
     <Card className="h-full p-4 sm:p-6">
       <h2 className="font-display text-lg font-semibold">{title}</h2>
       <p className="mt-1 text-sm text-text-secondary">{description}</p>
-      <div className="mt-6 flex h-64 items-center justify-center">
+      <div className="mt-6 flex h-64 flex-col items-center justify-center gap-1">
         <p className="text-sm text-text-secondary">Not enough data yet</p>
+        {hint ? (
+          <p className="text-xs text-text-muted">{hint}</p>
+        ) : null}
       </div>
     </Card>
   );
@@ -40,7 +43,13 @@ export function BurndownChart({
   const hasData = Array.isArray(series) && series.length > 0 && totalScope > 0;
 
   if (!hasData) {
-    return <ChartEmpty title={title} description={description} />;
+    return (
+      <ChartEmpty
+        title={title}
+        description={description}
+        hint="No tasks yet in this project."
+      />
+    );
   }
 
   return (

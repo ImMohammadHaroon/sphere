@@ -7,10 +7,7 @@ import {
   useNotifications,
   useNotificationsPage,
 } from "@/features/notifications/hooks/useNotifications";
-import {
-  formatNotificationMessage,
-  isTaskNotification,
-} from "@/features/notifications/notificationMessages";
+import { formatNotificationMessage } from "@/features/notifications/notificationMessages";
 
 function formatTimestamp(value) {
   if (!value) return "—";
@@ -23,7 +20,7 @@ function formatTimestamp(value) {
   });
 }
 
-export function NotificationsPageContent({ buildTaskPath }) {
+export function NotificationsPageContent({ buildNotificationPath }) {
   const navigate = useNavigate();
   const { markAsRead, markAllAsRead } = useNotifications();
   const {
@@ -57,8 +54,11 @@ export function NotificationsPageContent({ buildTaskPath }) {
   async function handleNotificationClick(notification) {
     await handleMarkAsRead(notification);
 
-    if (isTaskNotification(notification.type) && buildTaskPath) {
-      navigate(buildTaskPath(notification.payload));
+    if (buildNotificationPath) {
+      const path = buildNotificationPath(notification);
+      if (path) {
+        navigate(path);
+      }
     }
   }
 

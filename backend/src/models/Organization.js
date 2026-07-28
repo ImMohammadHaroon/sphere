@@ -39,12 +39,46 @@ const settingsSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const billingSchema = new mongoose.Schema(
+  {
+    plan: {
+      type: String,
+      enum: ["starter", "professional", "business"],
+      default: "starter",
+    },
+    interval: {
+      type: String,
+      enum: ["month", "year"],
+      default: "month",
+    },
+    status: {
+      type: String,
+      enum: ["trialing", "active", "past_due", "canceled", "incomplete"],
+      default: "trialing",
+    },
+    trialEndsAt: { type: Date, default: null },
+    currentPeriodEnd: { type: Date, default: null },
+    stripeCustomerId: { type: String, default: null },
+    stripeSubscriptionId: { type: String, default: null },
+    stripePriceId: { type: String, default: null },
+    cancelAtPeriodEnd: { type: Boolean, default: false },
+    defaultPaymentMethodId: { type: String, default: null },
+    paymentMethodLast4: { type: String, default: null },
+    paymentMethodBrand: { type: String, default: null },
+  },
+  { _id: false }
+);
+
 const organizationSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true },
     settings: {
       type: settingsSchema,
+      default: () => ({}),
+    },
+    billing: {
+      type: billingSchema,
       default: () => ({}),
     },
     isActive: { type: Boolean, default: true },

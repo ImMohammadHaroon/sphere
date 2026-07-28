@@ -20,6 +20,12 @@ export function LandingFooter() {
           className="flex flex-wrap gap-x-8 gap-y-3 text-sm"
           aria-label="Footer"
         >
+          <a
+            href="/#pricing"
+            className="text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm"
+          >
+            Pricing
+          </a>
           <Link
             to="/register"
             className="text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm"

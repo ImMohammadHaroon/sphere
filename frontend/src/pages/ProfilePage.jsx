@@ -24,33 +24,13 @@ import {
 import { GeneralSettingsTab } from "@/pages/admin/settings/GeneralSettingsTab";
 import { KanbanTemplatesSettingsTab } from "@/pages/admin/settings/KanbanTemplatesSettingsTab";
 import { DangerZoneTab } from "@/pages/admin/settings/DangerZoneTab";
+import { BillingSettingsTab } from "@/features/billing/BillingSettingsTab";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
-import { ProjectManagerSidebar } from "@/components/layout/ProjectManagerSidebar";
-import { TeamMemberSidebar } from "@/components/layout/TeamMemberSidebar";
-import { ClientPortalSidebar } from "@/components/layout/ClientPortalSidebar";
-import { OrgAdminSidebar } from "@/components/layout/OrgAdminSidebar";
-import { SuperAdminSidebar } from "@/components/layout/SuperAdminSidebar";
+import { getRoleSidebar } from "@/components/layout/roleSidebars";
+import { cn } from "@/lib/utils";
 import { authApi } from "@/lib/authApi";
 import { setAccessToken } from "@/lib/apiClient";
 import { syncLogout } from "@/lib/authSync";
-
-function getProfileSidebar(role) {
-  switch (role) {
-    case "super_admin":
-      return <SuperAdminSidebar />;
-    case "org_admin":
-      return <OrgAdminSidebar />;
-    case "project_manager":
-      return <ProjectManagerSidebar userRole={role} />;
-    case "team_member":
-      return <TeamMemberSidebar />;
-    case "client":
-      return <ClientPortalSidebar />;
-    default:
-      return <DashboardSidebar userRole={role} />;
-  }
-}
 
 function OrgSettingsSkeleton() {
   return (
@@ -196,6 +176,10 @@ export function ProfilePage() {
       );
     }
 
+    if (activeTab === "billing") {
+      return <BillingSettingsTab />;
+    }
+
     if (activeTab === "kanban") {
       return <KanbanTemplatesSettingsTab />;
     }
@@ -209,7 +193,7 @@ export function ProfilePage() {
 
   return (
     <DashboardShell
-      sidebar={getProfileSidebar(user?.role)}
+      sidebar={getRoleSidebar(user?.role)}
       title="Settings"
       description={
         isOrgAdmin
@@ -217,7 +201,12 @@ export function ProfilePage() {
           : "Manage your profile and security preferences."
       }
     >
-      <div className="max-w-3xl space-y-6">
+      <div
+        className={cn(
+          "space-y-6",
+          activeTab === "billing" ? "max-w-6xl" : "max-w-3xl"
+        )}
+      >
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList>
             {profileTabs.map((tab) => (
@@ -265,6 +254,9 @@ export function ProfilePage() {
           {isOrgAdmin ? (
             <>
               <TabsContent value="organization">{renderOrgTabContent()}</TabsContent>
+              <TabsContent value="billing">
+                <BillingSettingsTab />
+              </TabsContent>
               <TabsContent value="kanban">{renderOrgTabContent()}</TabsContent>
               <TabsContent value="danger">{renderOrgTabContent()}</TabsContent>
             </>

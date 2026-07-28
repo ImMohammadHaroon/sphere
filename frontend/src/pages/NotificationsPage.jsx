@@ -1,6 +1,7 @@
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { getRoleSidebar } from "@/components/layout/roleSidebars";
 import { NotificationsPageContent } from "@/features/notifications/NotificationsPageContent";
-import { getTaskDetailPath } from "@/features/notifications/notificationPaths";
+import { getNotificationPath } from "@/features/notifications/notificationPaths";
 import { useAuth } from "@/hooks/useAuth";
 
 export function NotificationsPage() {
@@ -8,11 +9,15 @@ export function NotificationsPage() {
 
   return (
     <DashboardShell
+      sidebar={getRoleSidebar(user?.role)}
+      dashboardRole={user?.role}
       title="Notifications"
       description="Updates on assignments, invites, and activity."
     >
       <NotificationsPageContent
-        buildTaskPath={(payload) => getTaskDetailPath(user?.role, payload)}
+        buildNotificationPath={(notification) =>
+          getNotificationPath(user?.role, notification)
+        }
       />
     </DashboardShell>
   );

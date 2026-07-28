@@ -10,21 +10,10 @@ import {
 } from "@/features/reports/hooks/useProjectReports";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { ProjectPicker } from "@/components/projects/ProjectPicker";
+import { ReportsSkeleton } from "@/features/reports/ReportsSkeleton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
-
-function ReportsSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-80 w-full" />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Skeleton className="h-80 w-full" />
-        <Skeleton className="h-80 w-full" />
-      </div>
-    </div>
-  );
-}
 
 export function ProjectManagerReportsPage() {
   const navigate = useNavigate();

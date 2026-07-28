@@ -50,7 +50,13 @@ export function ConfirmDialog({
           <DialogTitle className={variant === "danger" ? "text-danger" : undefined}>
             {title}
           </DialogTitle>
-          {description ? <DialogDescription>{description}</DialogDescription> : null}
+          {description ? (
+            typeof description === "string" ? (
+              <DialogDescription>{description}</DialogDescription>
+            ) : (
+              <div className="text-sm text-text-secondary">{description}</div>
+            )
+          ) : null}
         </DialogHeader>
 
         {displayError ? (

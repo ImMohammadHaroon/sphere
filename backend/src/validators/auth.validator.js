@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+const planIdSchema = z.enum(["starter", "professional", "business"]).optional();
+const intervalSchema = z.enum(["month", "year"]).optional();
+
 export const registerOrgSchema = z.object({
   body: z.object({
     orgName: z.string().min(2).max(100),
@@ -11,6 +14,8 @@ export const registerOrgSchema = z.object({
       .regex(/[A-Z]/, "Must contain uppercase")
       .regex(/[a-z]/, "Must contain lowercase")
       .regex(/[0-9]/, "Must contain number"),
+    plan: planIdSchema,
+    interval: intervalSchema,
   }),
 });
 

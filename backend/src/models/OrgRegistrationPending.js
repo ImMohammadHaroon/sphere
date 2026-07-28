@@ -16,6 +16,16 @@ const orgRegistrationPendingSchema = new mongoose.Schema(
     verificationCodeHash: { type: String, required: true, select: false },
     verificationExpires: { type: Date, required: true, index: true },
     verificationAttempts: { type: Number, default: 0 },
+    selectedPlan: {
+      type: String,
+      enum: ["starter", "professional", "business"],
+      default: "starter",
+    },
+    billingInterval: {
+      type: String,
+      enum: ["month", "year"],
+      default: "month",
+    },
   },
   { timestamps: true }
 );

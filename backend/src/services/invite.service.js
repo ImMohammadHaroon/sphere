@@ -14,6 +14,7 @@ import { sendMailInBackground } from "./email/transporter.js";
 import { buildInviteEmail } from "./email/inviteEmail.js";
 import { env } from "../config/env.js";
 import { formatPublicUser, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
+import { assertWithinLimit } from "./planLimits.service.js";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -84,6 +85,8 @@ export async function createInvite({
   invitedBy,
 }) {
   requireOrganizationId(organizationId);
+
+  await assertWithinLimit(organizationId, "users");
 
   const normalizedEmail = email.toLowerCase().trim();
 

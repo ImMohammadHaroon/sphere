@@ -14,7 +14,7 @@ export function SecuritySection() {
     useLandingMotion(0.1);
 
   return (
-    <section className="border-t border-border py-16 sm:py-20">
+    <section id="security" className="border-t border-border py-16 sm:py-20">
       <motion.div className="max-w-2xl" {...revealProps}>
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-text-muted">
           Security & trust

@@ -5,6 +5,7 @@ import { FinalCta } from "./FinalCta";
 import { Hero } from "./Hero";
 import { LandingFooter } from "./LandingFooter";
 import { ProblemSection } from "./ProblemSection";
+import { PricingSection } from "./PricingSection";
 import { RolesSection } from "./RolesSection";
 import { SecuritySection } from "./SecuritySection";
 
@@ -22,6 +23,7 @@ export function LandingPage() {
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <FeaturesSection />
+          <PricingSection />
           <RolesSection />
           <ClientPortalSection />
           <SecuritySection />

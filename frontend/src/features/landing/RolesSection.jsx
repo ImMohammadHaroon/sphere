@@ -11,7 +11,7 @@ export function RolesSection() {
     useLandingMotion(0.08);
 
   return (
-    <section className="rounded-3xl border border-border bg-surface px-4 py-14 sm:px-8 sm:py-20">
+    <section id="roles" className="rounded-3xl border border-border bg-surface px-4 py-14 sm:px-8 sm:py-20">
       <motion.div className="max-w-2xl" {...revealProps}>
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-text-muted">
           Multi-tenant by design

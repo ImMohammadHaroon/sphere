@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Alert } from "@/components/ui/Alert";
+import { Badge } from "@/components/ui/Badge";
 import { authApi } from "@/lib/authApi";
+import { DEFAULT_PLANS } from "@/features/landing/pricingData";
 
 const passwordSchema = z
   .string()
@@ -24,9 +26,25 @@ const schema = z.object({
   password: passwordSchema,
 });
 
+const VALID_PLANS = ["starter", "professional", "business"];
+const VALID_INTERVALS = ["month", "year"];
+
 export function RegisterPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [error, setError] = useState("");
+
+  const selectedPlan = useMemo(() => {
+    const plan = searchParams.get("plan");
+    return VALID_PLANS.includes(plan) ? plan : "starter";
+  }, [searchParams]);
+
+  const selectedInterval = useMemo(() => {
+    const interval = searchParams.get("interval");
+    return VALID_INTERVALS.includes(interval) ? interval : "month";
+  }, [searchParams]);
+
+  const planDetails = DEFAULT_PLANS.find((plan) => plan.id === selectedPlan);
   const {
     register,
     handleSubmit,
@@ -37,7 +55,11 @@ export function RegisterPage() {
     setError("");
 
     try {
-      await authApi.registerOrg(data);
+      await authApi.registerOrg({
+        ...data,
+        plan: selectedPlan,
+        interval: selectedInterval,
+      });
       navigate("/register/verify", {
         state: { email: data.email.trim().toLowerCase() },
       });
@@ -61,6 +83,19 @@ export function RegisterPage() {
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {error ? <Alert variant="error">{error}</Alert> : null}
+
+        {planDetails ? (
+          <div className="rounded-lg border border-border bg-surface p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm text-text-secondary">Selected plan</p>
+              <Badge>{planDetails.name}</Badge>
+              <Badge variant="muted">
+                {selectedInterval === "year" ? "Yearly" : "Monthly"}
+              </Badge>
+              <Badge variant="success">14-day free trial</Badge>
+            </div>
+          </div>
+        ) : null}
 
         <div className="space-y-2">
           <Label htmlFor="orgName">Organization name</Label>

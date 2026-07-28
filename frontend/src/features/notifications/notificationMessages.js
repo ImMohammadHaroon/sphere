@@ -10,6 +10,13 @@ export function formatNotificationMessage(notification) {
       return `${payload.invitedUserName ?? "Someone"} accepted their invite`;
     case "org_registered":
       return `${payload.organizationName ?? "An organization"} just registered`;
+    case "milestone_created":
+      return `New milestone "${payload.milestoneName ?? "Untitled"}" on ${payload.projectName ?? "a project"}`;
+    case "milestone_approved":
+      if (payload.decision === "rejected") {
+        return `Milestone "${payload.milestoneName ?? "Untitled"}" was rejected for ${payload.projectName ?? "a project"}`;
+      }
+      return `Milestone "${payload.milestoneName ?? "Untitled"}" was approved for ${payload.projectName ?? "a project"}`;
     default:
       return "New notification";
   }
@@ -17,4 +24,8 @@ export function formatNotificationMessage(notification) {
 
 export function isTaskNotification(type) {
   return type === "task_assigned" || type === "task_moved";
+}
+
+export function isMilestoneNotification(type) {
+  return type === "milestone_created" || type === "milestone_approved";
 }

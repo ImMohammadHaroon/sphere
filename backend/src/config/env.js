@@ -67,5 +67,8 @@ export const env = {
   PLATFORM_ADMIN_EMAIL:
     process.env.PLATFORM_ADMIN_EMAIL || "sphereadmin1@gmail.com",
   ENABLE_SCHEDULED_CLEANUP: process.env.ENABLE_SCHEDULED_CLEANUP !== "false",
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || "",
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || "",
+  STRIPE_TRIAL_DAYS: Number(process.env.STRIPE_TRIAL_DAYS) || 14,
   isProduction,
 };

@@ -26,6 +26,12 @@ import { buildOrgVerificationEmail } from "./email/orgVerificationEmail.js";
 import { buildOrgRegistrationAdminEmail } from "./email/orgRegistrationAdminEmail.js";
 import { createNotification } from "./notification.service.js";
 import { formatPublicUser } from "../utils/formatUser.js";
+import { startTrialSubscription } from "./billing.service.js";
+import { getBillingSummaryForUser } from "./billing.service.js";
+import {
+  normalizeBillingInterval,
+  normalizePlanId,
+} from "../config/plans.js";
 
 const ORG_VERIFICATION_TTL_MS = 15 * 60 * 1000;
 const MAX_VERIFICATION_ATTEMPTS = 5;
@@ -57,16 +63,20 @@ async function enrichUserWithOrgContext(user) {
   }
 
   const org = await Organization.findById(user.organizationId)
-    .select("verificationStatus verificationRejectionReason")
+    .select("verificationStatus verificationRejectionReason billing")
     .lean();
 
   const status = effectiveVerificationStatus(org);
+
+  const billingSummary =
+    user.role === "org_admin" ? await getBillingSummaryForUser(org) : null;
 
   return {
     ...base,
     organizationVerificationStatus: status,
     organizationVerificationRejectionReason:
       status === "rejected" ? org?.verificationRejectionReason ?? null : null,
+    billing: billingSummary,
   };
 }
 
@@ -97,6 +107,8 @@ export async function requestOrganizationRegistration({
   name,
   email,
   password,
+  plan,
+  interval,
 }) {
   const platformSettings = await PlatformSettings.getOrCreate();
   if (!platformSettings.registration?.allowSelfServeSignup) {
@@ -126,6 +138,8 @@ export async function requestOrganizationRegistration({
       verificationCodeHash: hashToken(verificationCode),
       verificationExpires: new Date(Date.now() + ORG_VERIFICATION_TTL_MS),
       verificationAttempts: 0,
+      selectedPlan: normalizePlanId(plan),
+      billingInterval: normalizeBillingInterval(interval),
     },
     { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
   );
@@ -206,6 +220,14 @@ export async function verifyOrganizationRegistration({
     name: pending.orgName,
     slug,
     verificationStatus: "pending",
+  });
+
+  await startTrialSubscription({
+    organization,
+    adminEmail: normalizedEmail,
+    adminName: pending.name,
+    planId: pending.selectedPlan,
+    interval: pending.billingInterval,
   });
 
   const user = await User.create({

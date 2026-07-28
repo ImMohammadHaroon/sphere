@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "node --watch server.js",
     "start": "node server.js",
-    "test": "node --test tests/**/*.test.js",
-    "seed:super-admin": "node src/scripts/seedSuperAdmin.js"
+    "test": "node --test tests/**/*.test.js src/controllers/__tests__/**/*.test.js",
+    "seed:super-admin": "node src/scripts/seedSuperAdmin.js",
+    "seed:stripe-products": "node src/scripts/seedStripeProducts.js"
   },
   "engines": {
     "node": ">=20"
@@ -28,6 +29,7 @@
     "node-cron": "^4.6.0",
     "nodemailer": "^9.0.3",
     "socket.io": "^4.8.3",
+    "stripe": "^22.3.2",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
     "zod": "^4.4.3"

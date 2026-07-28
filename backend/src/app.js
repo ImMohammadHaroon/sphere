@@ -32,6 +32,8 @@ import orgRoutes from "./routes/org.routes.js";
 import orgSettingsRoutes from "./routes/orgSettings.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import kanbanTemplateRoutes from "./routes/kanbanTemplate.routes.js";
+import billingRoutes from "./routes/billing.routes.js";
+import { handleStripeWebhook } from "./controllers/stripeWebhook.controller.js";
 import { authenticate, requireRole } from "./middleware/auth.middleware.js";
 import { tenantScope } from "./middleware/tenantScope.js";
 import { globalRateLimiter } from "./middleware/rateLimit.middleware.js";
@@ -64,6 +66,13 @@ app.use(
 
 app.use(globalRateLimiter);
 app.use(morgan(env.isProduction ? "combined" : "dev"));
+
+app.post(
+  "/api/v1/billing/webhook",
+  express.raw({ type: "application/json" }),
+  handleStripeWebhook
+);
+
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
@@ -87,6 +96,7 @@ app.use(async (req, res, next) => {
 });
 
 app.use("/api-docs", swaggerServe, swaggerSetup);
+app.use("/api/v1/billing", billingRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/invites", inviteRoutes);

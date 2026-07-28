@@ -6,6 +6,7 @@ const BASE_TABS = [
 
 const ORG_ADMIN_TABS = [
   { value: "organization", label: "Organization" },
+  { value: "billing", label: "Billing" },
   { value: "kanban", label: "Kanban templates" },
   { value: "danger", label: "Danger zone" },
 ];

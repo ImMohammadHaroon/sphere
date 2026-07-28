@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { ProfileMenu } from "@/components/layout/ProfileMenu";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
-import { getTaskDetailPath } from "@/features/notifications/notificationPaths";
+import { BillingStatusBanner } from "@/features/billing/BillingStatusBanner";
+import { getNotificationPath } from "@/features/notifications/notificationPaths";
 import { authApi } from "@/lib/authApi";
 import { setAccessToken } from "@/lib/apiClient";
 import { syncLogout } from "@/lib/authSync";
@@ -85,7 +86,9 @@ export function DashboardShell({
               <div className="flex shrink-0 items-center gap-2">
                 <NotificationBell
                   viewAllPath="/notifications"
-                  buildTaskPath={(payload) => getTaskDetailPath(user?.role, payload)}
+                  buildNotificationPath={(notification) =>
+                    getNotificationPath(user?.role, notification)
+                  }
                 />
                 <ProfileMenu
                   user={user}
@@ -118,6 +121,9 @@ export function DashboardShell({
                   ) : null}
                 </div>
               </>
+            ) : null}
+            {user?.role === "org_admin" && user?.billing ? (
+              <BillingStatusBanner billing={user.billing} />
             ) : null}
             {children}
           </main>

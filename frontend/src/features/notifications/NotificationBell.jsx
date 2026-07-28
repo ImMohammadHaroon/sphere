@@ -4,10 +4,7 @@ import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/features/notifications/hooks/useNotifications";
-import {
-  formatNotificationMessage,
-  isTaskNotification,
-} from "@/features/notifications/notificationMessages";
+import { formatNotificationMessage } from "@/features/notifications/notificationMessages";
 
 function formatTimestamp(value) {
   if (!value) return "";
@@ -19,7 +16,7 @@ function formatTimestamp(value) {
   });
 }
 
-export function NotificationBell({ viewAllPath, buildTaskPath }) {
+export function NotificationBell({ viewAllPath, buildNotificationPath }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const { pathname } = useLocation();
@@ -73,8 +70,11 @@ export function NotificationBell({ viewAllPath, buildTaskPath }) {
 
     setOpen(false);
 
-    if (isTaskNotification(notification.type) && buildTaskPath) {
-      navigate(buildTaskPath(notification.payload));
+    if (buildNotificationPath) {
+      const path = buildNotificationPath(notification);
+      if (path) {
+        navigate(path);
+      }
     }
   }
 

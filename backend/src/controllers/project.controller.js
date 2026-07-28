@@ -9,6 +9,7 @@ import {
 } from "../services/kanbanTemplate.service.js";
 import { isProjectMember } from "../utils/projectAccess.js";
 import { formatPublicUser, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
+import { assertWithinLimit } from "../services/planLimits.service.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -114,6 +115,8 @@ async function resolveProjectColumns(req) {
 
 export async function createProject(req, res, next) {
   try {
+    await assertWithinLimit(req.user.organizationId, "projects");
+
     const { kanbanTemplateId, columns } = await resolveProjectColumns(req);
 
     const project = await Project.create({

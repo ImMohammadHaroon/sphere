@@ -8,7 +8,7 @@ export function FeaturesSection() {
     useLandingMotion(0.1);
 
   return (
-    <section className="py-16 sm:py-24">
+    <section id="features" className="py-16 sm:py-24">
       <motion.div className="max-w-2xl" {...revealProps}>
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-text-muted">
           Core capabilities

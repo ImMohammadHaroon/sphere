@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as platformController from "../controllers/platform.controller.js";
+import platformReportRoutes from "./platformReport.routes.js";
 import { validate } from "../middleware/validate.middleware.js";
 import {
   deleteOrganizationSchema,
@@ -1033,5 +1034,7 @@ router.patch(
   validate(updateMaintenanceSettingsSchema),
   platformController.updateMaintenanceSettings
 );
+
+router.use(platformReportRoutes);
 
 export default router;

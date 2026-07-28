@@ -109,7 +109,10 @@ export function KanbanBoard({
       return undefined;
     }
     if (user?.role === "team_member") {
-      return `/member/projects/${projectId}/board?task=${task._id}`;
+      return `/member/projects/${projectId}?tab=tasks&task=${task._id}`;
+    }
+    if (user?.role === "org_admin") {
+      return `/admin/projects/${projectId}?tab=tasks&task=${task._id}`;
     }
     return `/dashboard/projects/${projectId}/tasks/${task._id}`;
   }

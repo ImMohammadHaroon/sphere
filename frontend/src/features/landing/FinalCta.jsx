@@ -38,8 +38,7 @@ export function FinalCta() {
             <ButtonLink
               to="/login"
               size="lg"
-              variant="outline"
-              className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
+              className="border-transparent bg-text-primary text-white shadow-md hover:bg-text-primary/90 hover:text-white"
             >
               Sign in
             </ButtonLink>

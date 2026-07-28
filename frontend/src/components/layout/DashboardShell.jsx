@@ -40,8 +40,7 @@ export function DashboardShell({
     "/portal",
   ];
   const isRootPage = DASHBOARD_ROOT_PATHS.includes(location.pathname);
-  const shouldShowBack =
-    showBack ?? (!isRootPage && Boolean(title));
+  const shouldShowBack = showBack === true;
 
   function handleBack() {
     if (backTo) {

@@ -23,7 +23,10 @@ import {
   useCreateComment,
   useDeleteComment,
 } from "@/features/tasks/hooks/useComments";
+import { useProjectMembers } from "@/features/tasks/hooks/useProjectMembers";
 import { useTaskCollaborationSocket } from "@/features/tasks/hooks/useTaskCollaborationSocket";
+import { CommentBody } from "@/features/tasks/components/CommentBody";
+import { MentionTextarea } from "@/features/tasks/components/MentionTextarea";
 import { uploadCommentAttachment } from "@/lib/commentAttachmentsApi";
 import { cn } from "@/lib/utils";
 
@@ -215,6 +218,8 @@ function CommentComposer({
   formError,
   autoFocus = false,
   compact = false,
+  members = [],
+  currentUserId,
 }) {
   const [body, setBody] = useState("");
 
@@ -273,10 +278,12 @@ function CommentComposer({
         </div>
       ) : null}
 
-      <textarea
+      <MentionTextarea
         id={`comment-${taskId}-${replyingTo?.id ?? "main"}`}
         value={body}
-        onChange={(event) => setBody(event.target.value)}
+        onChange={setBody}
+        members={members}
+        currentUserId={currentUserId}
         rows={compact ? 2 : 3}
         maxLength={MAX_COMMENT_LENGTH}
         placeholder={placeholder}
@@ -336,6 +343,8 @@ function CommentItem({
   onPreviewReplyFile,
   replyFormError,
   onCancelReply,
+  members = [],
+  currentUserId,
 }) {
   const isReplying = replyingToId === comment._id;
 
@@ -373,9 +382,10 @@ function CommentItem({
             </div>
 
             {comment.body ? (
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-text-secondary">
-                {comment.body}
-              </p>
+              <CommentBody
+                body={comment.body}
+                className="mt-2 whitespace-pre-wrap text-sm leading-6 text-text-secondary"
+              />
             ) : null}
 
             <CommentAttachmentList
@@ -433,6 +443,8 @@ function CommentItem({
             formError={replyFormError}
             autoFocus
             compact
+            members={members}
+            currentUserId={currentUserId}
           />
         </div>
       ) : null}
@@ -462,6 +474,8 @@ function CommentItem({
               onPreviewReplyFile={onPreviewReplyFile}
               replyFormError={replyFormError}
               onCancelReply={onCancelReply}
+              members={members}
+              currentUserId={currentUserId}
             />
           ))}
         </ul>
@@ -481,6 +495,7 @@ export function TaskComments({ taskId, projectId, embedded = false }) {
   useTaskCollaborationSocket(projectId, taskId);
 
   const { data: comments = [], isLoading, isError, error } = useComments(taskId);
+  const { data: members = [] } = useProjectMembers(projectId);
   const createComment = useCreateComment(taskId);
   const deleteComment = useDeleteComment(taskId);
 
@@ -645,7 +660,7 @@ export function TaskComments({ taskId, projectId, embedded = false }) {
           {!isClient ? (
             <CommentComposer
               taskId={taskId}
-              placeholder="Share an update, ask a question, or leave a note for the team…"
+              placeholder="Share an update, ask a question, or @mention a teammate…"
               submitLabel="Post comment"
               onSubmit={submitComment}
               busy={busy}
@@ -663,6 +678,8 @@ export function TaskComments({ taskId, projectId, embedded = false }) {
                 filePreview.openPreview(file, { type: "local", file })
               }
               formError={formError}
+              members={members}
+              currentUserId={user?.id}
             />
           ) : null}
 
@@ -717,6 +734,8 @@ export function TaskComments({ taskId, projectId, embedded = false }) {
                     setReplyFormError("");
                     setReplyPendingFiles([]);
                   }}
+                  members={members}
+                  currentUserId={user?.id}
                 />
               ))}
             </ul>

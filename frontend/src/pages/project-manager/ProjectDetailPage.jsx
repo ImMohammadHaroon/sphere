@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
-import { useAuth } from "@/hooks/useAuth";
 import {
   useAddMember,
   useArchiveProject,
@@ -9,41 +8,22 @@ import {
   useRemoveMember,
   useUpdateProject,
 } from "@/features/projects/hooks/useProjects";
-import { useOrgUsers } from "@/features/org/hooks/useOrgUsers";
+import { AddMemberDialog } from "@/features/projects/components/AddMemberDialog";
+import { ProjectWorkspace } from "@/features/projects/components/ProjectWorkspace";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
-import { TaskStatusBadge } from "@/features/tasks/components/TaskStatusBadge";
-import { useProjectTasks } from "@/features/tasks/hooks/useProjectTasks";
 import {
   dateInputToIso,
   toDateInputValue,
 } from "@/lib/dateFormHelpers";
-import { DEFAULT_BOARD_COLUMNS } from "@/lib/taskStatusConfig";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Skeleton } from "@/components/ui/Skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableScrollArea,
-} from "@/components/ui/Table";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
 function formatDate(value) {
@@ -65,131 +45,15 @@ function formatRoleLabel(role) {
   return labels[role] ?? role?.replaceAll("_", " ") ?? "";
 }
 
-function priorityBadgeVariant(priority) {
-  switch (priority) {
-    case "high":
-      return "danger";
-    case "low":
-      return "muted";
-    default:
-      return "default";
-  }
-}
-
-function getTaskDetailPath(role, projectId, taskId) {
-  const base = role === "org_admin" ? "/admin" : "/dashboard";
-  return `${base}/projects/${projectId}/tasks/${taskId}`;
-}
-
-function AddMemberDialog({ open, onOpenChange, project, onAdd, isLoading }) {
-  const { data: orgUsers, isLoading: usersLoading } = useOrgUsers();
-  const [selectedUserId, setSelectedUserId] = useState("");
-  const [error, setError] = useState("");
-
-  const existingIds = useMemo(() => {
-    const ids = new Set([project?.ownerId]);
-    for (const member of project?.members ?? []) {
-      ids.add(typeof member === "string" ? member : member.id);
-    }
-    return ids;
-  }, [project]);
-
-  const availableUsers = useMemo(
-    () => (orgUsers ?? []).filter((user) => !existingIds.has(user.id)),
-    [orgUsers, existingIds]
-  );
-
-  function handleOpenChange(nextOpen) {
-    if (!nextOpen) {
-      setSelectedUserId("");
-      setError("");
-    }
-    onOpenChange(nextOpen);
-  }
-
-  async function handleAdd() {
-    if (!selectedUserId) {
-      setError("Select a team member to add.");
-      return;
-    }
-
-    setError("");
-    try {
-      await onAdd(selectedUserId);
-      handleOpenChange(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add member.");
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent onClose={() => handleOpenChange(false)}>
-        <DialogHeader>
-          <DialogTitle>Add member</DialogTitle>
-          <DialogDescription>
-            Choose someone from your organization to add to this project.
-          </DialogDescription>
-        </DialogHeader>
-
-        {error ? <Alert variant="error">{error}</Alert> : null}
-
-        <div className="space-y-2">
-          <Label htmlFor="member-select">Team member</Label>
-          <select
-            id="member-select"
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-            disabled={usersLoading || availableUsers.length === 0}
-            className="flex h-10 w-full rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-          >
-            <option value="">
-              {usersLoading
-                ? "Loading users..."
-                : availableUsers.length === 0
-                  ? "No available users"
-                  : "Select a user"}
-            </option>
-            {availableUsers.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name} ({user.email})
-                {user.role ? ` ${formatRoleLabel(user.role)}` : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <DialogFooter>
-          <Button variant="ghost" type="button" onClick={() => handleOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleAdd}
-            isLoading={isLoading}
-            disabled={availableUsers.length === 0}
-          >
-            Add member
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 export function ProjectDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const isOrgAdmin = user?.role === "org_admin";
-  const projectsPath = isOrgAdmin ? "/admin/projects" : "/dashboard";
   const { data: project, isLoading, isError, error, refetch, isFetching } =
     useProject(id);
   const updateProject = useUpdateProject();
   const archiveProject = useArchiveProject();
   const addMember = useAddMember();
   const removeMember = useRemoveMember();
-  const { data: tasks, isLoading: tasksLoading } = useProjectTasks(id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -205,6 +69,9 @@ export function ProjectDetailPage() {
   useDashboardPageMeta({
     title: project?.name ?? "Project",
     description: project?.description || "Project details and team.",
+    showBack: true,
+    backLabel: "Back to projects",
+    backTo: "/dashboard",
   });
 
   function startEditing() {
@@ -256,7 +123,7 @@ export function ProjectDetailPage() {
     setActionError("");
     try {
       await archiveProject.mutateAsync(id);
-      navigate(projectsPath);
+      navigate("/dashboard");
     } catch (err) {
       setActionError(
         err instanceof Error ? err.message : "Failed to archive project."
@@ -267,12 +134,6 @@ export function ProjectDetailPage() {
 
   return (
     <>
-      <div className="mb-4">
-        <ButtonLink to={projectsPath} variant="ghost" size="sm">
-          ← Back to projects
-        </ButtonLink>
-      </div>
-
       {isLoading ? (
         <div className="space-y-3">
           <Skeleton className="h-32" />
@@ -372,22 +233,12 @@ export function ProjectDetailPage() {
                     <Button type="button" variant="outline" onClick={startEditing}>
                       Edit
                     </Button>
-                    {!isOrgAdmin ? (
-                      <>
-                        <ButtonLink to={`/dashboard/projects/${id}/board`}>
-                          Open board
-                        </ButtonLink>
-                        <ButtonLink to={`/dashboard/projects/${id}/calendar`}>
-                          Open calendar
-                        </ButtonLink>
-                        <ButtonLink to={`/dashboard/projects/${id}/milestones`}>
-                          Open milestones
-                        </ButtonLink>
-                        <ButtonLink to={`/dashboard/projects/${id}/reports`}>
-                          Open reports
-                        </ButtonLink>
-                      </>
-                    ) : null}
+                    <ButtonLink to={`/dashboard/projects/${id}/calendar`}>
+                      Open calendar
+                    </ButtonLink>
+                    <ButtonLink to={`/dashboard/projects/${id}/reports`}>
+                      Open reports
+                    </ButtonLink>
                     {project.status === "active" ? (
                       <Button
                         type="button"
@@ -405,70 +256,18 @@ export function ProjectDetailPage() {
 
           {actionError ? <Alert variant="error">{actionError}</Alert> : null}
 
-          <Card className="p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-medium text-text-primary">Tasks</h3>
-              <Button type="button" size="sm" onClick={() => setCreateTaskOpen(true)}>
-                Create task
-              </Button>
-            </div>
-
-            {tasksLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-11" />
-                ))}
+          <ProjectWorkspace
+            projectId={id}
+            role="project_manager"
+            canManageMilestones
+            toolbar={
+              <div className="flex justify-end">
+                <Button type="button" onClick={() => setCreateTaskOpen(true)}>
+                  Create task
+                </Button>
               </div>
-            ) : (tasks ?? []).length === 0 ? (
-              <p className="text-sm text-text-secondary">
-                No tasks yet. Create one to get started.
-              </p>
-            ) : (
-              <TableScrollArea>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Assignee</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Priority</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(tasks ?? []).map((task) => (
-                      <TableRow key={task._id}>
-                        <TableCell>
-                          <Link
-                            to={getTaskDetailPath(user?.role, id, task._id)}
-                            className="font-medium text-primary hover:underline"
-                          >
-                            {task.title}
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-text-secondary">
-                            <UserAvatar user={task.assignee} size="xs" />
-                            <span>{task.assignee?.name ?? "Unassigned"}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <TaskStatusBadge
-                            status={task.status}
-                            columns={project?.columns?.length ? project.columns : DEFAULT_BOARD_COLUMNS}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={priorityBadgeVariant(task.priority)}>
-                            {task.priority}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableScrollArea>
-            )}
-          </Card>
+            }
+          />
 
           <Card className="p-6">
             <div className="mb-4 flex items-center justify-between">

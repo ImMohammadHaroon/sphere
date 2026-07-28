@@ -39,7 +39,11 @@ export function Hero() {
             <ButtonLink to="/register" size="lg">
               Get started
             </ButtonLink>
-            <ButtonLink to="/login" size="lg" variant="outline">
+            <ButtonLink
+              to="/login"
+              size="lg"
+              className="border-transparent bg-text-primary text-white hover:bg-text-primary/90 hover:text-white"
+            >
               Sign in
             </ButtonLink>
           </div>

@@ -2,10 +2,16 @@ import { Comment } from "../models/Comment.js";
 import { Attachment } from "../models/Attachment.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
+import { User } from "../models/User.js";
 import { isProjectMember } from "../utils/projectAccess.js";
 import { emitToProject } from "../sockets/index.js";
 import { listAttachmentsForComments } from "./commentAttachment.controller.js";
 import { formatPublicUser, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
+import { createNotification } from "../services/notification.service.js";
+import {
+  extractMentionedUserIds,
+  filterValidMentionUserIds,
+} from "../utils/mentionUtils.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -67,6 +73,68 @@ async function assertTaskReadable(req, taskId, projectId = null) {
   return { task, project };
 }
 
+function collectProjectMemberIds(project) {
+  const memberIds = new Set();
+
+  for (const member of project.members ?? []) {
+    const id = member?._id?.toString?.() ?? member?.toString?.();
+    if (id) {
+      memberIds.add(id);
+    }
+  }
+
+  const ownerId = project.ownerId?.toString?.() ?? project.ownerId;
+  if (ownerId) {
+    memberIds.add(ownerId);
+  }
+
+  return [...memberIds];
+}
+
+async function notifyMentionedUsers({
+  body,
+  authorId,
+  project,
+  task,
+  commentId,
+}) {
+  const mentionedUserIds = extractMentionedUserIds(body);
+  if (mentionedUserIds.length === 0) {
+    return;
+  }
+
+  const allowedUserIds = filterValidMentionUserIds(
+    mentionedUserIds,
+    collectProjectMemberIds(project),
+    authorId
+  );
+
+  if (allowedUserIds.length === 0) {
+    return;
+  }
+
+  const author = await User.findById(authorId).select(USER_PUBLIC_FIELDS).lean();
+
+  await Promise.allSettled(
+    allowedUserIds.map((userId) =>
+      createNotification({
+        organizationId: task.organizationId,
+        userId,
+        type: "comment_mention",
+        payload: {
+          taskId: task._id.toString(),
+          taskTitle: task.title,
+          projectId: task.projectId.toString(),
+          commentId: commentId.toString(),
+          mentionedByName: author?.name ?? "Someone",
+          mentionedById: authorId.toString(),
+          preview: body.slice(0, 120),
+        },
+      })
+    )
+  );
+}
+
 export async function listComments(req, res, next) {
   try {
     await assertTaskReadable(req, req.params.taskId, req.params.projectId);
@@ -97,7 +165,7 @@ export async function listComments(req, res, next) {
 
 export async function createComment(req, res, next) {
   try {
-    const { task } = await assertTaskReadable(
+    const { task, project } = await assertTaskReadable(
       req,
       req.params.taskId,
       req.params.projectId
@@ -133,6 +201,18 @@ export async function createComment(req, res, next) {
     const commentPayload = formatComment(comment, []);
 
     emitToProject(task.projectId.toString(), "comment:new", commentPayload);
+
+    try {
+      await notifyMentionedUsers({
+        body: req.body.body,
+        authorId: req.user.userId,
+        project,
+        task,
+        commentId: created._id,
+      });
+    } catch (notifyErr) {
+      console.error("Failed to create comment_mention notifications:", notifyErr);
+    }
 
     res.status(201).json({ comment: commentPayload });
   } catch (err) {

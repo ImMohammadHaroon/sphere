@@ -8,6 +8,7 @@ export const NOTIFICATION_TYPES = [
   "org_registered",
   "milestone_created",
   "milestone_approved",
+  "comment_mention",
 ];
 
 const notificationSchema = new mongoose.Schema(

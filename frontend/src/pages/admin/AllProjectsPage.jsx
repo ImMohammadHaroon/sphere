@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { CreateProjectDialog } from "@/features/projects/components/CreateProjectDialog";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
@@ -32,7 +32,6 @@ export function AllProjectsPage() {
     description: "Organization-wide project management view.",
   });
 
-  const navigate = useNavigate();
   const [createOpen, setCreateOpen] = useState(false);
   const { data, isLoading, isError, error, refetch, isFetching } = useProjects();
 
@@ -83,15 +82,14 @@ export function AllProjectsPage() {
                       <TableHead>Status</TableHead>
                       <TableHead>Due date</TableHead>
                       <TableHead>Created</TableHead>
+                      <TableHead className="w-[1%]">
+                        <span className="sr-only">Actions</span>
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {data.map((project) => (
-                      <TableRow
-                        key={project._id}
-                        className="cursor-pointer"
-                        onClick={() => navigate(`/admin/projects/${project._id}`)}
-                      >
+                      <TableRow key={project._id}>
                         <TableCell className="font-medium">{project.name}</TableCell>
                         <TableCell>
                           <Badge
@@ -105,6 +103,15 @@ export function AllProjectsPage() {
                         </TableCell>
                         <TableCell className="text-text-secondary">
                           {formatDate(project.createdAt)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <ButtonLink
+                            to={`/admin/projects/${project._id}`}
+                            variant="ghost"
+                            size="sm"
+                          >
+                            View detail
+                          </ButtonLink>
                         </TableCell>
                       </TableRow>
                     ))}

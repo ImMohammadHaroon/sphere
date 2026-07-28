@@ -122,7 +122,7 @@ export function TaskDetailPage() {
   const taskAssigneeId = task?.assigneeId ?? task?.assignee?.id ?? null;
   const isAssignee = !!task && !!user?.id && taskAssigneeId === user.id;
   const canEditAll = isElevated;
-  const canEditStatus = isElevated || isAssignee;
+  const canEditStatus = isElevated || role === "team_member";
   const canEditDescription = isElevated;
   const canSave = canEditAll || canEditStatus;
   const canUploadAttachments = isElevated || isAssignee;

@@ -8,7 +8,7 @@ export function getNotificationsPath() {
 
 export function getTaskDetailPath(role, payload) {
   if (role === "team_member") {
-    return `/member/projects/${payload.projectId}/tasks/${payload.taskId}`;
+    return `/member/projects/${payload.projectId}/board?task=${payload.taskId}`;
   }
   if (role === "project_manager") {
     return `/dashboard/projects/${payload.projectId}/tasks/${payload.taskId}`;

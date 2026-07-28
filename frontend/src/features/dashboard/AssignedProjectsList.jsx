@@ -28,7 +28,7 @@ export function AssignedProjectsList() {
           <li key={project._id}>
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
               <Link
-                to="/member/tasks"
+                to={`/member/projects/${project._id}/board`}
                 className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 transition-colors hover:text-primary"
               >
                 <p className="font-medium text-text-primary">{project.name}</p>
@@ -38,7 +38,7 @@ export function AssignedProjectsList() {
               </Link>
               <ButtonLink
                 to={`/member/projects/${project._id}/board`}
-                variant="outline"
+                variant="primary"
                 size="sm"
               >
                 View board

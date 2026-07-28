@@ -4,10 +4,13 @@ export function getComments(taskId) {
   return apiClient(`/tasks/${taskId}/comments`);
 }
 
-export function createComment(taskId, body) {
+export function createComment(taskId, { body, parentId = null }) {
   return apiClient(`/tasks/${taskId}/comments`, {
     method: "POST",
-    body: { body },
+    body: {
+      body,
+      ...(parentId ? { parentId } : {}),
+    },
   });
 }
 

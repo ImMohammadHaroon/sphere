@@ -27,7 +27,8 @@ export function useCreateComment(taskId) {
   return useMutation(
     withMutationToasts(
       {
-        mutationFn: (body) => createComment(taskId, body),
+        mutationFn: ({ body, parentId = null }) =>
+          createComment(taskId, { body, parentId }),
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ["comments", taskId] });
         },

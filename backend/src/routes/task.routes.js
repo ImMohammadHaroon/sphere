@@ -1,8 +1,6 @@
 import { Router } from "express";
 import * as taskController from "../controllers/task.controller.js";
 import { requireRole } from "../middleware/auth.middleware.js";
-import { requireOwnershipOrRole } from "../middleware/requireOwnershipOrRole.js";
-import { loadTask } from "../middleware/rbac.loaders.js";
 import { validate } from "../middleware/validate.middleware.js";
 import {
   createTaskSchema,
@@ -17,11 +15,11 @@ const taskCreateRoles = requireRole([
   "project_manager",
   "team_member",
 ]);
-const taskUpdateAccess = requireOwnershipOrRole(
-  loadTask,
-  ["org_admin", "project_manager"],
-  "assigneeId"
-);
+const taskUpdateRoles = requireRole([
+  "org_admin",
+  "project_manager",
+  "team_member",
+]);
 const taskDeleteRoles = requireRole(["org_admin", "project_manager"]);
 
 export const projectTaskRouter = Router({ mergeParams: true });
@@ -152,14 +150,14 @@ taskRouter.get("/:id", validate(taskIdParamSchema), taskController.getTask);
  *       200:
  *         description: Task moved
  *       403:
- *         description: Forbidden  team members may only move tasks assigned to them
+ *         description: Forbidden  insufficient permissions
  *       404:
  *         description: Not found
  */
 taskRouter.patch(
   "/:id/move",
   validate(moveTaskSchema),
-  taskUpdateAccess,
+  taskUpdateRoles,
   taskController.moveTask
 );
 
@@ -192,14 +190,14 @@ taskRouter.patch(
  *       200:
  *         description: Task updated
  *       403:
- *         description: Forbidden  team members may only update status on tasks assigned to them
+ *         description: Forbidden  insufficient permissions
  *       404:
  *         description: Not found
  */
 taskRouter.patch(
   "/:id",
   validate(updateTaskSchema),
-  taskUpdateAccess,
+  taskUpdateRoles,
   taskController.updateTask
 );
 

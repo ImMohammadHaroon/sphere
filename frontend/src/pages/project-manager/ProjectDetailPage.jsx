@@ -3,12 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import {
   useAddMember,
-  useArchiveProject,
   useProject,
   useRemoveMember,
   useUpdateProject,
 } from "@/features/projects/hooks/useProjects";
 import { AddMemberDialog } from "@/features/projects/components/AddMemberDialog";
+import { DeleteProjectDialog } from "@/features/projects/components/DeleteProjectDialog";
 import { ProjectWorkspace } from "@/features/projects/components/ProjectWorkspace";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import {
@@ -51,7 +51,6 @@ export function ProjectDetailPage() {
   const { data: project, isLoading, isError, error, refetch, isFetching } =
     useProject(id);
   const updateProject = useUpdateProject();
-  const archiveProject = useArchiveProject();
   const addMember = useAddMember();
   const removeMember = useRemoveMember();
 
@@ -62,7 +61,7 @@ export function ProjectDetailPage() {
   const [editError, setEditError] = useState("");
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
-  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [removeMemberTarget, setRemoveMemberTarget] = useState(null);
   const [actionError, setActionError] = useState("");
 
@@ -120,16 +119,7 @@ export function ProjectDetailPage() {
   }
 
   async function handleArchive() {
-    setActionError("");
-    try {
-      await archiveProject.mutateAsync(id);
-      navigate("/dashboard");
-    } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to archive project."
-      );
-      throw err;
-    }
+    navigate("/dashboard");
   }
 
   return (
@@ -233,19 +223,25 @@ export function ProjectDetailPage() {
                     <Button type="button" variant="outline" onClick={startEditing}>
                       Edit
                     </Button>
-                    <ButtonLink to={`/dashboard/projects/${id}/calendar`}>
+                    <ButtonLink
+                      to={`/dashboard/projects/${id}/calendar`}
+                      variant="info"
+                    >
                       Open calendar
                     </ButtonLink>
-                    <ButtonLink to={`/dashboard/projects/${id}/reports`}>
+                    <ButtonLink
+                      to={`/dashboard/projects/${id}/reports`}
+                      variant="accent"
+                    >
                       Open reports
                     </ButtonLink>
                     {project.status === "active" ? (
                       <Button
                         type="button"
                         variant="danger"
-                        onClick={() => setArchiveDialogOpen(true)}
+                        onClick={() => setDeleteDialogOpen(true)}
                       >
-                        Archive
+                        Delete
                       </Button>
                     ) : null}
                   </>
@@ -262,7 +258,7 @@ export function ProjectDetailPage() {
             canManageMilestones
             toolbar={
               <div className="flex justify-end">
-                <Button type="button" onClick={() => setCreateTaskOpen(true)}>
+                <Button type="button" variant="secondary" onClick={() => setCreateTaskOpen(true)}>
                   Create task
                 </Button>
               </div>
@@ -272,7 +268,7 @@ export function ProjectDetailPage() {
           <Card className="p-6">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-medium text-text-primary">Members</h3>
-              <Button type="button" size="sm" onClick={() => setMemberDialogOpen(true)}>
+              <Button type="button" size="sm" variant="primary" onClick={() => setMemberDialogOpen(true)}>
                 Add member
               </Button>
             </div>
@@ -355,18 +351,11 @@ export function ProjectDetailPage() {
         isLoading={removeMember.isPending}
       />
 
-      <ConfirmDialog
-        open={archiveDialogOpen}
-        onOpenChange={setArchiveDialogOpen}
-        title="Archive project"
-        description={
-          project
-            ? `Archive "${project.name}"? The project will be hidden from active lists but not permanently deleted.`
-            : null
-        }
-        confirmLabel="Archive project"
-        onConfirm={handleArchive}
-        isLoading={archiveProject.isPending}
+      <DeleteProjectDialog
+        project={project}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onSuccess={handleArchive}
       />
     </>
   );

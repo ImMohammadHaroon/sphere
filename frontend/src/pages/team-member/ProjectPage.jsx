@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { ProjectWorkspace } from "@/features/projects/components/ProjectWorkspace";
+import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import { useProject } from "@/features/projects/hooks/useProjects";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -9,6 +11,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 export function TeamMemberProjectPage() {
   const { id, projectId: routeProjectId } = useParams();
   const projectId = routeProjectId || id || "";
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
 
   const { data: project, isLoading, isError, error, refetch, isFetching } =
     useProject(projectId);
@@ -47,5 +50,25 @@ export function TeamMemberProjectPage() {
     );
   }
 
-  return <ProjectWorkspace projectId={projectId} role="team_member" />;
+  return (
+    <>
+      <ProjectWorkspace
+        projectId={projectId}
+        role="team_member"
+        toolbar={
+          <div className="flex justify-end">
+            <Button type="button" onClick={() => setCreateTaskOpen(true)}>
+              Create task
+            </Button>
+          </div>
+        }
+      />
+
+      <CreateTaskModal
+        open={createTaskOpen}
+        onOpenChange={setCreateTaskOpen}
+        projectId={projectId}
+      />
+    </>
+  );
 }

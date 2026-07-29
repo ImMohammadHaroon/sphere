@@ -124,7 +124,7 @@ export function MilestoneAttachments({
               />
               <Button
                 type="button"
-                variant="outline"
+                variant="accent"
                 size="sm"
                 onClick={handleAttachClick}
                 isLoading={uploadAttachment.isPending}

@@ -162,6 +162,9 @@ export function TaskDetailPage() {
   const assigneeUser = task?.assignee ?? assigneeMember ?? null;
   const assigneeName = assigneeUser?.name ?? null;
   const assigneeEmail = assigneeUser?.email ?? null;
+  const creatorUser = task?.createdBy ?? null;
+  const creatorName = creatorUser?.name ?? null;
+  const creatorEmail = creatorUser?.email ?? null;
 
   async function handleSave() {
     if (!task || !canSave) return;
@@ -326,7 +329,22 @@ export function TaskDetailPage() {
 
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Assignee</Label>
+                <Label>Created by</Label>
+                <div className="flex items-center gap-3">
+                  <UserAvatar user={creatorUser} size="md" />
+                  <div>
+                    <span className="text-sm text-text-primary">
+                      {creatorName ?? "Unknown"}
+                    </span>
+                    {creatorEmail ? (
+                      <p className="text-xs text-text-muted">{creatorEmail}</p>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Assigned to</Label>
                 {canEditAll ? (
                   <select
                     value={assigneeId}

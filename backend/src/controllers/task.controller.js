@@ -33,12 +33,13 @@ function getDefaultStatus(project) {
   return sorted[0]?.key ?? "todo";
 }
 
-function formatAssignee(assignee) {
-  return formatPublicUser(assignee);
+function formatTaskUser(user) {
+  return formatPublicUser(user);
 }
 
 export function formatTask(task) {
-  const assignee = formatAssignee(task.assigneeId);
+  const assignee = formatTaskUser(task.assigneeId);
+  const createdBy = formatTaskUser(task.createdBy);
 
   return {
     ...task,
@@ -54,13 +55,16 @@ export function formatTask(task) {
         : task.projectId?.toString?.() ?? task.projectId,
     assigneeId: assignee?.id ?? null,
     assignee,
+    createdById: createdBy?.id ?? null,
+    createdBy,
   };
 }
 
-async function loadTaskWithAssignee(req, filter) {
+async function loadPopulatedTask(req, filter) {
   return req
     .scopedFindOne(Task, filter)
     .populate("assigneeId", USER_PUBLIC_FIELDS)
+    .populate("createdBy", USER_PUBLIC_FIELDS)
     .lean();
 }
 
@@ -79,6 +83,7 @@ export async function listTasks(req, res, next) {
     const tasks = await req
       .scopedQuery(Task, { projectId: req.params.projectId })
       .populate("assigneeId", USER_PUBLIC_FIELDS)
+      .populate("createdBy", USER_PUBLIC_FIELDS)
       .sort({ position: 1, createdAt: 1 })
       .lean();
 
@@ -94,6 +99,10 @@ export async function createTask(req, res, next) {
     const status = req.body.status ?? getDefaultStatus(project);
     assertValidTaskStatus(project, status);
 
+    const position =
+      req.body.position ??
+      (await resolveDestinationPosition(req, req.params.projectId, status));
+
     const created = await Task.create({
       organizationId: req.user.organizationId,
       projectId: req.params.projectId,
@@ -101,12 +110,13 @@ export async function createTask(req, res, next) {
       description: req.body.description ?? "",
       status,
       assigneeId: req.body.assigneeId ?? null,
+      createdBy: req.user.userId,
       priority: req.body.priority ?? "medium",
       dueDate: req.body.dueDate ?? null,
-      position: req.body.position ?? 0,
+      position,
     });
 
-    const task = await loadTaskWithAssignee(req, { _id: created._id });
+    const task = await loadPopulatedTask(req, { _id: created._id });
 
     emitToProject(req.params.projectId, "task:created", formatTask(task));
 
@@ -136,7 +146,7 @@ export async function createTask(req, res, next) {
 
 export async function getTask(req, res, next) {
   try {
-    const task = await loadTaskWithAssignee(req, { _id: req.params.id });
+    const task = await loadPopulatedTask(req, { _id: req.params.id });
 
     if (!task) {
       throw notFound();
@@ -204,7 +214,7 @@ export async function updateTask(req, res, next) {
 
     await req.scopedFindOneAndUpdate(Task, { _id: req.params.id }, updates);
 
-    const task = await loadTaskWithAssignee(req, { _id: req.params.id });
+    const task = await loadPopulatedTask(req, { _id: req.params.id });
 
     emitToProject(
       existing.projectId.toString(),
@@ -345,7 +355,7 @@ export async function moveTask(req, res, next) {
     task.position = newPosition;
     await task.save();
 
-    const populated = await loadTaskWithAssignee(req, { _id: task._id });
+    const populated = await loadPopulatedTask(req, { _id: task._id });
 
     emitToProject(task.projectId.toString(), "task:moved", {
       taskId: task._id.toString(),
@@ -390,6 +400,7 @@ export async function listMyTasks(req, res, next) {
       .scopedQuery(Task, { assigneeId: req.user.userId })
       .populate("projectId", "name columns")
       .populate("assigneeId", USER_PUBLIC_FIELDS)
+      .populate("createdBy", USER_PUBLIC_FIELDS)
       .sort({ dueDate: 1, updatedAt: -1 })
       .lean();
 

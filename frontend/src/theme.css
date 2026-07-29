@@ -30,9 +30,9 @@
   --primary-subtle: 151 60% 32% / 0.1;
   --primary-foreground: 0 0% 100%;
 
-  /* Legacy accent (amber) — used sparingly */
-  --accent: 36 90% 50%;
-  --accent-subtle: 36 90% 50% / 0.1;
+  /* Legacy accent (dark orange) — file upload & highlights */
+  --accent: 28 90% 42%;
+  --accent-subtle: 28 90% 42% / 0.1;
   --accent-foreground: 145 59% 6%;
 
   /* Semantic status */

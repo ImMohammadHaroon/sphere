@@ -1,4 +1,3 @@
-import { Link, useNavigate } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { OverviewSkeleton } from "@/components/overview/OverviewSkeleton";
 import { TasksByStatusChart } from "@/components/overview/TasksByStatusChart";
@@ -6,6 +5,7 @@ import { useOrgOverview } from "@/features/org/hooks/useOrgOverview";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import {
   Table,
@@ -17,7 +17,6 @@ import {
   TableScrollArea,
 } from "@/components/ui/Table";
 import { totalTaskCountFromProjects } from "@/lib/taskStatusConfig";
-import { cn } from "@/lib/utils";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -34,7 +33,6 @@ export function OrgOverviewPage() {
     description: "Active projects, team size, and organization KPIs.",
   });
 
-  const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch, isFetching } =
     useOrgOverview();
 
@@ -109,25 +107,16 @@ export function OrgOverviewPage() {
                         <TableHead>Name</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Last updated</TableHead>
+                        <TableHead className="w-[1%]">
+                          <span className="sr-only">Actions</span>
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {data.recentProjects.map((project) => (
-                        <TableRow
-                          key={project.id}
-                          className="cursor-pointer"
-                          onClick={() => navigate(`/admin/projects/${project.id}`)}
-                        >
-                          <TableCell>
-                            <Link
-                              to={`/admin/projects/${project.id}`}
-                              className={cn(
-                                "font-medium text-primary hover:underline"
-                              )}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {project.name}
-                            </Link>
+                        <TableRow key={project.id}>
+                          <TableCell className="font-medium">
+                            {project.name}
                           </TableCell>
                           <TableCell>
                             <Badge
@@ -140,6 +129,15 @@ export function OrgOverviewPage() {
                           </TableCell>
                           <TableCell className="text-text-secondary">
                             {formatDate(project.updatedAt)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <ButtonLink
+                              to={`/admin/projects/${project.id}`}
+                              variant="ghost"
+                              size="sm"
+                            >
+                              View detail
+                            </ButtonLink>
                           </TableCell>
                         </TableRow>
                       ))}

@@ -1,12 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Paperclip, X } from "lucide-react";
 import { FilePreviewDialog } from "@/components/attachments/FilePreviewDialog";
+import { useProject } from "@/features/projects/hooks/useProjects";
 import { useCreateTask } from "@/features/tasks/hooks/useCreateTask";
 import { useProjectMembers } from "@/features/tasks/hooks/useProjectMembers";
 import { useFilePreview } from "@/hooks/useFilePreview";
 import { uploadAttachment } from "@/lib/attachmentsApi";
 import { dateInputToIso } from "@/lib/dateFormHelpers";
 import { formatFileSize, MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
+import {
+  DEFAULT_BOARD_COLUMNS,
+  getSortedColumns,
+  getStatusLabel,
+} from "@/lib/taskStatusConfig";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -22,13 +28,16 @@ import {
 
 const MAX_FILE_SIZE = MAX_ATTACHMENT_SIZE;
 
-const emptyForm = {
-  title: "",
-  description: "",
-  assigneeId: "",
-  priority: "medium",
-  dueDate: "",
-};
+function createEmptyForm({ dueDate = "", status = "" } = {}) {
+  return {
+    title: "",
+    description: "",
+    assigneeId: "",
+    status,
+    priority: "medium",
+    dueDate,
+  };
+}
 
 const selectClassName =
   "flex h-10 w-full rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20";
@@ -48,13 +57,17 @@ export function CreateTaskModal({
   onOpenChange,
   projectId,
   defaultDueDate = "",
+  defaultStatus = "",
 }) {
   const createTask = useCreateTask(projectId);
+  const { data: project, isLoading: projectLoading } = useProject(
+    open ? projectId : undefined
+  );
   const { data: members, isLoading: membersLoading } = useProjectMembers(
     open ? projectId : undefined
   );
   const fileInputRef = useRef(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() => createEmptyForm());
   const [files, setFiles] = useState([]);
   const [error, setError] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -62,14 +75,34 @@ export function CreateTaskModal({
 
   const isSubmitting = createTask.isPending || isUploading;
 
-  useEffect(() => {
-    if (open && defaultDueDate) {
-      setForm((current) => ({ ...current, dueDate: defaultDueDate }));
+  const columns = useMemo(() => {
+    if (project?.columns?.length) {
+      return getSortedColumns(project.columns);
     }
-  }, [open, defaultDueDate]);
+    return DEFAULT_BOARD_COLUMNS;
+  }, [project?.columns]);
+
+  const defaultColumnKey = useMemo(() => {
+    if (defaultStatus && columns.some((column) => column.key === defaultStatus)) {
+      return defaultStatus;
+    }
+    return columns[0]?.key ?? "";
+  }, [columns, defaultStatus]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      dueDate: defaultDueDate || current.dueDate,
+      status: defaultColumnKey,
+    }));
+  }, [open, defaultDueDate, defaultColumnKey]);
 
   function resetForm() {
-    setForm({ ...emptyForm, dueDate: defaultDueDate || "" });
+    setForm(createEmptyForm({ dueDate: defaultDueDate || "", status: defaultColumnKey }));
     setFiles([]);
     setError("");
     setIsUploading(false);
@@ -134,6 +167,7 @@ export function CreateTaskModal({
         title: form.title.trim(),
         description: form.description.trim(),
         assigneeId: form.assigneeId || null,
+        status: form.status || defaultColumnKey || undefined,
         priority: form.priority,
         dueDate: dateInputToIso(form.dueDate),
       });
@@ -204,25 +238,48 @@ export function CreateTaskModal({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="create-task-assignee">Assignee</Label>
-            <select
-              id="create-task-assignee"
-              value={form.assigneeId}
-              onChange={(e) => updateField("assigneeId", e.target.value)}
-              disabled={membersLoading}
-              className={selectClassName}
-            >
-              <option value="">
-                {membersLoading ? "Loading members..." : "Unassigned"}
-              </option>
-              {(members ?? []).map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.name}
-                  {member.role ? ` ${formatRoleLabel(member.role)}` : ""}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="create-task-status">Start in column</Label>
+              <select
+                id="create-task-status"
+                value={form.status}
+                onChange={(e) => updateField("status", e.target.value)}
+                disabled={projectLoading || columns.length === 0}
+                className={selectClassName}
+              >
+                {projectLoading ? (
+                  <option value="">Loading board...</option>
+                ) : (
+                  columns.map((column) => (
+                    <option key={column.key} value={column.key}>
+                      {getStatusLabel(columns, column.key)}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="create-task-assignee">Assignee</Label>
+              <select
+                id="create-task-assignee"
+                value={form.assigneeId}
+                onChange={(e) => updateField("assigneeId", e.target.value)}
+                disabled={membersLoading}
+                className={selectClassName}
+              >
+                <option value="">
+                  {membersLoading ? "Loading members..." : "Unassigned"}
                 </option>
-              ))}
-            </select>
+                {(members ?? []).map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
+                    {member.role ? ` (${formatRoleLabel(member.role)})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -262,7 +319,7 @@ export function CreateTaskModal({
             />
             <Button
               type="button"
-              variant="outline"
+              variant="accent"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
               disabled={isSubmitting}

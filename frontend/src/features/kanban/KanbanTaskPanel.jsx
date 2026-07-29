@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { CalendarDays, MessageSquare, UserRound, X } from "lucide-react";
+import { CalendarDays, MessageSquare, UserPen, UserRound, X } from "lucide-react";
 import { TaskStatusBadge } from "@/features/tasks/components/TaskStatusBadge";
 import { TaskComments } from "@/features/tasks/components/TaskComments";
 import { useTask } from "@/features/tasks/hooks/useTask";
@@ -146,11 +146,28 @@ export function KanbanTaskPanel({ taskId, projectId, onClose }) {
               <div className="grid gap-4 rounded-2xl border border-dashboard-accent/15 bg-dashboard-accent-subtle/25 p-4 sm:grid-cols-2">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-dashboard-accent text-white shadow-sm">
+                    <UserPen className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+                      Created by
+                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <UserAvatar user={task.createdBy} size="sm" />
+                      <span className="text-sm font-medium text-text-primary">
+                        {task.createdBy?.name ?? "Unknown"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-dashboard-accent text-white shadow-sm">
                     <UserRound className="h-4 w-4" />
                   </div>
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
-                      Assignee
+                      Assigned to
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                       <UserAvatar user={task.assignee} size="sm" />
@@ -161,7 +178,7 @@ export function KanbanTaskPanel({ taskId, projectId, onClose }) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 sm:col-span-2">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-info/15 text-info shadow-sm">
                     <CalendarDays className="h-4 w-4" />
                   </div>

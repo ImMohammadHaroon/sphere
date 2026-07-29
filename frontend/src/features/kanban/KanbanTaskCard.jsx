@@ -36,6 +36,8 @@ export function KanbanTaskCardContent({
 }) {
   const assignee = task.assignee ?? null;
   const assigneeName = assignee?.name ?? null;
+  const creator = task.createdBy ?? null;
+  const creatorName = creator?.name ?? null;
   const dueLabel = formatDate(task.dueDate);
 
   const body = (
@@ -49,12 +51,22 @@ export function KanbanTaskCardContent({
         </Badge>
       </div>
 
-      <div className="flex items-center justify-between gap-2 text-xs text-text-secondary">
-        <div className="flex items-center gap-2">
-          <UserAvatar user={assignee} size="xs" />
-          <span>{assigneeName ?? "Unassigned"}</span>
+      <div className="space-y-1 text-xs text-text-secondary">
+        {creatorName ? (
+          <div className="flex items-center gap-2">
+            <span className="text-text-muted">Created by</span>
+            <UserAvatar user={creator} size="xs" />
+            <span>{creatorName}</span>
+          </div>
+        ) : null}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-text-muted">For</span>
+            <UserAvatar user={assignee} size="xs" />
+            <span>{assigneeName ?? "Unassigned"}</span>
+          </div>
+          {dueLabel ? <span>Due {dueLabel}</span> : null}
         </div>
-        {dueLabel ? <span>Due {dueLabel}</span> : null}
       </div>
     </>
   );

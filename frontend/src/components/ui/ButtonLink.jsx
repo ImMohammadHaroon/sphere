@@ -9,7 +9,12 @@ const buttonVariants = cva(
       variant: {
         primary:
           "bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm",
-        accent: "bg-accent text-accent-foreground hover:opacity-90 shadow-sm",
+        accent:
+          "border-0 bg-[hsl(var(--accent))] text-white shadow-sm hover:opacity-90",
+        info:
+          "border-0 bg-info text-white shadow-sm hover:opacity-90",
+        secondary:
+          "border-0 bg-[hsl(var(--kanban-purple))] text-white shadow-sm hover:opacity-90",
         outline:
           "border border-border-strong bg-surface text-text-primary hover:bg-card-hover shadow-sm",
         ghost:

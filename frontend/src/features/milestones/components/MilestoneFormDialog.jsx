@@ -75,7 +75,7 @@ function PendingFilesField({ files, onAdd, onRemove, onPreview, disabled = false
         />
         <Button
           type="button"
-          variant="outline"
+          variant="accent"
           size="sm"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}

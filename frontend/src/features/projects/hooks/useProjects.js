@@ -96,13 +96,21 @@ export function useArchiveProject() {
     withMutationToasts(
       {
         mutationFn: archiveProject,
-        onSuccess: () => {
+        onSuccess: (_result, id) => {
           queryClient.invalidateQueries({
             queryKey: ["projects", user?.organizationId],
           });
+          queryClient.invalidateQueries({
+            queryKey: ["org", "overview", user?.organizationId],
+          });
+          if (id) {
+            queryClient.invalidateQueries({
+              queryKey: ["projects", user?.organizationId, id],
+            });
+          }
         },
       },
-      { success: "Project archived." }
+      { success: "Project deleted." }
     )
   );
 }

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { AddMemberDialog } from "@/features/projects/components/AddMemberDialog";
+import { DeleteProjectDialog } from "@/features/projects/components/DeleteProjectDialog";
 import { ProjectWorkspace } from "@/features/projects/components/ProjectWorkspace";
 import { useAddMember, useProject } from "@/features/projects/hooks/useProjects";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
@@ -10,10 +11,12 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 export function OrgAdminProjectPage() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const projectId = id ?? "";
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data: project, isLoading, isError, error, refetch, isFetching } =
     useProject(projectId);
@@ -69,9 +72,18 @@ export function OrgAdminProjectPage() {
             <Button type="button" variant="outline" onClick={() => setMemberDialogOpen(true)}>
               Add member
             </Button>
-            <Button type="button" onClick={() => setCreateTaskOpen(true)}>
+            <Button type="button" variant="info" onClick={() => setCreateTaskOpen(true)}>
               Create task
             </Button>
+            {project?.status === "active" ? (
+              <Button
+                type="button"
+                variant="danger"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                Delete
+              </Button>
+            ) : null}
           </div>
         }
       />
@@ -88,6 +100,13 @@ export function OrgAdminProjectPage() {
         open={createTaskOpen}
         onOpenChange={setCreateTaskOpen}
         projectId={projectId}
+      />
+
+      <DeleteProjectDialog
+        project={project}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onSuccess={() => navigate("/admin/projects")}
       />
     </>
   );

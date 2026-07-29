@@ -1,16 +1,30 @@
 import { cn } from "@/lib/utils";
 
-export function Input({ className, error, ...props }) {
+export function Input({ className, error, endAdornment, ...props }) {
+  const input = (
+    <input
+      className={cn(
+        "flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
+        endAdornment && "pr-10",
+        error && "border-danger",
+        className
+      )}
+      {...props}
+    />
+  );
+
   return (
     <div className="space-y-1">
-      <input
-        className={cn(
-          "flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
-          error && "border-danger",
-          className
-        )}
-        {...props}
-      />
+      {endAdornment ? (
+        <div className="relative">
+          {input}
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+            {endAdornment}
+          </div>
+        </div>
+      ) : (
+        input
+      )}
       {error ? <p className="text-xs text-danger">{error}</p> : null}
     </div>
   );

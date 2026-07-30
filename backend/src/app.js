@@ -27,6 +27,9 @@ import {
   projectMilestoneAttachmentRouter,
   milestoneAttachmentRouter,
 } from "./routes/milestoneAttachment.routes.js";
+import communityMessageRoutes from "./routes/communityMessage.routes.js";
+import communityMessageAttachmentRoutes from "./routes/communityMessageAttachment.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
 import platformRoutes from "./routes/platform.routes.js";
 import orgRoutes from "./routes/org.routes.js";
 import orgSettingsRoutes from "./routes/orgSettings.routes.js";
@@ -101,6 +104,26 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/invites", inviteRoutes);
 app.use("/api/v1/notifications", authenticate, notificationRoutes);
+
+app.use(
+  "/api/v1/chat",
+  authenticate,
+  tenantScope,
+  chatRoutes
+);
+
+app.use(
+  "/api/v1/community/messages",
+  authenticate,
+  tenantScope,
+  communityMessageRoutes
+);
+app.use(
+  "/api/v1/community/messages/:messageId/attachments",
+  authenticate,
+  tenantScope,
+  communityMessageAttachmentRoutes
+);
 
 app.use("/api/v1/projects", authenticate, tenantScope, projectRoutes);
 app.use(

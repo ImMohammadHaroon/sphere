@@ -1,6 +1,8 @@
 import { downloadAttachment } from "@/lib/attachmentsApi";
 import { downloadCommentAttachment } from "@/lib/commentAttachmentsApi";
 import { downloadMilestoneAttachment } from "@/lib/milestoneAttachmentsApi";
+import { downloadCommunityMessageAttachment } from "@/lib/communityAttachmentsApi";
+import { downloadChatMessageAttachment } from "@/lib/chatAttachmentsApi";
 import { toTypedBlob } from "@/lib/downloadBlob";
 
 export async function fetchAttachmentBlob(source) {
@@ -16,6 +18,17 @@ export async function fetchAttachmentBlob(source) {
     case "milestone":
       return downloadMilestoneAttachment(
         source.milestoneId,
+        source.attachmentId
+      );
+    case "community":
+      return downloadCommunityMessageAttachment(
+        source.messageId,
+        source.attachmentId
+      );
+    case "chat":
+      return downloadChatMessageAttachment(
+        source.roomId,
+        source.messageId,
         source.attachmentId
       );
     case "local":

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { BarChart3, Columns3, Flag, FolderKanban } from "lucide-react";
+import { BarChart3, Columns3, Flag, FolderKanban, MessageSquare } from "lucide-react";
 import { SidebarNavItem } from "./SidebarNavItem";
 
 const clientPortalNav = [
@@ -27,6 +27,12 @@ const clientPortalNav = [
     to: "/portal/reports",
     match: (p) => p === "/portal/reports",
     icon: BarChart3,
+  },
+  {
+    label: "Chat",
+    to: "/chat",
+    match: (p) => p === "/chat" || p.startsWith("/chat/"),
+    icon: MessageSquare,
   },
 ];
 

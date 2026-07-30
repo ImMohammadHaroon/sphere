@@ -3,8 +3,10 @@ import mongoose from "mongoose";
 import { env } from "../config/env.js";
 import { Project } from "../models/Project.js";
 import { User } from "../models/User.js";
+import { ChatRoom } from "../models/ChatRoom.js";
 import { verifyAccessToken } from "../services/token.service.js";
 import { isProjectMember } from "../utils/projectAccess.js";
+import { assertRoomAccess } from "../services/chat.service.js";
 
 let io = null;
 
@@ -39,6 +41,18 @@ export const emitters = {
     }
     io.to(`user:${userId}`).emit(event, payload);
   },
+  emitToOrg(organizationId, event, payload) {
+    if (!io) {
+      return;
+    }
+    io.to(`org:${organizationId}`).emit(event, payload);
+  },
+  emitToChatRoom(roomId, event, payload) {
+    if (!io) {
+      return;
+    }
+    io.to(`chat:${roomId}`).emit(event, payload);
+  },
 };
 
 export function emitToProject(projectId, event, payload) {
@@ -47,6 +61,14 @@ export function emitToProject(projectId, event, payload) {
 
 export function emitToUser(userId, event, payload) {
   return emitters.emitToUser(userId, event, payload);
+}
+
+export function emitToOrg(organizationId, event, payload) {
+  return emitters.emitToOrg(organizationId, event, payload);
+}
+
+export function emitToChatRoom(roomId, event, payload) {
+  return emitters.emitToChatRoom(roomId, event, payload);
 }
 
 export function initSockets(httpServer) {
@@ -85,6 +107,7 @@ export function initSockets(httpServer) {
         email: user.email,
       };
       socket.data.joinedProjects = new Set();
+      socket.data.joinedChatRooms = new Set();
 
       next();
     } catch {
@@ -103,6 +126,8 @@ export function initSockets(httpServer) {
     if (!user.organizationId) {
       return;
     }
+
+    socket.join(`org:${user.organizationId}`);
 
     socket.on("project:join", async ({ projectId }) => {
       if (!projectId) {
@@ -138,6 +163,49 @@ export function initSockets(httpServer) {
         .emit("presence:leave", { userId: user.userId, projectId });
     });
 
+    socket.on("chat:join", async ({ roomId }) => {
+      if (!roomId) {
+        socket.emit("error", { message: "roomId is required" });
+        return;
+      }
+
+      try {
+        const room = await ChatRoom.findOne({
+          _id: roomId,
+          organizationId: new mongoose.Types.ObjectId(user.organizationId),
+        }).lean();
+
+        if (!room) {
+          socket.emit("error", { message: "Chat room not found" });
+          return;
+        }
+
+        const mockReq = {
+          user: {
+            userId: user.userId,
+            organizationId: user.organizationId,
+            role: user.role,
+          },
+        };
+
+        await assertRoomAccess(mockReq, room);
+
+        socket.join(`chat:${roomId}`);
+        socket.data.joinedChatRooms.add(roomId);
+      } catch {
+        socket.emit("error", { message: "Chat room access denied" });
+      }
+    });
+
+    socket.on("chat:leave", ({ roomId }) => {
+      if (!roomId) {
+        return;
+      }
+
+      socket.leave(`chat:${roomId}`);
+      socket.data.joinedChatRooms.delete(roomId);
+    });
+
     socket.on("disconnect", () => {
       for (const projectId of socket.data.joinedProjects) {
         socket
@@ -145,6 +213,7 @@ export function initSockets(httpServer) {
           .emit("presence:leave", { userId: user.userId, projectId });
       }
       socket.data.joinedProjects.clear();
+      socket.data.joinedChatRooms.clear();
     });
   });
 

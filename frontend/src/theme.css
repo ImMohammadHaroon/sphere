@@ -87,3 +87,14 @@
   --dashboard-accent: 273 55% 60%;
   --dashboard-accent-subtle: 273 55% 60% / 0.1;
 }
+
+/* Chat module — soft forest palette */
+.chat-shell {
+  --chat-sidebar: 142 22% 95%;
+  --chat-thread: 138 24% 97%;
+  --chat-bubble-own: 152 44% 42%;
+  --chat-bubble-own-deep: 151 58% 32%;
+  --chat-bubble-other: 0 0% 100%;
+  --chat-input: 0 0% 100%;
+  --chat-accent-line: 151 50% 38%;
+}

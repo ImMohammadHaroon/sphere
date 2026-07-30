@@ -56,8 +56,12 @@ export const env = {
   COOKIE_SECURE: cookieSecure,
   COOKIE_SAME_SITE: cookieSameSite,
   RATE_LIMIT_WINDOW_MS: Number(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
-  RATE_LIMIT_MAX: Number(process.env.RATE_LIMIT_MAX) || 100,
+  RATE_LIMIT_MAX:
+    Number(process.env.RATE_LIMIT_MAX) || (isProduction ? 100 : 1000),
   AUTH_RATE_LIMIT_MAX: Number(process.env.AUTH_RATE_LIMIT_MAX) || 20,
+  ATTACHMENT_RATE_LIMIT_MAX:
+    Number(process.env.ATTACHMENT_RATE_LIMIT_MAX) ||
+    (isProduction ? 300 : 2000),
   SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
   SMTP_PORT: Number(process.env.SMTP_PORT) || 587,
   SMTP_SECURE: process.env.SMTP_SECURE === "true",

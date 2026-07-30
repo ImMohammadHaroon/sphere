@@ -12,4 +12,6 @@ export const COLLECTIONS = {
   COMMENTS: "comments",
   ATTACHMENTS: "attachments",
   BILLING_ORDERS: "billingorders",
+  COMMUNITY_MESSAGES: "communitymessages",
+  CHAT_ROOMS: "chatrooms",
 };

@@ -27,6 +27,12 @@ const attachmentSchema = new mongoose.Schema(
       default: null,
       index: true,
     },
+    communityMessageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CommunityMessage",
+      default: null,
+      index: true,
+    },
     uploaderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -47,6 +53,11 @@ function hasValidAttachmentParent() {
   const hasTask = this.taskId != null;
   const hasMilestone = this.milestoneId != null;
   const hasComment = this.commentId != null;
+  const hasCommunityMessage = this.communityMessageId != null;
+
+  if (hasCommunityMessage) {
+    return !hasTask && !hasMilestone && !hasComment;
+  }
 
   if (hasMilestone) {
     return !hasTask && !hasComment;
@@ -59,7 +70,8 @@ function hasValidAttachmentParent() {
   return hasTask && !hasMilestone && !hasComment;
 }
 
-const parentRefMessage = "Attachment must belong to a task, milestone, or comment";
+const parentRefMessage =
+  "Attachment must belong to a task, milestone, comment, or community message";
 
 attachmentSchema.path("taskId").validate(hasValidAttachmentParent, parentRefMessage);
 attachmentSchema
@@ -68,10 +80,14 @@ attachmentSchema
 attachmentSchema
   .path("commentId")
   .validate(hasValidAttachmentParent, parentRefMessage);
+attachmentSchema
+  .path("communityMessageId")
+  .validate(hasValidAttachmentParent, parentRefMessage);
 
 attachmentSchema.index({ organizationId: 1, taskId: 1 });
 attachmentSchema.index({ organizationId: 1, milestoneId: 1 });
 attachmentSchema.index({ organizationId: 1, commentId: 1 });
+attachmentSchema.index({ organizationId: 1, communityMessageId: 1 });
 
 export const Attachment = mongoose.model(
   "Attachment",

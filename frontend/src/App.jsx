@@ -33,6 +33,7 @@ import { TeamMemberBoardRedirect } from "@/pages/team-member/TeamMemberBoardRedi
 import { MilestoneDetailPage } from "@/pages/milestones/MilestoneDetailPage";
 import { ProjectTabRedirect } from "@/pages/projects/ProjectTabRedirect";
 import { NotificationsPage } from "@/pages/NotificationsPage";
+import { ChatPage } from "@/pages/ChatPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { PlatformOverviewPage } from "@/pages/super-admin/PlatformOverviewPage";
 import { OrganizationsPage } from "@/pages/super-admin/OrganizationsPage";
@@ -223,6 +224,37 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/chat"
+        element={
+          <ProtectedRoute
+            allowedRoles={[
+              "org_admin",
+              "project_manager",
+              "team_member",
+              "client",
+            ]}
+          >
+            <ChatPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/chat/:roomId"
+        element={
+          <ProtectedRoute
+            allowedRoles={[
+              "org_admin",
+              "project_manager",
+              "team_member",
+              "client",
+            ]}
+          >
+            <ChatPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/community" element={<Navigate to="/chat" replace />} />
       <Route
         path="/profile"
         element={

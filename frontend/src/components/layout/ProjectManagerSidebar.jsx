@@ -4,6 +4,7 @@ import {
   Calendar,
   Flag,
   FolderKanban,
+  MessageSquare,
 } from "lucide-react";
 import { SidebarNavItem } from "./SidebarNavItem";
 
@@ -38,6 +39,13 @@ const projectManagerNav = [
       p === "/dashboard/milestones" || p.includes("/milestones"),
     roles: ["project_manager"],
     icon: Flag,
+  },
+  {
+    label: "Chat",
+    to: "/chat",
+    match: (p) => p === "/chat" || p.startsWith("/chat/"),
+    roles: ["project_manager"],
+    icon: MessageSquare,
   },
 ];
 

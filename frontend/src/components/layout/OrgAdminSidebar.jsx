@@ -3,6 +3,7 @@ import {
   BarChart3,
   Building2,
   FolderKanban,
+  MessageSquare,
   Users,
 } from "lucide-react";
 import { SidebarNavItem } from "./SidebarNavItem";
@@ -34,6 +35,12 @@ const orgAdminNav = [
     to: "/admin/reports",
     match: (p) => p === "/admin/reports",
     icon: BarChart3,
+  },
+  {
+    label: "Chat",
+    to: "/chat",
+    match: (p) => p === "/chat" || p.startsWith("/chat/"),
+    icon: MessageSquare,
   },
 ];
 

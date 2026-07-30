@@ -42,6 +42,38 @@ export const approveMilestoneSchema = z.object({
   body: z
     .object({
       decision: z.enum(["approved", "rejected"]),
+      rejectReason: z.string().trim().max(2000).optional(),
+    })
+    .strict()
+    .superRefine((body, ctx) => {
+      if (body.decision === "rejected" && !body.rejectReason?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Reject reason is required",
+          path: ["rejectReason"],
+        });
+      }
+    }),
+});
+
+export const submitMilestoneFeedbackSchema = z.object({
+  params: z.object({
+    id: objectId,
+  }),
+  body: z
+    .object({
+      feedback: z.string().trim().min(1).max(2000),
+    })
+    .strict(),
+});
+
+export const replyMilestoneFeedbackSchema = z.object({
+  params: z.object({
+    id: objectId,
+  }),
+  body: z
+    .object({
+      message: z.string().trim().min(1).max(2000),
     })
     .strict(),
 });

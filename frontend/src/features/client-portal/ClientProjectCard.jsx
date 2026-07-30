@@ -57,12 +57,18 @@ export function ClientProjectCard({ project }) {
         <p className="text-sm text-text-secondary">Due {dueDate}</p>
       ) : null}
 
-      <div className="mt-auto pt-2">
+      <div className="mt-auto flex flex-wrap gap-4 pt-2">
         <Link
           to={`/portal/progress?project=${project._id}`}
           className="text-sm font-medium text-primary hover:underline"
         >
-          View progress
+          Open board
+        </Link>
+        <Link
+          to="/portal/milestones"
+          className="text-sm font-medium text-text-secondary hover:text-primary hover:underline"
+        >
+          Milestones
         </Link>
       </div>
     </Card>

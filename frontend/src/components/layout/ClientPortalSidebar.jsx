@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { BarChart3, Flag, FolderKanban, MessageSquare } from "lucide-react";
+import { BarChart3, Columns3, Flag, FolderKanban, MessageSquare } from "lucide-react";
 import { SidebarNavItem } from "./SidebarNavItem";
 
 const clientPortalNav = [
@@ -8,6 +8,13 @@ const clientPortalNav = [
     to: "/portal",
     match: (p) => p === "/portal",
     icon: FolderKanban,
+  },
+  {
+    label: "Board",
+    to: "/portal/progress",
+    match: (p) =>
+      p === "/portal/progress" || p.startsWith("/portal/projects/"),
+    icon: Columns3,
   },
   {
     label: "Milestones",

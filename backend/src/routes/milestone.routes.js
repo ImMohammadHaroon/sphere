@@ -6,12 +6,19 @@ import {
   createMilestoneSchema,
   updateMilestoneSchema,
   approveMilestoneSchema,
+  submitMilestoneFeedbackSchema,
+  replyMilestoneFeedbackSchema,
   listMilestonesParamSchema,
   milestoneIdParamSchema,
 } from "../validators/milestone.validator.js";
 
 const milestoneManageRoles = requireRole(["org_admin", "project_manager"]);
 const milestoneApproveRoles = requireRole(["client"]);
+const milestoneReplyRoles = requireRole([
+  "org_admin",
+  "project_manager",
+  "team_member",
+]);
 
 export const projectMilestoneRouter = Router({ mergeParams: true });
 
@@ -115,6 +122,20 @@ milestoneRouter.patch(
   validate(approveMilestoneSchema),
   milestoneApproveRoles,
   milestoneController.approveMilestone
+);
+
+milestoneRouter.patch(
+  "/:id/feedback",
+  validate(submitMilestoneFeedbackSchema),
+  milestoneApproveRoles,
+  milestoneController.submitMilestoneFeedback
+);
+
+milestoneRouter.patch(
+  "/:id/feedback/reply",
+  validate(replyMilestoneFeedbackSchema),
+  milestoneReplyRoles,
+  milestoneController.replyMilestoneFeedback
 );
 
 /**

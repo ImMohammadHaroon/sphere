@@ -1,17 +1,12 @@
 import { useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
-import { ClientProgressBar } from "@/features/client-portal/ClientProgressBar";
+import { ClientProjectBoard } from "@/features/client-portal/ClientProjectBoard";
 import { useClientProjects } from "@/features/client-portal/hooks/useClientProjects";
 import { ProjectPicker } from "@/components/projects/ProjectPicker";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
-import {
-  DEFAULT_BOARD_COLUMNS,
-  getSortedColumns,
-  getStatusColor,
-} from "@/lib/taskStatusConfig";
 
 function formatDate(value) {
   if (!value) return null;
@@ -20,48 +15,6 @@ function formatDate(value) {
     month: "short",
     day: "numeric",
   });
-}
-
-function ColumnBreakdown({ project }) {
-  const columns = getSortedColumns(
-    project.columns?.length ? project.columns : DEFAULT_BOARD_COLUMNS
-  );
-  const tasks = project.tasks ?? [];
-
-  const columnCounts = useMemo(() => {
-    return columns.map((column) => ({
-      ...column,
-      count: tasks.filter((task) => task.status === column.key).length,
-    }));
-  }, [columns, tasks]);
-
-  return (
-    <Card className="overflow-hidden p-0">
-      <div className="border-b border-border px-4 py-3">
-        <h2 className="font-medium text-text-primary">Tasks by status</h2>
-      </div>
-      <ul className="divide-hover">
-        {columnCounts.map((column) => (
-          <li
-            key={column.key}
-            className="flex items-center justify-between gap-3 px-4 py-3"
-          >
-            <div className="flex items-center gap-2">
-              <span
-                className="h-2.5 w-2.5 shrink-0 rounded-full"
-                style={{ backgroundColor: getStatusColor(columns, column.key) }}
-                aria-hidden
-              />
-              <span className="text-text-primary">{column.name}</span>
-            </div>
-            <span className="text-sm text-text-secondary">
-              {column.count} {column.count === 1 ? "task" : "tasks"}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </Card>
-  );
 }
 
 function ProjectProgressDetail({ project }) {
@@ -79,15 +32,7 @@ function ProjectProgressDetail({ project }) {
         ) : null}
       </div>
 
-      <Card className="space-y-3">
-        <ClientProgressBar value={project.percentComplete} />
-        <p className="text-sm text-text-secondary">
-          {project.doneTasks} of {project.totalTasks} tasks complete{" "}
-          {project.percentComplete}%
-        </p>
-      </Card>
-
-      <ColumnBreakdown project={project} />
+      <ClientProjectBoard projectId={project._id} />
     </div>
   );
 }
@@ -97,9 +42,10 @@ function ProjectProgressContent() {
   const projectId = searchParams.get("project");
 
   useDashboardPageMeta({
-    title: "Project progress",
-    description:
-      "Read-only view of status, completion, and timeline for your projects.",
+    title: projectId ? "Project board" : "Board",
+    description: projectId
+      ? "Full Kanban board for your project."
+      : "Pick a project to view its full Kanban board.",
     showBack: Boolean(projectId),
     backLabel: projectId ? "All projects" : undefined,
     backTo: projectId ? "/portal/progress" : undefined,
@@ -114,17 +60,20 @@ function ProjectProgressContent() {
     isFetching,
   } = useClientProjects();
 
-  const selectedProject = useMemo(() => {
+  const project = useMemo(() => {
     if (!projectId) return null;
-    return projects.find((project) => project._id === projectId) ?? null;
+    return projects.find((item) => item._id === projectId) ?? null;
   }, [projectId, projects]);
 
   if (isLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-24" />
-        <Skeleton className="h-48" />
+        <div className="flex gap-4 overflow-hidden">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-[24rem] w-72 shrink-0" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -146,20 +95,20 @@ function ProjectProgressContent() {
     return (
       <ProjectPicker
         projects={projects}
-        getProjectHref={(project) => `/portal/progress?project=${project._id}`}
-        actionLabel="View"
+        getProjectHref={(item) => `/portal/progress?project=${item._id}`}
+        actionLabel="Open board"
         emptyTitle="No projects have been shared with you yet"
-        renderSubtitle={(project) => (
+        renderSubtitle={(item) => (
           <p className="mt-1 text-sm text-text-secondary">
-            {project.doneTasks} of {project.totalTasks} tasks complete{" "}
-            {project.percentComplete}%
+            {item.doneTasks} of {item.totalTasks} tasks complete{" "}
+            {item.percentComplete}%
           </p>
         )}
       />
     );
   }
 
-  if (!selectedProject) {
+  if (!project) {
     return (
       <Card className="p-8 text-center">
         <p className="text-text-secondary">This project is not available.</p>
@@ -173,7 +122,7 @@ function ProjectProgressContent() {
     );
   }
 
-  return <ProjectProgressDetail project={selectedProject} />;
+  return <ProjectProgressDetail project={project} />;
 }
 
 export function ProjectProgressPage() {

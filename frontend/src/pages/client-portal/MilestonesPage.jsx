@@ -2,11 +2,18 @@ import { useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
+import { MilestoneFeedbackThread } from "@/features/milestones/components/MilestoneFeedbackThread";
+import { MilestoneFeedbackDialog } from "@/features/milestones/components/MilestoneFeedbackDialog";
+import { MilestoneRejectDialog } from "@/features/milestones/components/MilestoneRejectDialog";
+import { MilestoneRejectReason } from "@/features/milestones/components/MilestoneRejectReason";
 import {
   formatMilestoneStatus,
   milestoneStatusBadgeVariant,
 } from "@/features/milestones/milestoneStatus";
-import { useApproveMilestone } from "@/features/milestones/hooks/useMilestones";
+import {
+  useApproveMilestone,
+  useSubmitMilestoneFeedback,
+} from "@/features/milestones/hooks/useMilestones";
 import { MilestoneAttachments } from "@/features/milestones/components/MilestoneAttachments";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { listMilestones } from "@/lib/milestonesApi";
@@ -35,7 +42,7 @@ function sortByDueDate(milestones) {
 export function ClientMilestonesPage() {
   useDashboardPageMeta({
     title: "Milestones",
-    description: "Review deliverables and approve completed milestones.",
+    description: "Review deliverables, leave feedback, and approve milestones.",
   });
 
   const { user } = useAuth();
@@ -61,7 +68,10 @@ export function ClientMilestonesPage() {
   });
 
   const approveMilestone = useApproveMilestone();
-  const [decisionTarget, setDecisionTarget] = useState(null);
+  const submitFeedback = useSubmitMilestoneFeedback();
+  const [approveTarget, setApproveTarget] = useState(null);
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const [feedbackTarget, setFeedbackTarget] = useState(null);
 
   const grouped = useMemo(() => {
     return projects
@@ -90,13 +100,32 @@ export function ClientMilestonesPage() {
   const isFetching =
     projectsFetching || milestoneQueries.some((query) => query.isFetching);
 
-  async function handleDecisionConfirm() {
-    if (!decisionTarget) return;
+  async function handleApproveConfirm() {
+    if (!approveTarget) return;
     await approveMilestone.mutateAsync({
-      id: decisionTarget.milestone._id,
-      decision: decisionTarget.decision,
+      id: approveTarget._id,
+      decision: "approved",
     });
-    setDecisionTarget(null);
+    setApproveTarget(null);
+  }
+
+  async function handleRejectConfirm(rejectReason) {
+    if (!rejectTarget) return;
+    await approveMilestone.mutateAsync({
+      id: rejectTarget._id,
+      decision: "rejected",
+      rejectReason,
+    });
+    setRejectTarget(null);
+  }
+
+  async function handleFeedbackSubmit(feedback) {
+    if (!feedbackTarget) return;
+    await submitFeedback.mutateAsync({
+      id: feedbackTarget._id,
+      feedback,
+    });
+    setFeedbackTarget(null);
   }
 
   function refetchAll() {
@@ -169,9 +198,6 @@ export function ClientMilestonesPage() {
                               {formatMilestoneStatus(milestone.status)}
                             </Badge>
                           </div>
-                          <p className="mt-1 text-sm text-text-secondary">
-                            {project.name}
-                          </p>
                           <p className="mt-1 text-sm text-text-muted">
                             Due {formatDueDate(milestone.dueDate)}
                           </p>
@@ -185,6 +211,17 @@ export function ClientMilestonesPage() {
                             canUpload={false}
                             compact
                           />
+                          <MilestoneRejectReason
+                            reason={milestone.rejectReason}
+                            className="mt-3"
+                          />
+                          <MilestoneFeedbackThread
+                            milestoneId={milestone._id}
+                            messages={milestone.feedbackMessages ?? []}
+                            clientFeedback={milestone.clientFeedback}
+                            compact
+                            className="mt-3"
+                          />
                         </div>
 
                         {isPending ? (
@@ -193,11 +230,16 @@ export function ClientMilestonesPage() {
                               type="button"
                               size="sm"
                               onClick={() =>
-                                setDecisionTarget({
-                                  milestone,
-                                  decision: "approved",
-                                })
+                                setFeedbackTarget(milestone)
                               }
+                            >
+                              Feedback
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setApproveTarget(milestone)}
                             >
                               Approve
                             </Button>
@@ -205,12 +247,7 @@ export function ClientMilestonesPage() {
                               type="button"
                               variant="danger"
                               size="sm"
-                              onClick={() =>
-                                setDecisionTarget({
-                                  milestone,
-                                  decision: "rejected",
-                                })
-                              }
+                              onClick={() => setRejectTarget(milestone)}
                             >
                               Reject
                             </Button>
@@ -227,26 +264,29 @@ export function ClientMilestonesPage() {
       ) : null}
 
       <ConfirmDialog
-        open={Boolean(decisionTarget)}
-        onOpenChange={(open) => !open && setDecisionTarget(null)}
-        title={
-          decisionTarget?.decision === "rejected"
-            ? "Reject milestone"
-            : "Approve milestone"
-        }
-        description={
-          decisionTarget?.decision === "rejected"
-            ? "Reject this milestone?"
-            : "Approve this milestone?"
-        }
-        confirmLabel={
-          decisionTarget?.decision === "rejected" ? "Reject" : "Approve"
-        }
-        variant={
-          decisionTarget?.decision === "rejected" ? "danger" : "primary"
-        }
-        onConfirm={handleDecisionConfirm}
+        open={Boolean(approveTarget)}
+        onOpenChange={(open) => !open && setApproveTarget(null)}
+        title="Approve milestone"
+        description={`Approve "${approveTarget?.name}"?`}
+        confirmLabel="Approve"
+        onConfirm={handleApproveConfirm}
         isLoading={approveMilestone.isPending}
+      />
+
+      <MilestoneRejectDialog
+        open={Boolean(rejectTarget)}
+        onOpenChange={(open) => !open && setRejectTarget(null)}
+        milestone={rejectTarget}
+        onConfirm={handleRejectConfirm}
+        isLoading={approveMilestone.isPending}
+      />
+
+      <MilestoneFeedbackDialog
+        open={Boolean(feedbackTarget)}
+        onOpenChange={(open) => !open && setFeedbackTarget(null)}
+        milestone={feedbackTarget}
+        onSubmit={handleFeedbackSubmit}
+        isLoading={submitFeedback.isPending}
       />
     </>
   );

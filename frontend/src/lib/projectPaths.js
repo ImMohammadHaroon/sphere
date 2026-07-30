@@ -1,6 +1,7 @@
 export function getProjectBasePath(role) {
   if (role === "org_admin") return "/admin/projects";
   if (role === "team_member") return "/member/projects";
+  if (role === "client") return "/portal/projects";
   return "/dashboard/projects";
 }
 

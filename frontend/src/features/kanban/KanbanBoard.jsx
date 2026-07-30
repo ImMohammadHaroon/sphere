@@ -53,6 +53,7 @@ function PresenceAvatars({ viewers, currentUserId }) {
 export function KanbanBoard({
   projectId,
   canMoveTask,
+  readOnly = false,
   selectedTaskId,
   onTaskSelect,
 }) {
@@ -75,8 +76,8 @@ export function KanbanBoard({
   }, [project?.columns]);
 
   const canMove = useMemo(
-    () => canMoveTask ?? (() => true),
-    [canMoveTask]
+    () => (readOnly ? () => false : (canMoveTask ?? (() => true))),
+    [canMoveTask, readOnly]
   );
 
   const {
@@ -113,6 +114,9 @@ export function KanbanBoard({
     }
     if (user?.role === "org_admin") {
       return `/admin/projects/${projectId}?tab=tasks&task=${task._id}`;
+    }
+    if (user?.role === "client") {
+      return undefined;
     }
     return `/dashboard/projects/${projectId}/tasks/${task._id}`;
   }
@@ -195,6 +199,7 @@ export function KanbanBoard({
               columns={columns}
               tasks={tasksByStatus[column.key] ?? []}
               canMoveTask={canMove}
+              readOnly={readOnly}
               taskDetailPathForTask={taskDetailPathForTask}
               onTaskSelect={onTaskSelect}
               selectedTaskId={selectedTaskId}

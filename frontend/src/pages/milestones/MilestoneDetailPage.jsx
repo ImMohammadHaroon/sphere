@@ -3,6 +3,8 @@ import { format, parseISO } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { MilestoneAttachments } from "@/features/milestones/components/MilestoneAttachments";
+import { MilestoneFeedbackThread } from "@/features/milestones/components/MilestoneFeedbackThread";
+import { MilestoneRejectReason } from "@/features/milestones/components/MilestoneRejectReason";
 import { MilestoneFormDialog } from "@/features/milestones/components/MilestoneFormDialog";
 import {
   useDeleteMilestone,
@@ -61,6 +63,11 @@ export function MilestoneDetailPage() {
 
   const projectPath = getProjectPath(role, projectId);
   const canEdit = canManage && milestone?.status === "pending";
+  const canReplyToFeedback =
+    milestone?.status === "pending" &&
+    (role === "org_admin" ||
+      role === "project_manager" ||
+      role === "team_member");
 
   useDashboardPageMeta({
     title: milestone?.name ?? "Milestone",
@@ -156,7 +163,27 @@ export function MilestoneDetailPage() {
         </div>
       </Card>
 
-      <Card className="mt-6 p-6">
+      {(milestone.feedbackMessages?.length ||
+        milestone.clientFeedback?.trim() ||
+        milestone.rejectReason?.trim()) ? (
+        <Card className="p-6">
+          <MilestoneRejectReason
+            reason={milestone.rejectReason}
+            className="mb-4"
+          />
+          {(milestone.feedbackMessages?.length ||
+            milestone.clientFeedback?.trim()) ? (
+            <MilestoneFeedbackThread
+              milestoneId={milestone._id}
+              messages={milestone.feedbackMessages ?? []}
+              clientFeedback={milestone.clientFeedback}
+              canReply={canReplyToFeedback}
+            />
+          ) : null}
+        </Card>
+      ) : null}
+
+      <Card className="p-6">
         <h3 className="mb-4 text-lg font-medium text-text-primary">Deliverables</h3>
         <MilestoneAttachments
           milestoneId={milestone._id}

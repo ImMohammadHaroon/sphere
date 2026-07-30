@@ -5,7 +5,7 @@ import { Project } from "../models/Project.js";
 import { User } from "../models/User.js";
 import { createNotification } from "../services/notification.service.js";
 import { isProjectMember } from "../utils/projectAccess.js";
-import { USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
+import { formatPublicUser, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -25,7 +25,46 @@ function forbidden(message = "Forbidden") {
   return err;
 }
 
+export function formatFeedbackMessage(message) {
+  const author = formatPublicUser(message.authorId);
+
+  return {
+    _id: message._id?.toString?.() ?? message._id,
+    body: message.body,
+    authorId: author?.id ?? message.authorId?.toString?.() ?? null,
+    author,
+    createdAt: message.createdAt,
+  };
+}
+
+function buildFeedbackMessages(milestone) {
+  const thread = (milestone.feedbackThread ?? []).map(formatFeedbackMessage);
+
+  if (thread.length > 0) {
+    return thread;
+  }
+
+  if (milestone.clientFeedback?.trim()) {
+    return [
+      {
+        _id: "legacy",
+        body: milestone.clientFeedback,
+        authorId:
+          milestone.approvedByClientId?.toString?.() ??
+          milestone.approvedByClientId ??
+          null,
+        author: null,
+        createdAt: milestone.updatedAt ?? milestone.createdAt,
+      },
+    ];
+  }
+
+  return [];
+}
+
 export function formatMilestone(milestone) {
+  const feedbackMessages = buildFeedbackMessages(milestone);
+
   return {
     ...milestone,
     _id: milestone._id.toString(),
@@ -35,6 +74,11 @@ export function formatMilestone(milestone) {
       milestone.approvedByClientId?.toString?.() ??
       milestone.approvedByClientId,
     createdBy: milestone.createdBy?.toString?.() ?? milestone.createdBy,
+    feedbackMessages,
+    clientFeedback:
+      feedbackMessages.find((message) => !message.author)?.body ??
+      milestone.clientFeedback ??
+      "",
   };
 }
 
@@ -97,6 +141,7 @@ export async function listMilestones(req, res, next) {
 
     const milestones = await req
       .scopedQuery(Milestone, { projectId: req.params.projectId })
+      .populate("feedbackThread.authorId", USER_PUBLIC_FIELDS)
       .sort({ dueDate: 1 })
       .lean();
 
@@ -221,16 +266,18 @@ export async function approveMilestone(req, res, next) {
       throw forbidden();
     }
 
+    const updates = {
+      status: req.body.decision,
+      approvedByClientId: req.user.userId,
+      approvedAt: new Date(),
+    };
+
+    if (req.body.decision === "rejected") {
+      updates.rejectReason = req.body.rejectReason;
+    }
+
     const milestone = await req
-      .scopedFindOneAndUpdate(
-        Milestone,
-        { _id: req.params.id },
-        {
-          status: req.body.decision,
-          approvedByClientId: req.user.userId,
-          approvedAt: new Date(),
-        }
-      )
+      .scopedFindOneAndUpdate(Milestone, { _id: req.params.id }, updates)
       .lean();
 
     try {
@@ -244,6 +291,7 @@ export async function approveMilestone(req, res, next) {
           projectId: project._id.toString(),
           projectName: project.name,
           decision: req.body.decision,
+          rejectReason: req.body.rejectReason ?? "",
         },
       });
     } catch (notifyErr) {
@@ -251,6 +299,205 @@ export async function approveMilestone(req, res, next) {
         "Failed to create milestone_approved notification:",
         notifyErr
       );
+    }
+
+    res.json({ milestone: formatMilestone(milestone) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function submitMilestoneFeedback(req, res, next) {
+  try {
+    if (req.user.role !== "client") {
+      throw forbidden("Only clients can submit milestone feedback");
+    }
+
+    const existing = await req
+      .scopedFindOne(Milestone, { _id: req.params.id })
+      .lean();
+
+    if (!existing) {
+      throw notFound();
+    }
+
+    if (existing.status !== "pending") {
+      throw conflict("Feedback can only be added while the milestone is pending");
+    }
+
+    const project = await loadProjectWithMembers(req, existing.projectId);
+
+    if (!project) {
+      throw notFound("Project not found");
+    }
+
+    if (!isProjectMember(project, req.user.userId)) {
+      throw forbidden();
+    }
+
+    const message = {
+      body: req.body.feedback,
+      authorId: req.user.userId,
+      createdAt: new Date(),
+    };
+
+    await req.scopedFindOneAndUpdate(
+      Milestone,
+      { _id: req.params.id },
+      {
+        $push: { feedbackThread: message },
+        clientFeedback: req.body.feedback,
+      }
+    );
+
+    const milestone = await req
+      .scopedFindOne(Milestone, { _id: req.params.id })
+      .populate("feedbackThread.authorId", USER_PUBLIC_FIELDS)
+      .lean();
+
+    try {
+      await createNotification({
+        organizationId: existing.organizationId,
+        userId: project.ownerId,
+        type: "milestone_feedback",
+        payload: {
+          milestoneId: existing._id.toString(),
+          milestoneName: existing.name,
+          projectId: project._id.toString(),
+          projectName: project.name,
+          feedback: req.body.feedback,
+        },
+      });
+    } catch (notifyErr) {
+      console.error(
+        "Failed to create milestone_feedback notification:",
+        notifyErr
+      );
+    }
+
+    res.json({ milestone: formatMilestone(milestone) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function milestoneHasClientFeedback(existing) {
+  if (existing.clientFeedback?.trim()) {
+    return true;
+  }
+
+  if (!existing.feedbackThread?.length) {
+    return false;
+  }
+
+  const authorIds = [
+    ...new Set(
+      existing.feedbackThread.map((message) => message.authorId.toString())
+    ),
+  ];
+
+  const clientCount = await User.countDocuments({
+    _id: { $in: authorIds.map((id) => new mongoose.Types.ObjectId(id)) },
+    organizationId: existing.organizationId,
+    role: "client",
+  });
+
+  return clientCount > 0;
+}
+
+export async function replyMilestoneFeedback(req, res, next) {
+  try {
+    const teamRoles = ["org_admin", "project_manager", "team_member"];
+    if (!teamRoles.includes(req.user.role)) {
+      throw forbidden("Only team members can reply to client feedback");
+    }
+
+    const existing = await req
+      .scopedFindOne(Milestone, { _id: req.params.id })
+      .lean();
+
+    if (!existing) {
+      throw notFound();
+    }
+
+    if (existing.status !== "pending") {
+      throw conflict("Replies are only allowed while the milestone is pending");
+    }
+
+    const project = await loadProjectWithMembers(req, existing.projectId);
+
+    if (!project) {
+      throw notFound("Project not found");
+    }
+
+    if (
+      req.user.role !== "org_admin" &&
+      !isProjectMember(project, req.user.userId)
+    ) {
+      throw forbidden();
+    }
+
+    const hasClientFeedback = await milestoneHasClientFeedback(existing);
+    if (!hasClientFeedback) {
+      throw conflict("Wait for client feedback before replying");
+    }
+
+    const message = {
+      body: req.body.message,
+      authorId: req.user.userId,
+      createdAt: new Date(),
+    };
+
+    await req.scopedFindOneAndUpdate(
+      Milestone,
+      { _id: req.params.id },
+      { $push: { feedbackThread: message } }
+    );
+
+    const milestone = await req
+      .scopedFindOne(Milestone, { _id: req.params.id })
+      .populate("feedbackThread.authorId", USER_PUBLIC_FIELDS)
+      .lean();
+
+    const projectMemberIds = memberIds(project);
+    if (projectMemberIds.length > 0) {
+      const clients = await User.find({
+        _id: {
+          $in: projectMemberIds.map((id) => new mongoose.Types.ObjectId(id)),
+        },
+        organizationId: existing.organizationId,
+        role: "client",
+        isActive: true,
+      })
+        .select("_id")
+        .lean();
+
+      for (const client of clients) {
+        try {
+          const replier = await User.findById(req.user.userId)
+            .select("name")
+            .lean();
+
+          await createNotification({
+            organizationId: existing.organizationId,
+            userId: client._id,
+            type: "milestone_feedback_reply",
+            payload: {
+              milestoneId: existing._id.toString(),
+              milestoneName: existing.name,
+              projectId: project._id.toString(),
+              projectName: project.name,
+              message: req.body.message,
+              repliedByName: replier?.name ?? "Your team",
+            },
+          });
+        } catch (notifyErr) {
+          console.error(
+            "Failed to create milestone_feedback_reply notification:",
+            notifyErr
+          );
+        }
+      }
     }
 
     res.json({ milestone: formatMilestone(milestone) });

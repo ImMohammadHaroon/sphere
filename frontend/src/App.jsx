@@ -18,6 +18,7 @@ import {
 } from "@/pages/client-portal/MyProjectsPage";
 import { ProjectProgressPage } from "@/pages/client-portal/ProjectProgressPage";
 import { ClientMilestonesPage } from "@/pages/client-portal/MilestonesPage";
+import { ClientKanbanPage } from "@/pages/client-portal/ClientKanbanPage";
 import { ClientReportsPage } from "@/pages/client-portal/ReportsPage";
 import { MyProjectsOverviewPage } from "@/pages/project-manager/MyProjectsOverviewPage";
 import { ProjectDetailPage } from "@/pages/project-manager/ProjectDetailPage";
@@ -209,6 +210,7 @@ function AppRoutes() {
       >
         <Route index element={<ClientMyProjectsPage />} />
         <Route path="progress" element={<ProjectProgressPage />} />
+        <Route path="projects/:projectId/board" element={<ClientKanbanPage />} />
         <Route path="milestones" element={<ClientMilestonesPage />} />
         <Route path="reports" element={<ClientReportsPage />} />
         <Route

@@ -4,7 +4,9 @@ import {
   createMilestone,
   deleteMilestone,
   listMilestones,
+  submitMilestoneFeedback,
   updateMilestone,
+  replyMilestoneFeedback,
 } from "@/lib/milestonesApi";
 import { useAuth } from "@/hooks/useAuth";
 import { withMutationToasts } from "@/lib/mutationToasts";
@@ -98,7 +100,8 @@ export function useApproveMilestone() {
   return useMutation(
     withMutationToasts(
       {
-        mutationFn: ({ id, decision }) => approveMilestone(id, decision),
+        mutationFn: ({ id, decision, rejectReason }) =>
+          approveMilestone(id, decision, rejectReason),
         onSuccess: () => {
           queryClient.invalidateQueries({
             queryKey: ["milestones", user?.organizationId],
@@ -110,10 +113,48 @@ export function useApproveMilestone() {
       },
       {
         success: (_result, { decision }) =>
-          decision === "approve"
+          decision === "approved"
             ? "Milestone approved."
             : "Milestone rejected.",
       }
+    )
+  );
+}
+
+export function useSubmitMilestoneFeedback() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: ({ id, feedback }) => submitMilestoneFeedback(id, feedback),
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["milestones", user?.organizationId],
+          });
+        },
+      },
+      { success: "Feedback sent to the team." }
+    )
+  );
+}
+
+export function useReplyMilestoneFeedback() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation(
+    withMutationToasts(
+      {
+        mutationFn: ({ id, message }) => replyMilestoneFeedback(id, message),
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["milestones", user?.organizationId],
+          });
+        },
+      },
+      { success: "Reply sent to the client." }
     )
   );
 }

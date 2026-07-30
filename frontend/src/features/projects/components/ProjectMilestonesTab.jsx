@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { Link } from "react-router-dom";
 import { MilestoneFormDialog } from "@/features/milestones/components/MilestoneFormDialog";
+import { MilestoneFeedbackThread } from "@/features/milestones/components/MilestoneFeedbackThread";
+import { MilestoneRejectReason } from "@/features/milestones/components/MilestoneRejectReason";
 import {
   useCreateMilestone,
   useProjectMilestones,
@@ -95,7 +97,14 @@ export function ProjectMilestonesTab({
       ) : (
         <Card className="overflow-hidden p-0">
           <ul className="divide-hover">
-            {milestones.map((milestone) => (
+            {milestones.map((milestone) => {
+              const canReplyToFeedback =
+                milestone.status === "pending" &&
+                (role === "org_admin" ||
+                  role === "project_manager" ||
+                  role === "team_member");
+
+              return (
               <li key={milestone._id} className="px-4 py-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -118,6 +127,18 @@ export function ProjectMilestonesTab({
                     <p className="mt-2 text-sm text-text-muted">
                       Due {formatDueDate(milestone.dueDate)}
                     </p>
+                    <MilestoneRejectReason
+                      reason={milestone.rejectReason}
+                      className="mt-3"
+                    />
+                    <MilestoneFeedbackThread
+                      milestoneId={milestone._id}
+                      messages={milestone.feedbackMessages ?? []}
+                      clientFeedback={milestone.clientFeedback}
+                      canReply={canReplyToFeedback}
+                      compact
+                      className="mt-3"
+                    />
                   </div>
 
                   <ButtonLink
@@ -129,7 +150,8 @@ export function ProjectMilestonesTab({
                   </ButtonLink>
                 </div>
               </li>
-            ))}
+            );
+            })}
           </ul>
         </Card>
       )}

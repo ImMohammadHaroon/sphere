@@ -27,7 +27,12 @@ export function getNotificationPath(role, notification) {
   if (type === "task_assigned" || type === "task_moved" || type === "comment_mention") {
     return getTaskDetailPath(role, payload);
   }
-  if (type === "milestone_created" || type === "milestone_approved") {
+  if (
+    type === "milestone_created" ||
+    type === "milestone_approved" ||
+    type === "milestone_feedback" ||
+    type === "milestone_feedback_reply"
+  ) {
     return getMilestoneDetailPathForRole(role, payload);
   }
   if (type === "invite_accepted") {

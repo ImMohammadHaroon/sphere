@@ -29,6 +29,19 @@ const milestoneSchema = new mongoose.Schema(
       default: null,
     },
     approvedAt: { type: Date, default: null },
+    rejectReason: { type: String, trim: true, default: "" },
+    clientFeedback: { type: String, trim: true, default: "" },
+    feedbackThread: [
+      {
+        body: { type: String, required: true, trim: true, maxlength: 2000 },
+        authorId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

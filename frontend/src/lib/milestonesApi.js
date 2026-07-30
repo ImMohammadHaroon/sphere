@@ -18,10 +18,27 @@ export function updateMilestone(id, data) {
   });
 }
 
-export function approveMilestone(id, decision) {
+export function approveMilestone(id, decision, rejectReason) {
   return apiClient(`/milestones/${id}/approve`, {
     method: "PATCH",
-    body: { decision },
+    body: {
+      decision,
+      ...(rejectReason ? { rejectReason } : {}),
+    },
+  });
+}
+
+export function submitMilestoneFeedback(id, feedback) {
+  return apiClient(`/milestones/${id}/feedback`, {
+    method: "PATCH",
+    body: { feedback },
+  });
+}
+
+export function replyMilestoneFeedback(id, message) {
+  return apiClient(`/milestones/${id}/feedback/reply`, {
+    method: "PATCH",
+    body: { message },
   });
 }
 

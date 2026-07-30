@@ -12,6 +12,7 @@ export function KanbanColumn({
   columns,
   tasks,
   canMoveTask,
+  readOnly = false,
   taskDetailPathForTask,
   onTaskSelect,
   selectedTaskId,
@@ -62,7 +63,7 @@ export function KanbanColumn({
 
         {tasks.length === 0 ? (
           <p className="px-2 py-6 text-center text-xs text-text-muted">
-            Drop tasks here
+            {readOnly ? "No tasks" : "Drop tasks here"}
           </p>
         ) : null}
       </div>

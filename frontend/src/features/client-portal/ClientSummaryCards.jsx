@@ -17,8 +17,16 @@ export function ClientSummaryCards({
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <MetricCard label="Active projects" value={activeProjectCount} />
-      <MetricCard label="Average completion" value={`${averageCompletion}%`} />
+      <MetricCard
+        label="Projects in progress"
+        value={activeProjectCount}
+        description="Active work shared with you"
+      />
+      <MetricCard
+        label="Overall progress"
+        value={`${averageCompletion}%`}
+        description="Across all your projects"
+      />
     </div>
   );
 }

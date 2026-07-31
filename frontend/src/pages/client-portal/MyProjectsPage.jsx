@@ -3,8 +3,9 @@ import { ClientDashboardPage } from "@/features/client-portal/ClientDashboardPag
 
 export function ClientMyProjectsPage() {
   useDashboardPageMeta({
-    title: "My projects",
-    description: "Projects shared with your client account.",
+    title: "Your projects",
+    description:
+      "See how your work is going and what needs your attention.",
   });
 
   return <ClientDashboardPage />;

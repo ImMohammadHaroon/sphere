@@ -14,7 +14,7 @@ const DASHBOARD_NAMES = {
   org_admin: "Org Admin",
   project_manager: "Project Manager",
   team_member: "Team Member",
-  client: "Client Portal",
+  client: "Your portal",
 };
 
 export function DashboardShell({

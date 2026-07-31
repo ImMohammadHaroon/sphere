@@ -64,9 +64,9 @@ function MilestoneProgressCard({ milestones, isLoading }) {
   return (
     <Card className="flex h-full min-h-72 flex-col overflow-hidden p-0">
       <div className="border-b border-border px-4 py-4 sm:px-6">
-        <h2 className="font-display text-lg font-semibold">Milestone delivery</h2>
+        <h2 className="font-display text-lg font-semibold">Deliverables</h2>
         <p className="mt-1 text-sm text-text-secondary">
-          Approval status for this project&apos;s deliverables.
+          What has been sent to you and what still needs your review.
         </p>
       </div>
 
@@ -87,7 +87,7 @@ function MilestoneProgressCard({ milestones, isLoading }) {
           <div className="grid grid-cols-3 gap-3 border-b border-border px-4 py-4 sm:px-6">
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
-                Pending
+                Waiting for you
               </p>
               <p className="mt-1 font-display text-xl font-semibold text-text-primary">
                 {pending.length}
@@ -103,7 +103,7 @@ function MilestoneProgressCard({ milestones, isLoading }) {
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
-                Rejected
+                Changes requested
               </p>
               <p className="mt-1 font-display text-xl font-semibold text-danger">
                 {rejected.length}
@@ -138,7 +138,7 @@ function MilestoneProgressCard({ milestones, isLoading }) {
                 to="/portal/milestones"
                 className="text-sm font-medium text-primary hover:underline"
               >
-                Review pending milestones →
+                Review now →
               </Link>
             </div>
           ) : null}
@@ -153,11 +153,10 @@ export function ClientReportsPage() {
   const projectId = searchParams.get("project") || "";
 
   useDashboardPageMeta({
-    title: "Reports",
-    description:
-      "Track delivery progress and milestone status for shared projects.",
+    title: "Progress summary",
+    description: "A simple overview of how your project is going.",
     showBack: Boolean(projectId),
-    backLabel: projectId ? "All projects" : undefined,
+    backLabel: projectId ? "Back to projects" : undefined,
     backTo: projectId ? "/portal/reports" : undefined,
   });
 
@@ -231,9 +230,9 @@ export function ClientReportsPage() {
         <ProjectPicker
           projects={projects}
           getProjectHref={(project) => `/portal/reports?project=${project._id}`}
-          actionLabel="Open report"
-          emptyTitle="No shared projects yet"
-          emptyDescription="When a project is shared with you, burndown and milestone progress will appear here."
+          actionLabel="View summary"
+          emptyTitle="No projects shared with you yet"
+          emptyDescription="When your team shares a project, a progress summary will appear here."
         />
       ) : null}
 
@@ -277,13 +276,13 @@ export function ClientReportsPage() {
       {projectId && selectedProject && !reportLoading && !reportError ? (
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
-            <MetricCard label="Total tasks" value={totalScope} />
+            <MetricCard label="Total steps" value={totalScope} />
             <MetricCard
               label="Completed"
               value={completed ?? 0}
             />
             <MetricCard
-              label="Awaiting your review"
+              label="Waiting for your review"
               value={pendingMilestones}
             />
           </div>
@@ -292,8 +291,8 @@ export function ClientReportsPage() {
             <BurndownChart
               series={burndown.data?.series}
               totalScope={burndown.data?.totalScope}
-              title={`${selectedProject.name} burndown`}
-              description="Remaining work versus the ideal path from project start to due date."
+              title={`${selectedProject.name} progress`}
+              description="How much work is left over time."
             />
             <MilestoneProgressCard
               milestones={milestoneList}

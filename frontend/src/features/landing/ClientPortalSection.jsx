@@ -1,13 +1,39 @@
 import { motion } from "motion/react";
-import { CheckCircle2, Eye } from "lucide-react";
+import { CheckCircle2, Circle } from "lucide-react";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { useLandingMotion } from "./landingMotion";
 
 const MILESTONE_STEPS = [
-  { label: "Design system delivery", status: "approved", date: "Mar 12" },
-  { label: "Beta launch", status: "pending", date: "Apr 3" },
-  { label: "Full rollout", status: "upcoming", date: "May 1" },
+  { label: "Brand guidelines", status: "approved", date: "Mar 12" },
+  { label: "Website preview", status: "pending", date: "Apr 3" },
+  { label: "Final launch", status: "upcoming", date: "May 1" },
 ];
+
+function StepStatus({ status }) {
+  if (status === "approved") {
+    return (
+      <CheckCircle2
+        className="h-5 w-5 shrink-0 text-primary"
+        aria-label="Approved"
+      />
+    );
+  }
+
+  return (
+    <Circle
+      className={`h-5 w-5 shrink-0 ${
+        status === "pending" ? "text-primary" : "text-border-strong"
+      }`}
+      aria-hidden
+    />
+  );
+}
+
+function StepLabel({ status }) {
+  if (status === "approved") return "Approved";
+  if (status === "pending") return "Ready for you";
+  return "Coming up";
+}
 
 export function ClientPortalSection() {
   const { staggerContainer, staggerItem, staggerViewport } =
@@ -25,12 +51,12 @@ export function ClientPortalSection() {
             Client portal
           </p>
           <h2 className="mt-4 font-landing-display text-3xl font-semibold leading-tight sm:text-4xl">
-            Clients see progress  and sign off on milestones
+            A simple place for clients to follow along
           </h2>
           <p className="mt-4 text-text-secondary">
-            Invite clients to a read-only, branded view of their projects. They
-            track delivery without a full team account, and approve milestones
-            when work is ready  no chasing status in email.
+            No training required. Clients see project progress, review
+            deliverables, and tap one button to say it looks good — without
+            learning your team&apos;s tools.
           </p>
           <ButtonLink to="/register" className="mt-8" variant="outline">
             Set up your organization
@@ -41,23 +67,29 @@ export function ClientPortalSection() {
           variants={staggerItem}
           className="rounded-2xl border border-border bg-surface-raised p-5 shadow-sm sm:p-6"
         >
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
-                client-portal / acme-rebrand
-              </p>
-              <p className="mt-1 text-sm font-medium text-text-primary">
-                Acme Rebrand  Client View
-              </p>
+          <div className="border-b border-border pb-4">
+            <p className="text-sm font-medium text-text-primary">
+              Acme Rebrand
+            </p>
+            <p className="mt-1 text-sm text-text-secondary">
+              Hi Sarah, here is where your project stands.
+            </p>
+          </div>
+
+          <div className="mt-5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-text-primary">
+                Making good progress
+              </span>
+              <span className="text-text-secondary">62% complete</span>
             </div>
-            <div className="flex items-center gap-1.5 rounded-full bg-accent-subtle px-2.5 py-1 text-accent-foreground">
-              <Eye className="h-3.5 w-3.5" aria-hidden />
-              <span className="text-xs font-medium">Read-only</span>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface">
+              <div className="h-full w-[62%] rounded-full bg-primary" />
             </div>
           </div>
 
-          <p className="mt-5 text-xs font-medium uppercase tracking-wide text-text-muted">
-            Milestones
+          <p className="mt-6 text-sm font-medium text-text-primary">
+            Deliverables
           </p>
           <ul className="mt-3 space-y-3">
             {MILESTONE_STEPS.map((step) => (
@@ -66,32 +98,24 @@ export function ClientPortalSection() {
                 className="flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-3"
               >
                 <div className="flex items-center gap-3">
-                  {step.status === "approved" ? (
-                    <CheckCircle2
-                      className="h-4 w-4 text-primary"
-                      aria-label="Approved"
-                    />
-                  ) : (
-                    <span
-                      className="h-4 w-4 rounded-full border-2 border-border-strong"
-                      aria-hidden
-                    />
-                  )}
+                  <StepStatus status={step.status} />
                   <span className="text-sm text-text-primary">{step.label}</span>
                 </div>
-                <span className="font-mono text-[10px] text-text-muted">
-                  {step.status === "approved"
-                    ? `approved ${step.date}`
-                    : step.date}
+                <span className="text-xs text-text-muted">
+                  <StepLabel status={step.status} />
                 </span>
               </li>
             ))}
           </ul>
 
-          <p className="mt-5 text-xs text-text-secondary">
-            Clients approve milestones from this view  your team keeps full
-            edit access on the project board.
-          </p>
+          <div className="mt-5 rounded-lg bg-primary/5 px-4 py-3 text-center">
+            <p className="text-sm font-medium text-text-primary">
+              Website preview is ready for you
+            </p>
+            <p className="mt-1 text-xs text-text-secondary">
+              Tap to review and let the team know if it looks good
+            </p>
+          </div>
         </motion.div>
       </motion.div>
     </section>

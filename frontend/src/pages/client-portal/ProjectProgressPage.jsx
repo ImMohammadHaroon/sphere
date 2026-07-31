@@ -28,7 +28,7 @@ function ProjectProgressDetail({ project }) {
           <p className="text-text-secondary">{project.description}</p>
         ) : null}
         {dueDate ? (
-          <p className="text-sm text-text-secondary">Due {dueDate}</p>
+          <p className="text-sm text-text-secondary">Expected by {dueDate}</p>
         ) : null}
       </div>
 
@@ -42,13 +42,13 @@ function ProjectProgressContent() {
   const projectId = searchParams.get("project");
 
   useDashboardPageMeta({
-    title: projectId ? "Project board" : "Board",
+    title: projectId ? "Work progress" : "Work progress",
     description: projectId
-      ? "Full Kanban board for your project."
-      : "Pick a project to view its full Kanban board.",
+      ? "See what your team is working on. You can view tasks but cannot make changes."
+      : "Choose a project to see its current progress.",
     showBack: Boolean(projectId),
-    backLabel: projectId ? "All projects" : undefined,
-    backTo: projectId ? "/portal/progress" : undefined,
+    backLabel: projectId ? "Back to projects" : undefined,
+    backTo: projectId ? "/portal" : undefined,
   });
 
   const {
@@ -96,12 +96,12 @@ function ProjectProgressContent() {
       <ProjectPicker
         projects={projects}
         getProjectHref={(item) => `/portal/progress?project=${item._id}`}
-        actionLabel="Open board"
-        emptyTitle="No projects have been shared with you yet"
+        actionLabel="View progress"
+        emptyTitle="No projects shared with you yet"
+        emptyDescription="When your team shares a project, you can follow its progress here."
         renderSubtitle={(item) => (
           <p className="mt-1 text-sm text-text-secondary">
-            {item.doneTasks} of {item.totalTasks} tasks complete{" "}
-            {item.percentComplete}%
+            {item.percentComplete}% complete
           </p>
         )}
       />

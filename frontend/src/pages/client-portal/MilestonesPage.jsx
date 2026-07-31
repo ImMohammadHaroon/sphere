@@ -6,10 +6,8 @@ import { MilestoneFeedbackThread } from "@/features/milestones/components/Milest
 import { MilestoneFeedbackDialog } from "@/features/milestones/components/MilestoneFeedbackDialog";
 import { MilestoneRejectDialog } from "@/features/milestones/components/MilestoneRejectDialog";
 import { MilestoneRejectReason } from "@/features/milestones/components/MilestoneRejectReason";
-import {
-  formatMilestoneStatus,
-  milestoneStatusBadgeVariant,
-} from "@/features/milestones/milestoneStatus";
+import { formatClientMilestoneStatus } from "@/features/client-portal/clientCopy";
+import { milestoneStatusBadgeVariant } from "@/features/milestones/milestoneStatus";
 import {
   useApproveMilestone,
   useSubmitMilestoneFeedback,
@@ -41,8 +39,9 @@ function sortByDueDate(milestones) {
 
 export function ClientMilestonesPage() {
   useDashboardPageMeta({
-    title: "Milestones",
-    description: "Review deliverables, leave feedback, and approve milestones.",
+    title: "Reviews",
+    description:
+      "Your team will send deliverables here. Take a look and let them know if everything looks good.",
   });
 
   const { user } = useAuth();
@@ -148,16 +147,14 @@ export function ClientMilestonesPage() {
       {isError ? (
         <Card className="p-6">
           <p className="text-text-secondary">
-            {error instanceof Error
-              ? error.message
-              : "Failed to load milestones."}
+            We could not load your reviews. Please try again.
           </p>
           <Button
             className="mt-4"
             onClick={() => refetchAll()}
             isLoading={isFetching}
           >
-            Retry
+            Try again
           </Button>
         </Card>
       ) : null}
@@ -165,7 +162,12 @@ export function ClientMilestonesPage() {
       {!isLoading && !isError ? (
         flatMilestones.length === 0 ? (
           <Card className="p-8 text-center">
-            <p className="text-text-secondary">No milestones to review yet</p>
+            <p className="text-lg font-medium text-text-primary">
+              Nothing to review yet
+            </p>
+            <p className="mt-2 text-text-secondary">
+              When your team sends something for approval, it will appear here.
+            </p>
           </Card>
         ) : (
           <div className="space-y-6">
@@ -195,11 +197,11 @@ export function ClientMilestonesPage() {
                                 milestone.status
                               )}
                             >
-                              {formatMilestoneStatus(milestone.status)}
+                              {formatClientMilestoneStatus(milestone.status)}
                             </Badge>
                           </div>
                           <p className="mt-1 text-sm text-text-muted">
-                            Due {formatDueDate(milestone.dueDate)}
+                            Expected by {formatDueDate(milestone.dueDate)}
                           </p>
                           {milestone.description ? (
                             <p className="mt-1 text-sm text-text-secondary">
@@ -229,19 +231,17 @@ export function ClientMilestonesPage() {
                             <Button
                               type="button"
                               size="sm"
-                              onClick={() =>
-                                setFeedbackTarget(milestone)
-                              }
+                              variant="outline"
+                              onClick={() => setFeedbackTarget(milestone)}
                             >
-                              Feedback
+                              Ask a question
                             </Button>
                             <Button
                               type="button"
                               size="sm"
-                              variant="outline"
                               onClick={() => setApproveTarget(milestone)}
                             >
-                              Approve
+                              Looks good
                             </Button>
                             <Button
                               type="button"
@@ -249,7 +249,7 @@ export function ClientMilestonesPage() {
                               size="sm"
                               onClick={() => setRejectTarget(milestone)}
                             >
-                              Reject
+                              Needs changes
                             </Button>
                           </div>
                         ) : null}
@@ -266,9 +266,9 @@ export function ClientMilestonesPage() {
       <ConfirmDialog
         open={Boolean(approveTarget)}
         onOpenChange={(open) => !open && setApproveTarget(null)}
-        title="Approve milestone"
-        description={`Approve "${approveTarget?.name}"?`}
-        confirmLabel="Approve"
+        title="Approve this deliverable?"
+        description={`Let your team know that "${approveTarget?.name}" looks good to you.`}
+        confirmLabel="Yes, looks good"
         onConfirm={handleApproveConfirm}
         isLoading={approveMilestone.isPending}
       />

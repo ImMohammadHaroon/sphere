@@ -1,35 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
-import { BarChart3, Columns3, Flag, FolderKanban, MessageSquare } from "lucide-react";
+import { FolderKanban, MessageSquare, ClipboardCheck } from "lucide-react";
 import { SidebarNavItem } from "./SidebarNavItem";
+import { useClientPendingReviews } from "@/features/client-portal/hooks/useClientPendingReviews";
 
 const clientPortalNav = [
   {
-    label: "My projects",
+    label: "Your projects",
     to: "/portal",
     match: (p) => p === "/portal",
     icon: FolderKanban,
   },
   {
-    label: "Board",
-    to: "/portal/progress",
-    match: (p) =>
-      p === "/portal/progress" || p.startsWith("/portal/projects/"),
-    icon: Columns3,
-  },
-  {
-    label: "Milestones",
+    label: "Reviews",
     to: "/portal/milestones",
     match: (p) => p === "/portal/milestones",
-    icon: Flag,
+    icon: ClipboardCheck,
+    showPendingBadge: true,
   },
   {
-    label: "Reports",
-    to: "/portal/reports",
-    match: (p) => p === "/portal/reports",
-    icon: BarChart3,
-  },
-  {
-    label: "Chat",
+    label: "Messages",
     to: "/chat",
     match: (p) => p === "/chat" || p.startsWith("/chat/"),
     icon: MessageSquare,
@@ -38,6 +27,7 @@ const clientPortalNav = [
 
 export function ClientPortalSidebar() {
   const { pathname } = useLocation();
+  const { pendingCount } = useClientPendingReviews();
 
   return (
     <aside className="flex h-full w-full flex-col border-r border-sidebar-border bg-sidebar p-3 lg:p-8">
@@ -59,6 +49,11 @@ export function ClientPortalSidebar() {
               to={item.to}
               label={item.label}
               icon={item.icon}
+              badge={
+                item.showPendingBadge && pendingCount > 0
+                  ? pendingCount
+                  : undefined
+              }
               isActive={
                 item.match ? item.match(pathname) : pathname === item.to
               }

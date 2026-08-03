@@ -65,6 +65,13 @@ export const resetPasswordSchema = z.object({
 export const updateProfileSchema = z.object({
   body: z.object({
     name: z.string().min(2).max(100),
+    jobTitle: z
+      .string()
+      .trim()
+      .max(80)
+      .optional()
+      .nullable()
+      .transform((value) => (value === "" ? null : value)),
   }),
 });
 

@@ -3,7 +3,7 @@ import { ChatRoom } from "../models/ChatRoom.js";
 import { Project } from "../models/Project.js";
 import { User } from "../models/User.js";
 import { isProjectMember } from "../utils/projectAccess.js";
-import { formatPublicUser, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
+import { formatPublicUser, formatUserDisplayRole, USER_PUBLIC_FIELDS } from "../utils/formatUser.js";
 
 function notFound(message = "Not found") {
   const err = new Error(message);
@@ -222,7 +222,7 @@ export async function buildRoomSummary(req, room) {
 
     return formatRoomSummary(room, {
       name: formatted?.name ?? "Direct message",
-      subtitle: formatted?.role?.replace(/_/g, " ") ?? null,
+      subtitle: formatUserDisplayRole(formatted),
       otherUser: formatted,
     });
   }

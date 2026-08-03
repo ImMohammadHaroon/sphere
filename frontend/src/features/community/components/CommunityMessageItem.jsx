@@ -3,8 +3,8 @@ import { Trash2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { CommunityMessageAttachments } from "@/features/community/components/CommunityMessageAttachments";
 import {
-  formatRoleLabel,
-  getRoleBadgeClass,
+  getUserDisplayRole,
+  getUserDisplayRoleBadgeClass,
   isMessageFromUser,
 } from "@/features/community/lib/communityUtils";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +23,9 @@ export function CommunityMessageItem({
   const { user } = useAuth();
   const author = message.author;
   const isOwn = isMessageFromUser(message, user);
+  const displayRole = author ? getUserDisplayRole(author) : null;
+  const hasCustomRole =
+    author?.role === "team_member" && Boolean(author?.jobTitle?.trim());
   const canDelete =
     isOwn ||
     user?.role === "org_admin" ||
@@ -73,14 +76,15 @@ export function CommunityMessageItem({
                 You
               </span>
             )}
-            {author?.role && !isOwn ? (
+            {displayRole && !isOwn ? (
               <span
                 className={cn(
-                  "rounded-md border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                  getRoleBadgeClass(author.role)
+                  "rounded-md border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide",
+                  hasCustomRole ? "normal-case" : "uppercase",
+                  getUserDisplayRoleBadgeClass(author)
                 )}
               >
-                {formatRoleLabel(author.role)}
+                {displayRole}
               </span>
             ) : null}
             <span className="text-[11px] text-text-muted/80">

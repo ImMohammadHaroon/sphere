@@ -68,6 +68,7 @@ export function ProfilePage() {
   } = useOrgSettings();
 
   const [name, setName] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
   const [profileError, setProfileError] = useState("");
   const [avatarError, setAvatarError] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -80,6 +81,7 @@ export function ProfilePage() {
   useEffect(() => {
     if (!user) return;
     setName(user.name ?? "");
+    setJobTitle(user.jobTitle ?? "");
   }, [user]);
 
   useEffect(() => {
@@ -94,7 +96,13 @@ export function ProfilePage() {
   async function handleSaveProfile() {
     setProfileError("");
     try {
-      await updateProfile.mutateAsync({ name });
+      const payload = { name };
+
+      if (user?.role === "team_member") {
+        payload.jobTitle = jobTitle.trim() || null;
+      }
+
+      await updateProfile.mutateAsync(payload);
     } catch (err) {
       setProfileError(err instanceof Error ? err.message : "Failed to save profile");
     }
@@ -221,6 +229,8 @@ export function ProfilePage() {
               user={user}
               name={name}
               onNameChange={setName}
+              jobTitle={jobTitle}
+              onJobTitleChange={setJobTitle}
               profileError={profileError}
               avatarError={avatarError}
               onAvatarUpload={handleAvatarUpload}

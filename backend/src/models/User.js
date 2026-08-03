@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
       index: true,
     },
     name: { type: String, required: true, trim: true },
+    jobTitle: { type: String, default: null, trim: true, maxlength: 80 },
     email: {
       type: String,
       required: true,

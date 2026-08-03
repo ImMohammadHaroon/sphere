@@ -1,5 +1,5 @@
 export const USER_PUBLIC_FIELDS =
-  "name email role isActive createdAt avatar.mimeType avatar.updatedAt";
+  "name email role jobTitle isActive createdAt avatar.mimeType avatar.updatedAt";
 
 export function formatPublicUser(user) {
   if (!user) {
@@ -34,6 +34,10 @@ export function formatPublicUser(user) {
     formatted.role = user.role;
   }
 
+  if (user.jobTitle !== undefined && user.role === "team_member") {
+    formatted.jobTitle = user.jobTitle;
+  }
+
   if (user.isActive !== undefined) {
     formatted.isActive = user.isActive;
   }
@@ -43,4 +47,14 @@ export function formatPublicUser(user) {
   }
 
   return formatted;
+}
+
+export function formatUserDisplayRole(user) {
+  const jobTitle =
+    user?.role === "team_member" ? user?.jobTitle?.trim() : "";
+  if (jobTitle) {
+    return jobTitle;
+  }
+
+  return user?.role?.replace(/_/g, " ") ?? null;
 }

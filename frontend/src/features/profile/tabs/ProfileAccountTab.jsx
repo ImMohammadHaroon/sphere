@@ -9,6 +9,8 @@ export function ProfileAccountTab({
   user,
   name,
   onNameChange,
+  jobTitle,
+  onJobTitleChange,
   profileError,
   avatarError,
   onAvatarUpload,
@@ -19,6 +21,8 @@ export function ProfileAccountTab({
   onSave,
   isSaving,
 }) {
+  const isTeamMember = user?.role === "team_member";
+
   return (
     <Card>
       <CardHeader>
@@ -55,16 +59,33 @@ export function ProfileAccountTab({
             onChange={(e) => onNameChange(e.target.value)}
           />
         </div>
+        {isTeamMember ? (
+          <div className="space-y-2">
+            <Label htmlFor="profile-role">Role</Label>
+            <Input
+              id="profile-role"
+              value={jobTitle}
+              onChange={(e) => onJobTitleChange(e.target.value)}
+              placeholder="e.g. Frontend Developer"
+              maxLength={80}
+            />
+            <p className="text-xs text-text-muted">
+              This is shown next to your name in chat and community messages.
+            </p>
+          </div>
+        ) : null}
         <div>
           <p className="text-sm text-text-muted">Email</p>
           <p className="break-all font-medium">{user?.email}</p>
         </div>
-        <div>
-          <p className="text-sm text-text-muted">Role</p>
-          <p className="font-medium capitalize">
-            {user?.role?.replaceAll("_", " ")}
-          </p>
-        </div>
+        {!isTeamMember ? (
+          <div>
+            <p className="text-sm text-text-muted">Role</p>
+            <p className="font-medium capitalize">
+              {user?.role?.replaceAll("_", " ")}
+            </p>
+          </div>
+        ) : null}
         <Button onClick={onSave} isLoading={isSaving}>
           Save profile
         </Button>

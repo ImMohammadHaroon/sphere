@@ -13,7 +13,7 @@ import {
   useChatRooms,
   useCreateDirectRoom,
 } from "@/features/chat/hooks/useChatRooms";
-import { formatRoleLabel } from "@/features/community/lib/communityUtils";
+import { getUserDisplayRole } from "@/features/community/lib/communityUtils";
 import { cn } from "@/lib/utils";
 
 function RoomButton({ room, isActive, onClick, icon: Icon }) {
@@ -155,7 +155,7 @@ export function ChatRoomSidebar({ activeRoomId }) {
                       {person.name}
                     </p>
                     <p className="truncate text-xs text-text-muted">
-                      {formatRoleLabel(person.role)}
+                      {getUserDisplayRole(person) ?? "Member"}
                     </p>
                   </div>
                 </button>

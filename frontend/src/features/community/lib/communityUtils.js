@@ -29,6 +29,24 @@ export function formatRoleLabel(role) {
   return ROLE_LABELS[role] ?? role?.replace(/_/g, " ") ?? "Member";
 }
 
+export function getUserDisplayRole(user) {
+  const jobTitle =
+    user?.role === "team_member" ? user?.jobTitle?.trim() : "";
+  if (jobTitle) {
+    return jobTitle;
+  }
+
+  return user?.role ? formatRoleLabel(user.role) : null;
+}
+
+export function getUserDisplayRoleBadgeClass(user) {
+  if (user?.role === "team_member" && user?.jobTitle?.trim()) {
+    return "bg-surface-raised text-text-secondary border-border";
+  }
+
+  return getRoleBadgeClass(user?.role);
+}
+
 export function getRoleBadgeClass(role) {
   return ROLE_STYLES[role] ?? "bg-surface-raised text-text-muted border-border";
 }

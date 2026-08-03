@@ -418,7 +418,7 @@ export async function getCurrentUser(userId) {
   return enrichUserWithOrgContext(user);
 }
 
-export async function updateProfile(userId, { name }) {
+export async function updateProfile(userId, { name, jobTitle }) {
   const user = await User.findById(userId);
   if (!user || !user.isActive) {
     const err = new Error("User not found");
@@ -427,6 +427,17 @@ export async function updateProfile(userId, { name }) {
   }
 
   user.name = name.trim();
+
+  if (jobTitle !== undefined) {
+    if (user.role !== "team_member") {
+      const err = new Error("Only team members can set a profile role");
+      err.status = 403;
+      throw err;
+    }
+
+    user.jobTitle = jobTitle;
+  }
+
   await user.save();
 
   return enrichUserWithOrgContext(user);

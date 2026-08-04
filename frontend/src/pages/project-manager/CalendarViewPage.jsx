@@ -19,7 +19,12 @@ import { getDayEvents } from "@/features/calendar/utils/calendarEvents";
 import { useProject, useProjects } from "@/features/projects/hooks/useProjects";
 import { useProjectCalendar } from "@/features/projects/hooks/useProjectCalendar";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
+import { useAuth } from "@/hooks/useAuth";
 import { toDateInputValue } from "@/lib/dateFormHelpers";
+import {
+  getCalendarBasePath,
+  getProjectCalendarPath,
+} from "@/lib/projectPaths";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -27,15 +32,19 @@ import { Skeleton } from "@/components/ui/Skeleton";
 export function CalendarViewPage() {
   const { id, projectId: routeProjectId } = useParams();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+  const role = user?.role ?? "project_manager";
   const projectId =
     routeProjectId || id || searchParams.get("projectId") || "";
+
+  const calendarBasePath = getCalendarBasePath(role);
 
   useDashboardPageMeta({
     title: "Calendar view",
     description: "Schedule work and review what was completed each day.",
     showBack: Boolean(projectId),
     backLabel: projectId ? "All projects" : undefined,
-    backTo: projectId ? "/dashboard/calendar" : undefined,
+    backTo: projectId ? calendarBasePath : undefined,
   });
 
   const [visibleMonth, setVisibleMonth] = useState(() =>
@@ -172,9 +181,7 @@ export function CalendarViewPage() {
       {!projectsLoading && !projectId ? (
         <ProjectPicker
           projects={projects ?? []}
-          getProjectHref={(item) =>
-            `/dashboard/projects/${item._id}/calendar`
-          }
+          getProjectHref={(item) => getProjectCalendarPath(role, item._id)}
           actionLabel="Open calendar"
           emptyTitle="No projects yet"
           emptyDescription="Create a project to schedule tasks and track daily progress."
@@ -226,6 +233,7 @@ export function CalendarViewPage() {
             events={selectedEvents}
             projectId={projectId}
             columns={columns}
+            role={role}
             onAddSchedule={() => setCreateOpen(true)}
           />
         </div>

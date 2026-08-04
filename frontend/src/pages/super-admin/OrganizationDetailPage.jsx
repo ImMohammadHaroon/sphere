@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
+import { MetricCardDetailDialog } from "@/components/overview/MetricCardDetailDialog";
+import { SummaryBreakdownList } from "@/components/overview/SummaryBreakdownList";
+import { UserPreviewList } from "@/components/overview/UserPreviewList";
 import { useOrganizationDetail } from "@/features/platform/hooks/useOrganizationDetail";
 import { useOrganizationActions } from "@/features/platform/hooks/useOrganizationActions";
 import { ConfirmSlugDialog } from "@/pages/admin/settings/ConfirmSlugDialog";
@@ -8,6 +11,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { MetricCard } from "@/components/ui/MetricCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
   Table,
@@ -32,16 +36,17 @@ function formatRole(role) {
   return role.replaceAll("_", " ");
 }
 
-function MetricCard({ label, value }) {
-  return (
-    <Card className="bg-dashboard-accent-subtle p-5">
-      <p className="text-sm font-medium text-text-secondary">{label}</p>
-      <p className="mt-2 font-display text-2xl font-semibold text-primary sm:text-3xl">
-        {value.toLocaleString()}
-      </p>
-    </Card>
-  );
-}
+const METRIC_KEYS = {
+  users: "users",
+  projects: "projects",
+  tasks: "tasks",
+};
+
+const METRIC_TONES = {
+  [METRIC_KEYS.users]: "blue",
+  [METRIC_KEYS.projects]: "emerald",
+  [METRIC_KEYS.tasks]: "orange",
+};
 
 function DetailSkeleton() {
   return (
@@ -80,6 +85,7 @@ export function OrganizationDetailPage() {
   const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [suspendOpen, setSuspendOpen] = useState(false);
+  const [activeMetric, setActiveMetric] = useState(null);
 
   const { data, isLoading, isError, error, refetch, isFetching } =
     useOrganizationDetail(id);
@@ -119,6 +125,71 @@ export function OrganizationDetailPage() {
   }
 
   const isMutating = suspend.isPending || activate.isPending || remove.isPending;
+
+  function scrollToSection(sectionId) {
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
+  function getDialogConfig() {
+    if (!stats) return null;
+
+    switch (activeMetric) {
+      case METRIC_KEYS.users:
+        return {
+          title: "Users",
+          description: `${stats.userCount} user${stats.userCount === 1 ? "" : "s"} in this organization.`,
+          viewAllHref: `/super-admin/users?organizationId=${id}`,
+          viewAllLabel: "View all users",
+          isEmpty: members.length === 0,
+          content: (
+            <UserPreviewList
+              users={members}
+              role="super_admin"
+              organizationId={id}
+            />
+          ),
+        };
+      case METRIC_KEYS.projects:
+        return {
+          title: "Projects",
+          description: `${stats.projectCount} project${stats.projectCount === 1 ? "" : "s"} in this organization.`,
+          viewAllLabel: "View all projects",
+          onViewAll: () => scrollToSection("org-projects"),
+          isEmpty: projects.length === 0,
+          content: (
+            <SummaryBreakdownList
+              items={projects.map((project) => ({
+                label: project.name,
+                value: project.taskCount,
+              }))}
+            />
+          ),
+        };
+      case METRIC_KEYS.tasks:
+        return {
+          title: "Tasks",
+          description: `${stats.taskCount} task${stats.taskCount === 1 ? "" : "s"} across organization projects.`,
+          viewAllLabel: "View projects",
+          onViewAll: () => scrollToSection("org-projects"),
+          isEmpty: stats.taskCount === 0,
+          content: (
+            <SummaryBreakdownList
+              items={projects.map((project) => ({
+                label: project.name,
+                value: project.taskCount,
+              }))}
+            />
+          ),
+        };
+      default:
+        return null;
+    }
+  }
+
+  const dialogConfig = getDialogConfig();
 
   return (
     <>
@@ -187,13 +258,28 @@ export function OrganizationDetailPage() {
 
           {stats ? (
             <div className="grid gap-4 sm:grid-cols-3">
-              <MetricCard label="Users" value={stats.userCount} />
-              <MetricCard label="Projects" value={stats.projectCount} />
-              <MetricCard label="Tasks" value={stats.taskCount} />
+              <MetricCard
+                label="Users"
+                value={stats.userCount}
+                tone="blue"
+                onClick={() => setActiveMetric(METRIC_KEYS.users)}
+              />
+              <MetricCard
+                label="Projects"
+                value={stats.projectCount}
+                tone="emerald"
+                onClick={() => setActiveMetric(METRIC_KEYS.projects)}
+              />
+              <MetricCard
+                label="Tasks"
+                value={stats.taskCount}
+                tone="orange"
+                onClick={() => setActiveMetric(METRIC_KEYS.tasks)}
+              />
             </div>
           ) : null}
 
-          <Card className="overflow-hidden p-0">
+          <Card id="org-members" className="overflow-hidden p-0 scroll-mt-6">
             <div className="border-b border-border px-4 py-4 sm:px-6">
               <h3 className="font-display text-lg font-semibold">Members</h3>
               <p className="mt-1 text-sm text-text-secondary">
@@ -241,7 +327,7 @@ export function OrganizationDetailPage() {
             )}
           </Card>
 
-          <Card className="overflow-hidden p-0">
+          <Card id="org-projects" className="overflow-hidden p-0 scroll-mt-6">
             <div className="border-b border-border px-4 py-4 sm:px-6">
               <h3 className="font-display text-lg font-semibold">Projects</h3>
               <p className="mt-1 text-sm text-text-secondary">
@@ -297,6 +383,24 @@ export function OrganizationDetailPage() {
             onConfirm={handleSuspendConfirm}
             isLoading={suspend.isPending}
           />
+
+          {dialogConfig ? (
+            <MetricCardDetailDialog
+              open={activeMetric != null}
+              onOpenChange={(open) => {
+                if (!open) setActiveMetric(null);
+              }}
+              title={dialogConfig.title}
+              description={dialogConfig.description}
+              viewAllHref={dialogConfig.viewAllHref}
+              onViewAll={dialogConfig.onViewAll}
+              viewAllLabel={dialogConfig.viewAllLabel}
+              tone={METRIC_TONES[activeMetric]}
+              isEmpty={dialogConfig.isEmpty}
+            >
+              {dialogConfig.content}
+            </MetricCardDetailDialog>
+          ) : null}
 
           <ConfirmSlugDialog
             open={deleteOpen}

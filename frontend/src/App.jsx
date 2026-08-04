@@ -134,6 +134,11 @@ function AppRoutes() {
           element={<TeamMemberBoardRedirect />}
         />
         <Route
+          path="projects/:projectId/calendar"
+          element={<CalendarViewPage />}
+        />
+        <Route path="calendar" element={<CalendarViewPage />} />
+        <Route
           path="projects/:projectId/milestones/:milestoneId"
           element={<MilestoneDetailPage />}
         />
@@ -182,6 +187,8 @@ function AppRoutes() {
         <Route path="projects" element={<AllProjectsPage />} />
         <Route path="projects/:id" element={<OrgAdminProjectPage />} />
         <Route path="projects/:id/board" element={<OrgAdminBoardRedirect />} />
+        <Route path="projects/:id/calendar" element={<CalendarViewPage />} />
+        <Route path="calendar" element={<CalendarViewPage />} />
         <Route
           path="projects/:projectId/milestones/:milestoneId"
           element={<MilestoneDetailPage />}

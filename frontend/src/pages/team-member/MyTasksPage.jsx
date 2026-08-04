@@ -1,14 +1,24 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
+import {
+  isTaskDueSoon,
+  isTaskOverdue,
+} from "@/features/dashboard/hooks/useDashboardData";
 import { useMyTasks } from "@/features/tasks/hooks/useMyTasks";
 import { TaskStatusBadge } from "@/features/tasks/components/TaskStatusBadge";
-import { getTaskProjectColumns } from "@/lib/taskStatusConfig";
+import { getTaskProjectColumns, isTaskDone } from "@/lib/taskStatusConfig";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
+
+const FILTER_LABELS = {
+  "due-soon": "Due soon",
+  overdue: "Overdue",
+  completed: "Completed",
+};
 
 function formatDate(value) {
   if (!value) return "—";
@@ -46,17 +56,53 @@ function groupTasksByProject(tasks) {
   return Array.from(groups.values());
 }
 
+function filterTasks(tasks, filter) {
+  switch (filter) {
+    case "due-soon":
+      return tasks.filter(isTaskDueSoon);
+    case "overdue":
+      return tasks.filter(isTaskOverdue);
+    case "completed":
+      return tasks.filter((task) => isTaskDone(task));
+    default:
+      return tasks;
+  }
+}
+
 export function MyTasksPage() {
+  const [searchParams] = useSearchParams();
+  const filter = searchParams.get("filter") ?? "";
+  const filterLabel = FILTER_LABELS[filter];
+
   useDashboardPageMeta({
-    title: "My tasks",
-    description: "Tasks assigned to you across all projects.",
+    title: filterLabel ? `${filterLabel} tasks` : "My tasks",
+    description: filterLabel
+      ? `Tasks assigned to you that are ${filterLabel.toLowerCase()}.`
+      : "Tasks assigned to you across all projects.",
   });
 
   const { data, isLoading, isError, error, refetch, isFetching } = useMyTasks();
-  const grouped = useMemo(() => groupTasksByProject(data ?? []), [data]);
+
+  const filteredTasks = useMemo(
+    () => filterTasks(data ?? [], filter),
+    [data, filter]
+  );
+
+  const grouped = useMemo(
+    () => groupTasksByProject(filteredTasks),
+    [filteredTasks]
+  );
 
   return (
     <>
+      {filter ? (
+        <div className="mb-4">
+          <ButtonLink to="/member/tasks" variant="ghost" size="sm">
+            Clear filter
+          </ButtonLink>
+        </div>
+      ) : null}
+
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -77,9 +123,13 @@ export function MyTasksPage() {
       ) : null}
 
       {!isLoading && !isError && data ? (
-        data.length === 0 ? (
+        filteredTasks.length === 0 ? (
           <Card className="p-8 text-center">
-            <p className="text-text-secondary">No tasks assigned to you yet.</p>
+            <p className="text-text-secondary">
+              {filter
+                ? `No ${filterLabel?.toLowerCase()} tasks right now.`
+                : "No tasks assigned to you yet."}
+            </p>
           </Card>
         ) : (
           <div className="space-y-6">

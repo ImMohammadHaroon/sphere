@@ -1,6 +1,10 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { format, parseISO } from "date-fns";
+import { useMemo, useState } from "react";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
+import { MetricCardDetailDialog } from "@/components/overview/MetricCardDetailDialog";
+import { MilestonePreviewList } from "@/components/overview/MilestonePreviewList";
+import { SummaryBreakdownList } from "@/components/overview/SummaryBreakdownList";
 import { BurndownChart } from "@/features/reports/BurndownChart";
 import { useBurndownReport } from "@/features/reports/hooks/useProjectReports";
 import { useProjectMilestones } from "@/features/milestones/hooks/useMilestones";
@@ -15,6 +19,18 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Skeleton } from "@/components/ui/Skeleton";
+
+const METRIC_KEYS = {
+  totalTasks: "totalTasks",
+  completed: "completed",
+  awaitingReview: "awaitingReview",
+};
+
+const METRIC_TONES = {
+  [METRIC_KEYS.totalTasks]: "blue",
+  [METRIC_KEYS.completed]: "emerald",
+  [METRIC_KEYS.awaitingReview]: "rose",
+};
 
 function formatDate(value) {
   if (!value) return "—";
@@ -151,6 +167,7 @@ function MilestoneProgressCard({ milestones, isLoading }) {
 export function ClientReportsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const projectId = searchParams.get("project") || "";
+  const [activeMetric, setActiveMetric] = useState(null);
 
   useDashboardPageMeta({
     title: "Progress summary",
@@ -180,6 +197,78 @@ export function ClientReportsPage() {
   const milestoneList = milestones.data ?? [];
   const pendingMilestones = milestoneList.filter((m) => m.status === "pending")
     .length;
+  const pendingMilestoneItems = useMemo(
+    () => milestoneList.filter((milestone) => milestone.status === "pending"),
+    [milestoneList]
+  );
+
+  function getDialogConfig() {
+    if (!selectedProject) return null;
+
+    const progressHref = `/portal/progress?project=${projectId}`;
+
+    switch (activeMetric) {
+      case METRIC_KEYS.totalTasks:
+        return {
+          title: "Total steps",
+          description: `${totalScope} total step${totalScope === 1 ? "" : "s"} on ${selectedProject.name}.`,
+          viewAllHref: progressHref,
+          viewAllLabel: "View progress board",
+          isEmpty: totalScope === 0,
+          content: (
+            <SummaryBreakdownList
+              items={[
+                { label: "Total steps", value: totalScope },
+                { label: "Completed", value: completed ?? 0 },
+                {
+                  label: "Remaining",
+                  value: Math.max(0, totalScope - (completed ?? 0)),
+                },
+              ]}
+            />
+          ),
+        };
+      case METRIC_KEYS.completed:
+        return {
+          title: "Completed",
+          description: `${completed ?? 0} completed step${completed === 1 ? "" : "s"}.`,
+          viewAllHref: progressHref,
+          viewAllLabel: "View progress board",
+          isEmpty: (completed ?? 0) === 0,
+          content: (
+            <SummaryBreakdownList
+              items={[
+                { label: "Completed", value: completed ?? 0 },
+                {
+                  label: "Remaining",
+                  value: Math.max(0, totalScope - (completed ?? 0)),
+                },
+              ]}
+            />
+          ),
+        };
+      case METRIC_KEYS.awaitingReview:
+        return {
+          title: "Waiting for your review",
+          description: `${pendingMilestones} milestone${pendingMilestones === 1 ? "" : "s"} awaiting your review.`,
+          viewAllHref: "/portal/milestones",
+          viewAllLabel: "View all milestones",
+          isEmpty: pendingMilestones === 0,
+          emptyMessage: "No milestones waiting for your review.",
+          content: (
+            <MilestonePreviewList
+              milestones={pendingMilestoneItems}
+              projectId={projectId}
+              role="client"
+            />
+          ),
+        };
+      default:
+        return null;
+    }
+  }
+
+  const dialogConfig = getDialogConfig();
 
   function handleProjectChange(nextId) {
     if (!nextId) {
@@ -276,14 +365,23 @@ export function ClientReportsPage() {
       {projectId && selectedProject && !reportLoading && !reportError ? (
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
-            <MetricCard label="Total steps" value={totalScope} />
+            <MetricCard
+              label="Total steps"
+              value={totalScope}
+              tone="blue"
+              onClick={() => setActiveMetric(METRIC_KEYS.totalTasks)}
+            />
             <MetricCard
               label="Completed"
               value={completed ?? 0}
+              tone="emerald"
+              onClick={() => setActiveMetric(METRIC_KEYS.completed)}
             />
             <MetricCard
               label="Waiting for your review"
               value={pendingMilestones}
+              tone="rose"
+              onClick={() => setActiveMetric(METRIC_KEYS.awaitingReview)}
             />
           </div>
 
@@ -300,6 +398,24 @@ export function ClientReportsPage() {
             />
           </div>
         </div>
+      ) : null}
+
+      {dialogConfig ? (
+        <MetricCardDetailDialog
+          open={activeMetric != null}
+          onOpenChange={(open) => {
+            if (!open) setActiveMetric(null);
+          }}
+          title={dialogConfig.title}
+          description={dialogConfig.description}
+          viewAllHref={dialogConfig.viewAllHref}
+          viewAllLabel={dialogConfig.viewAllLabel}
+          tone={METRIC_TONES[activeMetric]}
+          isEmpty={dialogConfig.isEmpty}
+          emptyMessage={dialogConfig.emptyMessage}
+        >
+          {dialogConfig.content}
+        </MetricCardDetailDialog>
       ) : null}
     </>
   );

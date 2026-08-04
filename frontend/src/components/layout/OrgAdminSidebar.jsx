@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   BarChart3,
   Building2,
+  Calendar,
   FolderKanban,
   MessageSquare,
   Users,
@@ -27,8 +28,15 @@ const orgAdminNav = [
     to: "/admin/projects",
     match: (p) =>
       p === "/admin/projects" ||
-      /^\/admin\/projects\/[^/]+(\/milestones\/[^/]+)?$/.test(p),
+      /^\/admin\/projects\/[^/]+(\/(calendar|milestones\/[^/]+))?$/.test(p),
     icon: FolderKanban,
+  },
+  {
+    label: "Calendar view",
+    to: "/admin/calendar",
+    match: (p) =>
+      p === "/admin/calendar" || /^\/admin\/projects\/[^/]+\/calendar$/.test(p),
+    icon: Calendar,
   },
   {
     label: "Reports",

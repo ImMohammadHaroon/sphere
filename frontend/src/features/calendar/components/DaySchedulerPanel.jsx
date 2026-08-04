@@ -4,6 +4,10 @@ import { Icon } from "@iconify/react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import {
+  getMilestoneDetailPath,
+  getProjectTasksPath,
+} from "@/lib/projectPaths";
 import { getStatusColor } from "@/lib/taskStatusConfig";
 
 function Section({ title, count, children, emptyMessage }) {
@@ -24,13 +28,13 @@ function Section({ title, count, children, emptyMessage }) {
   );
 }
 
-function TaskListItem({ task, projectId, columns, variant }) {
+function TaskListItem({ task, projectId, columns, variant, role }) {
   const isDone = variant === "done";
 
   return (
     <li>
       <Link
-        to={`/dashboard/projects/${projectId}/tasks/${task._id}`}
+        to={getProjectTasksPath(role, projectId, task._id)}
         className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-card-hover"
       >
         <span className="flex min-w-0 items-center gap-2 font-medium text-text-primary">
@@ -66,6 +70,7 @@ export function DaySchedulerPanel({
   events,
   projectId,
   columns,
+  role = "project_manager",
   onAddSchedule,
 }) {
   if (!day) {
@@ -120,6 +125,7 @@ export function DaySchedulerPanel({
                 projectId={projectId}
                 columns={columns}
                 variant="scheduled"
+                role={role}
               />
             ))}
           </ul>
@@ -138,6 +144,7 @@ export function DaySchedulerPanel({
                 projectId={projectId}
                 columns={columns}
                 variant="done"
+                role={role}
               />
             ))}
           </ul>
@@ -152,7 +159,7 @@ export function DaySchedulerPanel({
             {milestones.map((milestone) => (
               <li key={milestone._id}>
                 <Link
-                  to={`/dashboard/projects/${projectId}/milestones?highlight=${milestone._id}`}
+                  to={getMilestoneDetailPath(role, projectId, milestone._id)}
                   className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-card-hover"
                 >
                   <span className="flex items-center gap-2 font-medium text-text-primary">

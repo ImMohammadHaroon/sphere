@@ -19,7 +19,7 @@ export function ClientDashboardPage() {
     refetch,
     isFetching,
   } = useClientProjects();
-  const { pendingCount } = useClientPendingReviews();
+  const { pendingCount, pendingMilestones } = useClientPendingReviews();
 
   const activeProjectCount = projects.filter(
     (project) => project.status === "active"
@@ -30,7 +30,9 @@ export function ClientDashboardPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-16 w-full max-w-xl" />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
           <Skeleton className="h-24" />
           <Skeleton className="h-24" />
         </div>
@@ -84,6 +86,9 @@ export function ClientDashboardPage() {
         activeProjectCount={activeProjectCount}
         averageCompletion={averageCompletion}
         isLoading={false}
+        projects={projects}
+        pendingCount={pendingCount}
+        pendingMilestones={pendingMilestones}
       />
 
       <div>

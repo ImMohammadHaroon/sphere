@@ -7,6 +7,7 @@ import { ProjectWorkspace } from "@/features/projects/components/ProjectWorkspac
 import { useAddMember, useProject } from "@/features/projects/hooks/useProjects";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -72,6 +73,12 @@ export function OrgAdminProjectPage() {
             <Button type="button" variant="outline" onClick={() => setMemberDialogOpen(true)}>
               Add member
             </Button>
+            <ButtonLink
+              to={`/admin/projects/${projectId}/calendar`}
+              variant="info"
+            >
+              Calendar
+            </ButtonLink>
             <Button type="button" variant="info" onClick={() => setCreateTaskOpen(true)}>
               Create task
             </Button>

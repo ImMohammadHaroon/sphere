@@ -19,7 +19,7 @@ export function AssignedProjectsList() {
   }
 
   return (
-    <Card className="overflow-hidden p-0">
+    <Card id="assigned-projects" className="overflow-hidden p-0 scroll-mt-6">
       <div className="border-b border-border px-4 py-3">
         <h2 className="font-medium text-text-primary">Assigned projects</h2>
       </div>

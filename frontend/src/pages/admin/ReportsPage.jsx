@@ -1,5 +1,10 @@
+import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
+import { MetricCardDetailDialog } from "@/components/overview/MetricCardDetailDialog";
+import { ProjectPreviewList } from "@/components/overview/ProjectPreviewList";
+import { SummaryBreakdownList } from "@/components/overview/SummaryBreakdownList";
+import { UserPreviewList } from "@/components/overview/UserPreviewList";
 import { ProjectPicker } from "@/components/projects/ProjectPicker";
 import { BurndownChart } from "@/features/reports/BurndownChart";
 import { CompletionTrendChart } from "@/features/reports/CompletionTrendChart";
@@ -12,47 +17,35 @@ import {
   useWorkloadReport,
 } from "@/features/reports/hooks/useProjectReports";
 import { useOrgReportsOverview } from "@/features/reports/hooks/useOverviewReports";
+import { useOrgUsers } from "@/features/org/hooks/useOrgUsers";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { MetricCard } from "@/components/ui/MetricCard";
+import {
+  HintMetricCard,
+  MetricCard,
+  PercentMetricCard,
+} from "@/components/ui/MetricCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 
-function formatPercent(rate) {
-  if (rate == null || Number.isNaN(Number(rate))) {
-    return "—";
-  }
-  return `${Math.round(Number(rate) * 100)}%`;
-}
+const METRIC_KEYS = {
+  totalProjects: "totalProjects",
+  totalTasks: "totalTasks",
+  teamMembers: "teamMembers",
+  milestoneApprovalRate: "milestoneApprovalRate",
+};
 
-function PercentMetricCard({ label, value }) {
-  return (
-    <Card className="bg-dashboard-accent-subtle p-5">
-      <p className="text-sm font-medium text-text-secondary">{label}</p>
-      <p className="mt-2 font-display text-2xl font-semibold text-primary sm:text-3xl">
-        {formatPercent(value)}
-      </p>
-    </Card>
-  );
-}
-
-function HintMetricCard({ label, value, hint }) {
-  return (
-    <Card className="bg-dashboard-accent-subtle p-5">
-      <p className="text-sm font-medium text-text-secondary">{label}</p>
-      <p className="mt-2 font-display text-2xl font-semibold text-primary sm:text-3xl">
-        {Number(value).toLocaleString()}
-      </p>
-      {hint ? (
-        <p className="mt-1 text-xs text-text-muted">{hint}</p>
-      ) : null}
-    </Card>
-  );
-}
+const METRIC_TONES = {
+  [METRIC_KEYS.totalProjects]: "violet",
+  [METRIC_KEYS.totalTasks]: "blue",
+  [METRIC_KEYS.teamMembers]: "emerald",
+  [METRIC_KEYS.milestoneApprovalRate]: "amber",
+};
 
 export function ReportsPage() {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") || "";
+  const [activeMetric, setActiveMetric] = useState(null);
 
   useDashboardPageMeta({
     title: "Reports",
@@ -62,6 +55,7 @@ export function ReportsPage() {
   const { data, isLoading, isError, error, refetch, isFetching } =
     useOrgReportsOverview();
   const { data: projects, isLoading: projectsLoading } = useProjects();
+  const { data: users, isLoading: usersLoading } = useOrgUsers();
 
   const burndown = useBurndownReport(projectId);
   const velocity = useVelocityReport(projectId);
@@ -88,6 +82,75 @@ export function ReportsPage() {
       workload.refetch(),
     ]);
   }
+
+  function getDialogConfig() {
+    if (!data) return null;
+
+    switch (activeMetric) {
+      case METRIC_KEYS.totalProjects:
+        return {
+          title: "Total projects",
+          description: `${data.projects?.total ?? 0} project${data.projects?.total === 1 ? "" : "s"} in your organization.`,
+          viewAllHref: "/admin/projects",
+          viewAllLabel: "View all projects",
+          isEmpty: (projects ?? []).length === 0,
+          content: (
+            <ProjectPreviewList projects={projects ?? []} role="org_admin" />
+          ),
+        };
+      case METRIC_KEYS.totalTasks:
+        return {
+          title: "Total tasks",
+          description: `${data.totalTasks ?? 0} task${data.totalTasks === 1 ? "" : "s"} across all projects.`,
+          viewAllHref: "/admin/reports",
+          viewAllLabel: "View reports",
+          isEmpty: (data.totalTasks ?? 0) === 0,
+          content: (
+            <SummaryBreakdownList
+              items={[
+                { label: "Done", value: data.tasksDone ?? 0 },
+                { label: "Not done", value: data.tasksNotDone ?? 0 },
+              ]}
+            />
+          ),
+        };
+      case METRIC_KEYS.teamMembers:
+        return {
+          title: "Team members",
+          description: `${data.teamSize ?? 0} team member${data.teamSize === 1 ? "" : "s"}.`,
+          viewAllHref: "/admin/users",
+          viewAllLabel: "View all members",
+          isLoading: usersLoading,
+          isEmpty: (users ?? []).length === 0,
+          content: <UserPreviewList users={users ?? []} role="org_admin" />,
+        };
+      case METRIC_KEYS.milestoneApprovalRate:
+        return {
+          title: "Milestone approval rate",
+          description: "Milestone decisions across your organization.",
+          viewAllHref: "/admin/projects",
+          viewAllLabel: "View all projects",
+          isEmpty:
+            (data.milestones?.pending ?? 0) +
+              (data.milestones?.approved ?? 0) +
+              (data.milestones?.rejected ?? 0) ===
+            0,
+          content: (
+            <SummaryBreakdownList
+              items={[
+                { label: "Pending", value: data.milestones?.pending ?? 0 },
+                { label: "Approved", value: data.milestones?.approved ?? 0 },
+                { label: "Rejected", value: data.milestones?.rejected ?? 0 },
+              ]}
+            />
+          ),
+        };
+      default:
+        return null;
+    }
+  }
+
+  const dialogConfig = getDialogConfig();
 
   return (
     <>
@@ -156,16 +219,27 @@ export function ReportsPage() {
               label="Total projects"
               value={data.projects?.total ?? 0}
               hint={`${data.projects?.active ?? 0} active · ${data.projects?.archived ?? 0} archived`}
+              tone="violet"
+              onClick={() => setActiveMetric(METRIC_KEYS.totalProjects)}
             />
             <HintMetricCard
               label="Total tasks"
               value={data.totalTasks ?? 0}
               hint={`${data.tasksDone ?? 0} done · ${data.tasksNotDone ?? 0} not done`}
+              tone="blue"
+              onClick={() => setActiveMetric(METRIC_KEYS.totalTasks)}
             />
-            <MetricCard label="Team members" value={data.teamSize ?? 0} />
+            <MetricCard
+              label="Team members"
+              value={data.teamSize ?? 0}
+              tone="emerald"
+              onClick={() => setActiveMetric(METRIC_KEYS.teamMembers)}
+            />
             <PercentMetricCard
               label="Milestone approval rate"
               value={data.milestones?.approvalRate}
+              tone="amber"
+              onClick={() => setActiveMetric(METRIC_KEYS.milestoneApprovalRate)}
             />
           </div>
 
@@ -206,6 +280,24 @@ export function ReportsPage() {
             </div>
           ) : null}
         </div>
+      ) : null}
+
+      {dialogConfig ? (
+        <MetricCardDetailDialog
+          open={activeMetric != null}
+          onOpenChange={(open) => {
+            if (!open) setActiveMetric(null);
+          }}
+          title={dialogConfig.title}
+          description={dialogConfig.description}
+          viewAllHref={dialogConfig.viewAllHref}
+          viewAllLabel={dialogConfig.viewAllLabel}
+          tone={METRIC_TONES[activeMetric]}
+          isLoading={dialogConfig.isLoading}
+          isEmpty={dialogConfig.isEmpty}
+        >
+          {dialogConfig.content}
+        </MetricCardDetailDialog>
       ) : null}
     </>
   );

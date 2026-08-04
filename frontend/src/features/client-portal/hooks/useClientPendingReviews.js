@@ -20,19 +20,24 @@ export function useClientPendingReviews() {
     })),
   });
 
-  const pendingCount = useMemo(() => {
-    return milestoneQueries.reduce((total, query) => {
-      const pending = (query.data ?? []).filter(
-        (milestone) => milestone.status === "pending"
-      ).length;
-      return total + pending;
-    }, 0);
-  }, [milestoneQueries]);
+  const pendingMilestones = useMemo(() => {
+    const items = [];
+    projects.forEach((project, index) => {
+      for (const milestone of milestoneQueries[index]?.data ?? []) {
+        if (milestone.status === "pending") {
+          items.push({ ...milestone, projectId: project._id });
+        }
+      }
+    });
+    return items;
+  }, [projects, milestoneQueries]);
 
+  const pendingCount = pendingMilestones.length;
   const milestonesLoading = milestoneQueries.some((query) => query.isLoading);
 
   return {
     pendingCount,
+    pendingMilestones,
     isLoading: projectsLoading || milestonesLoading,
   };
 }

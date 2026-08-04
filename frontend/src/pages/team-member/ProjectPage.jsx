@@ -5,6 +5,7 @@ import { ProjectWorkspace } from "@/features/projects/components/ProjectWorkspac
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
 import { useProject } from "@/features/projects/hooks/useProjects";
 import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -56,7 +57,13 @@ export function TeamMemberProjectPage() {
         projectId={projectId}
         role="team_member"
         toolbar={
-          <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end gap-2">
+            <ButtonLink
+              to={`/member/projects/${projectId}/calendar`}
+              variant="info"
+            >
+              Calendar
+            </ButtonLink>
             <Button type="button" onClick={() => setCreateTaskOpen(true)}>
               Create task
             </Button>

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { CheckSquare, LayoutDashboard, MessageSquare } from "lucide-react";
+import { Calendar, CheckSquare, LayoutDashboard, MessageSquare } from "lucide-react";
 import { SidebarNavItem } from "./SidebarNavItem";
 
 const teamMemberNav = [
@@ -14,6 +14,14 @@ const teamMemberNav = [
     to: "/member/tasks",
     match: (p) => p === "/member/tasks",
     icon: CheckSquare,
+  },
+  {
+    label: "Calendar view",
+    to: "/member/calendar",
+    match: (p) =>
+      p === "/member/calendar" ||
+      /^\/member\/projects\/[^/]+\/calendar$/.test(p),
+    icon: Calendar,
   },
   {
     label: "Chat",

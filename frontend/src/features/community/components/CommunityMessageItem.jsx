@@ -1,5 +1,4 @@
-import { formatDistanceToNow } from "date-fns";
-import { Trash2 } from "lucide-react";
+import { formatRelativeWithTimestamp, formatTime } from "@/lib/dateTimeUtils";import { Trash2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { CommunityMessageAttachments } from "@/features/community/components/CommunityMessageAttachments";
 import {
@@ -88,12 +87,19 @@ export function CommunityMessageItem({
               </span>
             ) : null}
             <span className="text-[11px] text-text-muted/80">
-              {formatDistanceToNow(new Date(message.createdAt), {
-                addSuffix: true,
-              })}
+              {formatRelativeWithTimestamp(message.createdAt)}
             </span>
           </div>
-        ) : null}
+        ) : (
+          <span
+            className={cn(
+              "mb-1 px-0.5 text-[10px] text-text-muted/70",
+              isOwn && "self-end"
+            )}
+          >
+            {formatTime(message.createdAt)}
+          </span>
+        )}
 
         {hasBody ? (
           <div

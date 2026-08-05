@@ -5,6 +5,7 @@ import { GripVertical } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { TaskStatusBadge } from "@/features/tasks/components/TaskStatusBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { formatTimestamp } from "@/lib/dateTimeUtils";
 import { cn } from "@/lib/utils";
 
 function formatDate(value) {
@@ -39,6 +40,13 @@ export function KanbanTaskCardContent({
   const creator = task.createdBy ?? null;
   const creatorName = creator?.name ?? null;
   const dueLabel = formatDate(task.dueDate);
+  const createdLabel = formatTimestamp(task.createdAt);
+  const updatedLabel =
+    task.updatedAt &&
+    task.createdAt &&
+    new Date(task.updatedAt).getTime() !== new Date(task.createdAt).getTime()
+      ? formatTimestamp(task.updatedAt)
+      : null;
 
   const body = (
     <>
@@ -58,6 +66,12 @@ export function KanbanTaskCardContent({
             <UserAvatar user={creator} size="xs" />
             <span>{creatorName}</span>
           </div>
+        ) : null}
+        {createdLabel ? (
+          <p className="text-text-muted">Created {createdLabel}</p>
+        ) : null}
+        {updatedLabel ? (
+          <p className="text-text-muted">Updated {updatedLabel}</p>
         ) : null}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">

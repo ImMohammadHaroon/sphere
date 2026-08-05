@@ -7,7 +7,7 @@ export function errorHandler(err, req, res, next) {
       return res.status(400).json({
         message: isAvatarRoute
           ? "Image too large. Max size is 2MB."
-          : "File too large. Max size is 5MB.",
+          : "File too large. Max size is 15MB.",
       });
     }
 

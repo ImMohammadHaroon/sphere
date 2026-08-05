@@ -52,7 +52,7 @@ function PendingFilesField({ files, onAdd, onRemove, onPreview, disabled = false
 
     if (rejected.length > 0) {
       setFileError(
-        `These files exceed 5MB and were skipped: ${rejected.join(", ")}`
+        `These files exceed ${formatFileSize(MAX_FILE_SIZE)} and were skipped: ${rejected.join(", ")}`
       );
     }
 
@@ -89,7 +89,7 @@ function PendingFilesField({ files, onAdd, onRemove, onPreview, disabled = false
 
       {files.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-text-muted">
-          Optional deliverable files (max 5MB each).
+          Optional deliverable files (max {formatFileSize(MAX_FILE_SIZE)} each).
         </p>
       ) : (
         <ul className="space-y-2">

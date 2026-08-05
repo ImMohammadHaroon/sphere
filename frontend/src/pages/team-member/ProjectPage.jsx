@@ -3,8 +3,10 @@ import { useParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
 import { ProjectWorkspace } from "@/features/projects/components/ProjectWorkspace";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
+import { RecordTaskButton } from "@/features/task-recording/components/RecordTaskButton";
 import { useProject } from "@/features/projects/hooks/useProjects";
 import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -56,7 +58,14 @@ export function TeamMemberProjectPage() {
         projectId={projectId}
         role="team_member"
         toolbar={
-          <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end gap-2">
+            <RecordTaskButton projectId={projectId} />
+            <ButtonLink
+              to={`/member/projects/${projectId}/calendar`}
+              variant="info"
+            >
+              Calendar
+            </ButtonLink>
             <Button type="button" onClick={() => setCreateTaskOpen(true)}>
               Create task
             </Button>

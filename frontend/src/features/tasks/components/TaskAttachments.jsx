@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { format } from "date-fns";
 import { Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { RecordTaskButton } from "@/features/task-recording/components/RecordTaskButton";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Alert } from "@/components/ui/Alert";
 import { AttachmentListItem } from "@/components/attachments/AttachmentListItem";
@@ -9,7 +10,7 @@ import { FilePreviewDialog } from "@/components/attachments/FilePreviewDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/lib/toast";
 import { useFilePreview } from "@/hooks/useFilePreview";
-import { attachmentMeta, MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
+import { attachmentMeta, formatFileSize, MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
 import { useTaskCollaborationSocket } from "@/features/tasks/hooks/useTaskCollaborationSocket";
 import {
   useAttachments,
@@ -66,7 +67,7 @@ export function TaskAttachments({ taskId, projectId, canUpload = true }) {
     }
 
     if (file.size > MAX_ATTACHMENT_SIZE) {
-      toast.error("File too large. Max size is 5MB.");
+      toast.error(`File too large. Max size is ${formatFileSize(MAX_ATTACHMENT_SIZE)}.`);
       return;
     }
 
@@ -114,7 +115,12 @@ export function TaskAttachments({ taskId, projectId, canUpload = true }) {
           </p>
 
           {canUpload ? (
-            <>
+            <div className="flex flex-wrap gap-2">
+              <RecordTaskButton
+                projectId={projectId}
+                taskId={taskId}
+                size="sm"
+              />
               <input
                 ref={fileInputRef}
                 type="file"
@@ -131,7 +137,7 @@ export function TaskAttachments({ taskId, projectId, canUpload = true }) {
                 <Paperclip className="mr-2 h-3.5 w-3.5" />
                 Attach file
               </Button>
-            </>
+            </div>
           ) : null}
         </div>
 

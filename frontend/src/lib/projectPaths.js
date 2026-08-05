@@ -9,6 +9,16 @@ export function getProjectPath(role, projectId) {
   return `${getProjectBasePath(role)}/${projectId}`;
 }
 
+export function getCalendarBasePath(role) {
+  if (role === "org_admin") return "/admin/calendar";
+  if (role === "team_member") return "/member/calendar";
+  return "/dashboard/calendar";
+}
+
+export function getProjectCalendarPath(role, projectId) {
+  return `${getProjectPath(role, projectId)}/calendar`;
+}
+
 export function getProjectTasksPath(role, projectId, taskId) {
   if (role === "project_manager") {
     return `${getProjectPath(role, projectId)}/tasks/${taskId}`;

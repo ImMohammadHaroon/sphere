@@ -2,15 +2,23 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueries } from "@tanstack/react-query";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
+import { MetricCardDetailDialog } from "@/components/overview/MetricCardDetailDialog";
+import { ProjectPreviewList } from "@/components/overview/ProjectPreviewList";
+import { TaskPreviewList } from "@/components/overview/TaskPreviewList";
+import { UserPreviewList } from "@/components/overview/UserPreviewList";
 import { CreateProjectDialog } from "@/features/projects/components/CreateProjectDialog";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { useAuth } from "@/hooks/useAuth";
-import { listProjectTasks } from "@/lib/tasksApi";
+import {
+  isTaskDueSoon,
+  isTaskOverdue,
+} from "@/features/dashboard/hooks/useDashboardData";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { RecordTaskButton } from "@/features/task-recording/components/RecordTaskButton";
 import {
   Table,
   TableBody,
@@ -52,6 +60,41 @@ function totalUniqueMembers(projects) {
   return ids.size;
 }
 
+function collectUniqueMembers(projects) {
+  const members = new Map();
+
+  for (const project of projects) {
+    for (const member of project.members ?? []) {
+      if (typeof member === "object" && member !== null) {
+        const id = member._id ?? member.id;
+        if (id && !members.has(id.toString())) {
+          members.set(id.toString(), member);
+        }
+      }
+    }
+  }
+
+  return Array.from(members.values());
+}
+
+const METRIC_KEYS = {
+  totalProjects: "totalProjects",
+  activeProjects: "activeProjects",
+  totalTasks: "totalTasks",
+  teamMembers: "teamMembers",
+  overdueTasks: "overdueTasks",
+  dueSoonTasks: "dueSoonTasks",
+};
+
+const METRIC_TONES = {
+  [METRIC_KEYS.totalProjects]: "orange",
+  [METRIC_KEYS.activeProjects]: "emerald",
+  [METRIC_KEYS.totalTasks]: "blue",
+  [METRIC_KEYS.overdueTasks]: "rose",
+  [METRIC_KEYS.dueSoonTasks]: "amber",
+  [METRIC_KEYS.teamMembers]: "violet",
+};
+
 export function MyProjectsOverviewPage() {
   useDashboardPageMeta({
     title: "My projects",
@@ -60,6 +103,7 @@ export function MyProjectsOverviewPage() {
 
   const { user } = useAuth();
   const [createOpen, setCreateOpen] = useState(false);
+  const [activeMetric, setActiveMetric] = useState(null);
   const { data, isLoading, isError, error, refetch, isFetching } = useProjects();
 
   const taskQueries = useQueries({
@@ -82,6 +126,24 @@ export function MyProjectsOverviewPage() {
     return counts;
   }, [data, taskQueries]);
 
+  const allTasks = useMemo(() => {
+    const tasks = [];
+    (data ?? []).forEach((project, index) => {
+      for (const task of taskQueries[index]?.data ?? []) {
+        tasks.push({
+          ...task,
+          projectId: { id: project._id, name: project.name, columns: project.columns },
+        });
+      }
+    });
+    return tasks;
+  }, [data, taskQueries]);
+
+  const uniqueMembers = useMemo(
+    () => collectUniqueMembers(data ?? []),
+    [data]
+  );
+
   const stats = useMemo(() => {
     const projects = data ?? [];
     return {
@@ -95,14 +157,124 @@ export function MyProjectsOverviewPage() {
     };
   }, [data, taskQueries]);
 
+  const activeProjects = useMemo(
+    () => (data ?? []).filter((project) => project.status === "active"),
+    [data]
+  );
+
+  const overdueTasks = useMemo(
+    () => allTasks.filter((task) => isTaskOverdue(task)),
+    [allTasks]
+  );
+
+  const dueSoonTasks = useMemo(
+    () => allTasks.filter((task) => isTaskDueSoon(task)),
+    [allTasks]
+  );
+
   const tasksLoading = taskQueries.some((query) => query.isLoading);
+
+  function scrollToProjectsTable() {
+    document.getElementById("projects-table")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
+  function getDialogConfig() {
+    switch (activeMetric) {
+      case METRIC_KEYS.totalProjects:
+        return {
+          title: "Total projects",
+          description: `${stats.total} project${stats.total === 1 ? "" : "s"} you manage.`,
+          viewAllLabel: "View all projects",
+          onViewAll: scrollToProjectsTable,
+          isEmpty: (data ?? []).length === 0,
+          content: (
+            <ProjectPreviewList
+              projects={(data ?? []).map((project) => ({
+                ...project,
+                taskCount: taskCountByProjectId.get(project._id) ?? 0,
+              }))}
+              role="project_manager"
+            />
+          ),
+        };
+      case METRIC_KEYS.activeProjects:
+        return {
+          title: "Active projects",
+          description: `${stats.active} active project${stats.active === 1 ? "" : "s"}.`,
+          viewAllLabel: "View all projects",
+          onViewAll: scrollToProjectsTable,
+          isEmpty: activeProjects.length === 0,
+          content: (
+            <ProjectPreviewList
+              projects={activeProjects.map((project) => ({
+                ...project,
+                taskCount: taskCountByProjectId.get(project._id) ?? 0,
+              }))}
+              role="project_manager"
+            />
+          ),
+        };
+      case METRIC_KEYS.totalTasks:
+        return {
+          title: "Total tasks",
+          description: `${stats.totalTasks} task${stats.totalTasks === 1 ? "" : "s"} across your projects.`,
+          viewAllHref: "/dashboard/reports",
+          viewAllLabel: "View reports",
+          isEmpty: allTasks.length === 0,
+          isLoading: tasksLoading,
+          content: <TaskPreviewList tasks={allTasks} role="project_manager" />,
+        };
+      case METRIC_KEYS.teamMembers:
+        return {
+          title: "Team members",
+          description: `${stats.teamSize} unique team member${stats.teamSize === 1 ? "" : "s"} across your projects.`,
+          isEmpty: uniqueMembers.length === 0,
+          content: (
+            <UserPreviewList users={uniqueMembers} linkToDetail={false} />
+          ),
+        };
+      case METRIC_KEYS.overdueTasks:
+        return {
+          title: "Overdue tasks",
+          description: `${overdueTasks.length} overdue task${overdueTasks.length === 1 ? "" : "s"} across your projects.`,
+          viewAllHref: "/dashboard/reports",
+          viewAllLabel: "View reports",
+          isEmpty: overdueTasks.length === 0,
+          emptyMessage: "No overdue tasks.",
+          isLoading: tasksLoading,
+          content: (
+            <TaskPreviewList tasks={overdueTasks} role="project_manager" />
+          ),
+        };
+      case METRIC_KEYS.dueSoonTasks:
+        return {
+          title: "Due soon",
+          description: `${dueSoonTasks.length} task${dueSoonTasks.length === 1 ? "" : "s"} due within 3 days.`,
+          viewAllHref: "/dashboard/reports",
+          viewAllLabel: "View reports",
+          isEmpty: dueSoonTasks.length === 0,
+          emptyMessage: "No tasks due soon.",
+          isLoading: tasksLoading,
+          content: (
+            <TaskPreviewList tasks={dueSoonTasks} role="project_manager" />
+          ),
+        };
+      default:
+        return null;
+    }
+  }
+
+  const dialogConfig = getDialogConfig();
 
   return (
     <>
       {isLoading ? (
         <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-24" />
             ))}
           </div>
@@ -137,24 +309,63 @@ export function MyProjectsOverviewPage() {
           </Card>
         ) : (
           <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <MetricCard label="Total projects" value={stats.total} />
-              <MetricCard label="Active projects" value={stats.active} />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              <MetricCard
+                label="Total projects"
+                value={stats.total}
+                tone="orange"
+                onClick={() => setActiveMetric(METRIC_KEYS.totalProjects)}
+              />
+              <MetricCard
+                label="Active projects"
+                value={stats.active}
+                tone="emerald"
+                onClick={() => setActiveMetric(METRIC_KEYS.activeProjects)}
+              />
               {tasksLoading ? (
-                <Skeleton className="h-24" />
+                <>
+                  <Skeleton className="h-24" />
+                  <Skeleton className="h-24" />
+                  <Skeleton className="h-24" />
+                </>
               ) : (
-                <MetricCard label="Total tasks" value={stats.totalTasks} />
+                <>
+                  <MetricCard
+                    label="Total tasks"
+                    value={stats.totalTasks}
+                    tone="blue"
+                    onClick={() => setActiveMetric(METRIC_KEYS.totalTasks)}
+                  />
+                  <MetricCard
+                    label="Overdue tasks"
+                    value={overdueTasks.length}
+                    tone="rose"
+                    onClick={() => setActiveMetric(METRIC_KEYS.overdueTasks)}
+                  />
+                  <MetricCard
+                    label="Due soon"
+                    value={dueSoonTasks.length}
+                    tone="amber"
+                    onClick={() => setActiveMetric(METRIC_KEYS.dueSoonTasks)}
+                  />
+                </>
               )}
-              <MetricCard label="Team members" value={stats.teamSize} />
+              <MetricCard
+                label="Team members"
+                value={stats.teamSize}
+                tone="violet"
+                onClick={() => setActiveMetric(METRIC_KEYS.teamMembers)}
+              />
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex flex-wrap justify-end gap-2">
+              <RecordTaskButton />
               <Button type="button" onClick={() => setCreateOpen(true)}>
                 New project
               </Button>
             </div>
 
-            <Card className="overflow-hidden p-0">
+            <Card id="projects-table" className="overflow-hidden p-0 scroll-mt-6">
               <TableScrollArea>
                 <Table>
                   <TableHeader>
@@ -205,6 +416,25 @@ export function MyProjectsOverviewPage() {
             </Card>
           </div>
         )
+      ) : null}
+
+      {dialogConfig ? (
+        <MetricCardDetailDialog
+          open={activeMetric != null}
+          onOpenChange={(open) => {
+            if (!open) setActiveMetric(null);
+          }}
+          title={dialogConfig.title}
+          description={dialogConfig.description}
+          viewAllHref={dialogConfig.viewAllHref}
+          onViewAll={dialogConfig.onViewAll}
+          viewAllLabel={dialogConfig.viewAllLabel}
+          tone={METRIC_TONES[activeMetric]}
+          isLoading={dialogConfig.isLoading}
+          isEmpty={dialogConfig.isEmpty}
+        >
+          {dialogConfig.content}
+        </MetricCardDetailDialog>
       ) : null}
 
       <CreateProjectDialog open={createOpen} onOpenChange={setCreateOpen} />

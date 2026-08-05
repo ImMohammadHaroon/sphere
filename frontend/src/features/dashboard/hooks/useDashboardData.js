@@ -17,17 +17,25 @@ function isDone(task) {
   return isTaskDone(task);
 }
 
-function isOverdue(task) {
+export function isTaskOverdue(task) {
   if (!task.dueDate || isDone(task)) return false;
   return new Date(task.dueDate) < startOfDay(new Date());
 }
 
-function isDueSoon(task) {
+export function isTaskDueSoon(task) {
   if (!task.dueDate || isDone(task)) return false;
   const due = new Date(task.dueDate);
   const today = startOfDay(new Date());
   const threeDaysOut = new Date(today.getTime() + 3 * MS_PER_DAY);
   return due >= today && due <= threeDaysOut;
+}
+
+function isOverdue(task) {
+  return isTaskOverdue(task);
+}
+
+function isDueSoon(task) {
+  return isTaskDueSoon(task);
 }
 
 function getProjectId(task) {

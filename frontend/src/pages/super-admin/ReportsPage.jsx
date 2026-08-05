@@ -1,5 +1,11 @@
+import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDashboardPageMeta } from "@/components/layout/dashboardPageMeta";
+import { MetricCardDetailDialog } from "@/components/overview/MetricCardDetailDialog";
+import { OrganizationPreviewList } from "@/components/overview/OrganizationPreviewList";
+import { ProjectPreviewList } from "@/components/overview/ProjectPreviewList";
+import { SummaryBreakdownList } from "@/components/overview/SummaryBreakdownList";
+import { UserPreviewList } from "@/components/overview/UserPreviewList";
 import { ProjectPicker } from "@/components/projects/ProjectPicker";
 import { BurndownChart } from "@/features/reports/BurndownChart";
 import { OrgGrowthChart } from "@/features/reports/OrgGrowthChart";
@@ -14,32 +20,33 @@ import {
   usePlatformWorkloadReport,
 } from "@/features/reports/hooks/usePlatformReports";
 import { usePlatformProjects } from "@/features/projects/hooks/usePlatformProjects";
+import { useAllUsers } from "@/features/platform/hooks/useAllUsers";
+import { useOrganizations } from "@/features/platform/hooks/useOrganizations";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { MetricCard } from "@/components/ui/MetricCard";
+import { MetricCard, PercentMetricCard } from "@/components/ui/MetricCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 
-function formatPercent(rate) {
-  if (rate == null || Number.isNaN(Number(rate))) {
-    return "—";
-  }
-  return `${Math.round(Number(rate) * 100)}%`;
-}
+const METRIC_KEYS = {
+  totalOrganizations: "totalOrganizations",
+  totalUsers: "totalUsers",
+  totalProjects: "totalProjects",
+  totalTasks: "totalTasks",
+  taskCompletionRate: "taskCompletionRate",
+};
 
-function PercentMetricCard({ label, value }) {
-  return (
-    <Card className="bg-dashboard-accent-subtle p-5">
-      <p className="text-sm font-medium text-text-secondary">{label}</p>
-      <p className="mt-2 font-display text-2xl font-semibold text-primary sm:text-3xl">
-        {formatPercent(value)}
-      </p>
-    </Card>
-  );
-}
+const METRIC_TONES = {
+  [METRIC_KEYS.totalOrganizations]: "blue",
+  [METRIC_KEYS.totalUsers]: "emerald",
+  [METRIC_KEYS.totalProjects]: "orange",
+  [METRIC_KEYS.totalTasks]: "violet",
+  [METRIC_KEYS.taskCompletionRate]: "amber",
+};
 
 export function SuperAdminReportsPage() {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") || "";
+  const [activeMetric, setActiveMetric] = useState(null);
 
   useDashboardPageMeta({
     title: "Reports",
@@ -50,6 +57,12 @@ export function SuperAdminReportsPage() {
     usePlatformReportsOverview();
   const { data: projectsData, isLoading: projectsLoading } =
     usePlatformProjects();
+  const { data: organizationsData, isLoading: organizationsLoading } =
+    useOrganizations({ page: 1, limit: 5 });
+  const { data: usersData, isLoading: usersLoading } = useAllUsers({
+    page: 1,
+    limit: 5,
+  });
 
   const projects = projectsData?.projects ?? [];
 
@@ -58,6 +71,14 @@ export function SuperAdminReportsPage() {
   const workload = usePlatformWorkloadReport(projectId);
 
   const selectedProject = projects.find((project) => project._id === projectId);
+
+  const usersByRoleItems = useMemo(() => {
+    if (!data?.usersByRole) return [];
+    return Object.entries(data.usersByRole).map(([role, count]) => ({
+      label: role.replaceAll("_", " "),
+      value: count,
+    }));
+  }, [data?.usersByRole]);
 
   const chartsLoading =
     !!projectId &&
@@ -76,6 +97,105 @@ export function SuperAdminReportsPage() {
       workload.refetch(),
     ]);
   }
+
+  function getDialogConfig() {
+    if (!data) return null;
+
+    switch (activeMetric) {
+      case METRIC_KEYS.totalOrganizations:
+        return {
+          title: "Total organizations",
+          description: `${data.totalOrganizations ?? 0} organization${data.totalOrganizations === 1 ? "" : "s"} on the platform.`,
+          viewAllHref: "/super-admin/organizations",
+          viewAllLabel: "View all organizations",
+          isLoading: organizationsLoading,
+          isEmpty: (organizationsData?.organizations ?? []).length === 0,
+          content: (
+            <OrganizationPreviewList
+              organizations={organizationsData?.organizations ?? []}
+            />
+          ),
+        };
+      case METRIC_KEYS.totalUsers:
+        return {
+          title: "Total users",
+          description: `${data.totalUsers ?? 0} user${data.totalUsers === 1 ? "" : "s"} on the platform.`,
+          viewAllHref: "/super-admin/users",
+          viewAllLabel: "View all users",
+          isLoading: usersLoading,
+          isEmpty: (usersData?.users ?? []).length === 0,
+          content: (
+            <UserPreviewList users={usersData?.users ?? []} role="super_admin" />
+          ),
+        };
+      case METRIC_KEYS.totalProjects:
+        return {
+          title: "Total projects",
+          description: `${data.totalProjects ?? 0} project${data.totalProjects === 1 ? "" : "s"} across all organizations.`,
+          viewAllHref: "/super-admin/reports",
+          viewAllLabel: "View reports",
+          isLoading: projectsLoading,
+          isEmpty: projects.length === 0,
+          content: (
+            <ProjectPreviewList
+              projects={projects}
+              getProjectHref={(project) =>
+                `/super-admin/reports?projectId=${project._id}`
+              }
+            />
+          ),
+        };
+      case METRIC_KEYS.totalTasks:
+        return {
+          title: "Total tasks",
+          description: `${data.totalTasks ?? 0} task${data.totalTasks === 1 ? "" : "s"} on the platform.`,
+          viewAllHref: "/super-admin/reports",
+          viewAllLabel: "View reports",
+          isEmpty: (data.totalTasks ?? 0) === 0,
+          content: (
+            <SummaryBreakdownList
+              items={[
+                {
+                  label: "Completed",
+                  value: Math.round(
+                    (data.totalTasks ?? 0) * (data.taskCompletionRate ?? 0)
+                  ),
+                },
+                {
+                  label: "Remaining",
+                  value: Math.round(
+                    (data.totalTasks ?? 0) * (1 - (data.taskCompletionRate ?? 0))
+                  ),
+                },
+              ]}
+            />
+          ),
+        };
+      case METRIC_KEYS.taskCompletionRate:
+        return {
+          title: "Task completion rate",
+          description: "Platform-wide task completion breakdown.",
+          viewAllHref: "/super-admin/reports",
+          viewAllLabel: "View reports",
+          isEmpty: (data.totalTasks ?? 0) === 0,
+          content: (
+            <SummaryBreakdownList
+              items={[
+                ...usersByRoleItems,
+                {
+                  label: "Completion rate",
+                  value: `${Math.round((data.taskCompletionRate ?? 0) * 100)}%`,
+                },
+              ]}
+            />
+          ),
+        };
+      default:
+        return null;
+    }
+  }
+
+  const dialogConfig = getDialogConfig();
 
   return (
     <>
@@ -164,16 +284,32 @@ export function SuperAdminReportsPage() {
               <MetricCard
                 label="Total organizations"
                 value={data.totalOrganizations ?? 0}
+                tone="blue"
+                onClick={() => setActiveMetric(METRIC_KEYS.totalOrganizations)}
               />
-              <MetricCard label="Total users" value={data.totalUsers ?? 0} />
+              <MetricCard
+                label="Total users"
+                value={data.totalUsers ?? 0}
+                tone="emerald"
+                onClick={() => setActiveMetric(METRIC_KEYS.totalUsers)}
+              />
               <MetricCard
                 label="Total projects"
                 value={data.totalProjects ?? 0}
+                tone="orange"
+                onClick={() => setActiveMetric(METRIC_KEYS.totalProjects)}
               />
-              <MetricCard label="Total tasks" value={data.totalTasks ?? 0} />
+              <MetricCard
+                label="Total tasks"
+                value={data.totalTasks ?? 0}
+                tone="violet"
+                onClick={() => setActiveMetric(METRIC_KEYS.totalTasks)}
+              />
               <PercentMetricCard
                 label="Task completion rate"
                 value={data.taskCompletionRate}
+                tone="amber"
+                onClick={() => setActiveMetric(METRIC_KEYS.taskCompletionRate)}
               />
             </div>
 
@@ -215,6 +351,24 @@ export function SuperAdminReportsPage() {
             ) : null}
           </div>
         )
+      ) : null}
+
+      {dialogConfig ? (
+        <MetricCardDetailDialog
+          open={activeMetric != null}
+          onOpenChange={(open) => {
+            if (!open) setActiveMetric(null);
+          }}
+          title={dialogConfig.title}
+          description={dialogConfig.description}
+          viewAllHref={dialogConfig.viewAllHref}
+          viewAllLabel={dialogConfig.viewAllLabel}
+          tone={METRIC_TONES[activeMetric]}
+          isLoading={dialogConfig.isLoading}
+          isEmpty={dialogConfig.isEmpty}
+        >
+          {dialogConfig.content}
+        </MetricCardDetailDialog>
       ) : null}
     </>
   );

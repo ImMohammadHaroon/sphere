@@ -7,12 +7,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { RecordTaskButton } from "@/features/task-recording/components/RecordTaskButton";
 
 function DashboardSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-28" />
         ))}
       </div>
@@ -49,6 +50,9 @@ export function DashboardPage() {
 
       {!isLoading && !isError ? (
         <div className="space-y-6">
+          <div className="flex justify-end">
+            <RecordTaskButton />
+          </div>
           <TaskSummaryCards />
           {isTeamMember ? (
             <AssignedProjectsList />

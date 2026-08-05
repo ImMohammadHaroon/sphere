@@ -20,6 +20,8 @@ const buttonVariants = cva(
         ghost:
           "text-text-secondary hover:bg-card-hover hover:text-text-primary",
         danger: "bg-danger text-white hover:opacity-90 shadow-sm",
+        record:
+          "border-0 bg-[#B88A44] text-white shadow-sm hover:bg-[#C8A15A] focus-visible:ring-[#B88A44]/40",
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -11,6 +11,7 @@ import { AddMemberDialog } from "@/features/projects/components/AddMemberDialog"
 import { DeleteProjectDialog } from "@/features/projects/components/DeleteProjectDialog";
 import { ProjectWorkspace } from "@/features/projects/components/ProjectWorkspace";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
+import { RecordTaskButton } from "@/features/task-recording/components/RecordTaskButton";
 import {
   dateInputToIso,
   toDateInputValue,
@@ -257,7 +258,8 @@ export function ProjectDetailPage() {
             role="project_manager"
             canManageMilestones
             toolbar={
-              <div className="flex justify-end">
+              <div className="flex flex-wrap justify-end gap-2">
+                <RecordTaskButton projectId={id} />
                 <Button type="button" variant="secondary" onClick={() => setCreateTaskOpen(true)}>
                   Create task
                 </Button>

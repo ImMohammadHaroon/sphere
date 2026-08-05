@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { TaskComments } from "@/features/tasks/components/TaskComments";
 import { TaskAttachments } from "@/features/tasks/components/TaskAttachments";
+import { RecordTaskButton } from "@/features/task-recording/components/RecordTaskButton";
 import { formatTimestamp } from "@/lib/dateTimeUtils";
 
 const selectClassName =
@@ -296,16 +297,25 @@ export function TaskDetailPage() {
                 </div>
               </div>
 
-              {canSave ? (
-                <Button
-                  type="button"
-                  onClick={handleSave}
-                  isLoading={updateTask.isPending}
-                  disabled={!isDirty}
-                >
-                  Save changes
-                </Button>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-2">
+                {canSave ? (
+                  <Button
+                    type="button"
+                    onClick={handleSave}
+                    isLoading={updateTask.isPending}
+                    disabled={!isDirty}
+                  >
+                    Save changes
+                  </Button>
+                ) : null}
+
+                {canUploadAttachments ? (
+                  <RecordTaskButton
+                    projectId={projectId}
+                    taskId={taskId}
+                  />
+                ) : null}
+              </div>
             </div>
 
             {saveError ? <Alert variant="error" className="mt-4">{saveError}</Alert> : null}

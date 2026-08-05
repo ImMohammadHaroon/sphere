@@ -9,7 +9,7 @@ import { FilePreviewDialog } from "@/components/attachments/FilePreviewDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/lib/toast";
 import { useFilePreview } from "@/hooks/useFilePreview";
-import { attachmentMeta, MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
+import { attachmentMeta, formatFileSize, MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
 import {
   useDeleteMilestoneAttachment,
   useMilestoneAttachments,
@@ -67,7 +67,7 @@ export function MilestoneAttachments({
     }
 
     if (file.size > MAX_ATTACHMENT_SIZE) {
-      toast.error("File too large. Max size is 5MB.");
+      toast.error(`File too large. Max size is ${formatFileSize(MAX_ATTACHMENT_SIZE)}.`);
       return;
     }
 

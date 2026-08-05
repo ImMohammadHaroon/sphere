@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
+import { formatRelativeWithTimestamp } from "@/lib/dateTimeUtils";
 import { CornerDownRight, MessageSquare, Paperclip, Reply, Trash2, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -374,9 +374,7 @@ function CommentItem({
               </span>
               <span className="text-xs text-text-muted">
                 {comment.createdAt
-                  ? formatDistanceToNow(new Date(comment.createdAt), {
-                      addSuffix: true,
-                    })
+                  ? formatRelativeWithTimestamp(comment.createdAt)
                   : ""}
               </span>
             </div>

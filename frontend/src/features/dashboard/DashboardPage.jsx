@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { RecordTaskButton } from "@/features/task-recording/components/RecordTaskButton";
 
 function DashboardSkeleton() {
   return (
@@ -49,6 +50,9 @@ export function DashboardPage() {
 
       {!isLoading && !isError ? (
         <div className="space-y-6">
+          <div className="flex justify-end">
+            <RecordTaskButton />
+          </div>
           <TaskSummaryCards />
           {isTeamMember ? (
             <AssignedProjectsList />

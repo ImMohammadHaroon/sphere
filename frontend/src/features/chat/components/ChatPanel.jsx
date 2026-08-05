@@ -6,7 +6,7 @@ import {
   Send,
   Users,
 } from "lucide-react";
-import { MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
+import { formatFileSize, MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -182,7 +182,7 @@ export function ChatPanel({ room }) {
 
     if (rejected.length > 0) {
       setFileError(
-        `These files exceed 5MB and were skipped: ${rejected.join(", ")}`
+        `These files exceed ${formatFileSize(MAX_ATTACHMENT_SIZE)} and were skipped: ${rejected.join(", ")}`
       );
     }
 

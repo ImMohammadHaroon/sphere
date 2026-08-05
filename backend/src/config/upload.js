@@ -1,8 +1,8 @@
 import multer from "multer";
 
-// 5MB per file. MongoDB's 16MB document limit is the hard ceiling for a single
-// Attachment document (metadata + Buffer).
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+// 15MB per file. MongoDB's 16MB document limit is the hard ceiling for a single
+// Attachment document (metadata + encrypted Buffer).
+const MAX_FILE_SIZE = 15 * 1024 * 1024;
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 
 export const upload = multer({

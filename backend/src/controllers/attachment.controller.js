@@ -101,7 +101,7 @@ export async function uploadAttachment(req, res, next) {
       throw badRequest("No file uploaded");
     }
 
-    // 5MB cap is enforced by multer in src/config/upload.js because MongoDB's
+    // 15MB cap is enforced by multer in src/config/upload.js because MongoDB's
     // 16MB document limit is the hard ceiling (metadata + encrypted buffer must fit).
     const { task } = await assertTaskReadable(
       req,

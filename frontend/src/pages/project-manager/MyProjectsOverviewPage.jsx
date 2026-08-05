@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { RecordTaskButton } from "@/features/task-recording/components/RecordTaskButton";
 import {
   Table,
   TableBody,
@@ -357,7 +358,8 @@ export function MyProjectsOverviewPage() {
               />
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex flex-wrap justify-end gap-2">
+              <RecordTaskButton />
               <Button type="button" onClick={() => setCreateOpen(true)}>
                 New project
               </Button>

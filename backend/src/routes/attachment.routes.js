@@ -61,7 +61,7 @@ function createAttachmentRouter() {
    *   post:
    *     summary: Upload a file attachment to a task (tenant-scoped)
    *     description: >
-   *       Accepts multipart file (max 5MB). Bytes are encrypted with AES-256-GCM
+   *       Accepts multipart file (max 15MB). Bytes are encrypted with AES-256-GCM
    *       before being stored in MongoDB — plaintext is never persisted.
    *     tags: [Attachments]
    *     security: [{ bearerAuth: [] }]
@@ -89,7 +89,7 @@ function createAttachmentRouter() {
    *       201:
    *         description: Attachment uploaded (metadata only in response body)
    *       400:
-   *         description: No file or file too large (max 5MB)
+   *         description: No file or file too large (max 15MB)
    *       403:
    *         description: Forbidden — client role cannot upload
    *       404:

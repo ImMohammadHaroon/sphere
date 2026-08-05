@@ -1,6 +1,4 @@
 node_modules/
-.env
-.env.*
 
 branch_structure.json
 temp_auto_push.bat
@@ -10,3 +8,5 @@ ProjectSphere-Documentation.md
 skills-lock.json
 .cursor/
 .codex
+config.bat
+.gitignore

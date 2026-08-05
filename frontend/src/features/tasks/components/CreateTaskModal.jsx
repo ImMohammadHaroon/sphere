@@ -132,7 +132,7 @@ export function CreateTaskModal({
 
     const oversized = selected.find((file) => file.size > MAX_FILE_SIZE);
     if (oversized) {
-      setError(`"${oversized.name}" is too large. Max size is 5MB.`);
+      setError(`"${oversized.name}" is too large. Max size is ${formatFileSize(MAX_FILE_SIZE)}.`);
       return;
     }
 
@@ -309,7 +309,9 @@ export function CreateTaskModal({
 
           <div className="space-y-2">
             <Label>Attachments</Label>
-            <p className="text-xs text-text-muted">Optional · max 5MB each</p>
+            <p className="text-xs text-text-muted">
+              Optional · max {formatFileSize(MAX_ATTACHMENT_SIZE)} each
+            </p>
             <input
               ref={fileInputRef}
               type="file"

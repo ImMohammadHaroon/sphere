@@ -1,6 +1,6 @@
 import { File, FileImage, FileText } from "lucide-react";
 
-export const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
+export const MAX_ATTACHMENT_SIZE = 15 * 1024 * 1024;
 
 const EXTENSION_MIME_TYPES = {
   avi: "video/x-msvideo",
@@ -21,6 +21,7 @@ const EXTENSION_MIME_TYPES = {
   txt: "text/plain",
   wav: "audio/wav",
   webm: "video/webm",
+  weba: "audio/webm",
   webp: "image/webp",
   xls: "application/vnd.ms-excel",
   xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

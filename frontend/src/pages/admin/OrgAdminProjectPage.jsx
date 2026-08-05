@@ -6,6 +6,7 @@ import { DeleteProjectDialog } from "@/features/projects/components/DeleteProjec
 import { ProjectWorkspace } from "@/features/projects/components/ProjectWorkspace";
 import { useAddMember, useProject } from "@/features/projects/hooks/useProjects";
 import { CreateTaskModal } from "@/features/tasks/components/CreateTaskModal";
+import { RecordTaskButton } from "@/features/task-recording/components/RecordTaskButton";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
@@ -70,6 +71,7 @@ export function OrgAdminProjectPage() {
         canManageMilestones
         toolbar={
           <div className="flex flex-wrap items-center justify-end gap-2">
+            <RecordTaskButton projectId={projectId} />
             <Button type="button" variant="outline" onClick={() => setMemberDialogOpen(true)}>
               Add member
             </Button>

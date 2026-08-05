@@ -6,7 +6,7 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
-import { MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
+import { formatFileSize, MAX_ATTACHMENT_SIZE } from "@/lib/fileUtils";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { FilePreviewDialog } from "@/components/attachments/FilePreviewDialog";
@@ -181,7 +181,7 @@ export function CommunityChat() {
 
     if (rejected.length > 0) {
       setFileError(
-        `These files exceed 5MB and were skipped: ${rejected.join(", ")}`
+        `These files exceed ${formatFileSize(MAX_ATTACHMENT_SIZE)} and were skipped: ${rejected.join(", ")}`
       );
     }
 

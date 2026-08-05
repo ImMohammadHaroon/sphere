@@ -24,6 +24,7 @@ import {
   TableScrollArea,
 } from "@/components/ui/Table";
 import { totalTaskCountFromProjects } from "@/lib/taskStatusConfig";
+import { RecordTaskButton } from "@/features/task-recording/components/RecordTaskButton";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -173,6 +174,9 @@ export function OrgOverviewPage() {
           </Card>
         ) : (
           <div className="space-y-8">
+            <div className="flex justify-end">
+              <RecordTaskButton />
+            </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               <MetricCard
                 label="Total projects"

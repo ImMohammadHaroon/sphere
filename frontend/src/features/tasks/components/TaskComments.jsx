@@ -98,7 +98,7 @@ function PendingCommentFiles({
 
     if (rejected.length > 0) {
       setFileError(
-        `These files exceed 5MB and were skipped: ${rejected.join(", ")}`
+        `These files exceed ${formatFileSize(MAX_ATTACHMENT_SIZE)} and were skipped: ${rejected.join(", ")}`
       );
     }
 

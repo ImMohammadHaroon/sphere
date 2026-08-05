@@ -1,5 +1,13 @@
 import { useEffect, useRef } from "react";
-import { CalendarDays, MessageSquare, UserPen, UserRound, X } from "lucide-react";
+import {
+  CalendarDays,
+  Clock,
+  MessageSquare,
+  UserPen,
+  UserRound,
+  X,
+} from "lucide-react";
+import { formatTimestamp } from "@/lib/dateTimeUtils";
 import { TaskStatusBadge } from "@/features/tasks/components/TaskStatusBadge";
 import { TaskComments } from "@/features/tasks/components/TaskComments";
 import { useTask } from "@/features/tasks/hooks/useTask";
@@ -178,7 +186,7 @@ export function KanbanTaskPanel({ taskId, projectId, onClose }) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 sm:col-span-2">
+                <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-info/15 text-info shadow-sm">
                     <CalendarDays className="h-4 w-4" />
                   </div>
@@ -191,6 +199,39 @@ export function KanbanTaskPanel({ taskId, projectId, onClose }) {
                     </p>
                   </div>
                 </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-dashboard-accent/15 text-dashboard-accent shadow-sm">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+                      Created
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-text-primary">
+                      {formatTimestamp(task.createdAt)}
+                    </p>
+                  </div>
+                </div>
+
+                {task.updatedAt &&
+                task.createdAt &&
+                new Date(task.updatedAt).getTime() !==
+                  new Date(task.createdAt).getTime() ? (
+                  <div className="flex items-center gap-3 sm:col-span-2">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-raised text-text-muted shadow-sm ring-1 ring-border">
+                      <Clock className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+                        Last updated
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-text-primary">
+                        {formatTimestamp(task.updatedAt)}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               {task.description ? (
